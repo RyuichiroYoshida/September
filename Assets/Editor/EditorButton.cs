@@ -10,7 +10,8 @@ public class EditorButton : EditorWindow
 
     private static Dictionary<string, string> _packages = new Dictionary<string, string>
     {
-        { "Package1", "https://drive.google.com/uc?export=download&id=13EUNNvpz1tmuvZ1CINxtHA5QCwl3yj7U" }
+        { "Package1", "https://drive.google.com/uc?export=download&id=13EUNNvpz1tmuvZ1CINxtHA5QCwl3yj7U" },
+        { "Test", "https://drive.google.com/uc?export=download&id=11yQLaD23-dtCFDdisTG0XLRF0pjEshsg" }
     };
     
     private static string _saveDirectory = "Assets/DownloadedPackages/";
@@ -69,10 +70,30 @@ public class EditorButton : EditorWindow
             }
              
             AssetDatabase.ImportPackage(savePath, false);
+            DeletePackageFile(savePath);
           
         }
         Debug.Log("All packages processed.");
     }
     
-    
+    private void DeletePackageFile(string savePath)
+    {
+        // インポート後にパッケージファイルを削除
+        if (File.Exists(savePath))
+        {
+            try
+            {
+                File.Delete(savePath);
+                Debug.Log($"Deleted package file: {savePath}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to delete package file: {savePath} -> {e.Message}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Package file not found for deletion: {savePath}");
+        }
+    }
 }
