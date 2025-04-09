@@ -13,6 +13,8 @@
 /.idea/
 /[Aa]ssets/AssetStoreTools/
 /[Aa]ssets/Demo/
+/[Aa]ssets/CRIMW/
+/[Aa]ssets/CRIData/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
