@@ -10,11 +10,8 @@ public class GameSettings
         public List<string> AdditiveSceneName = new List<string>();
     }
 
-
-    /// <summary>
-    /// チームで個別に設定してください
-    /// NOTE: @PlaySceneは現在設定中のシーンが
-    /// </summary>
+    
+    // NOTE: @PlaySceneは現在設定中のシーンが
     static Dictionary<string, SceneSetting> _sceneTypeDic = new Dictionary<string, SceneSetting>()
     {
         {

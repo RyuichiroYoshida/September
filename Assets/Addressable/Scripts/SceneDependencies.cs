@@ -13,7 +13,6 @@ public class SceneDependencies : ScriptableObject
     [System.Serializable]
     public class Dependencies
     {
-        public bool CanIDebugSelect = true;     //デバッグシーン選択に出てくるか
         public string Name;                     //シーン名
         public string AssetPath;                //シーンがあるアセットパス
         public SceneType SceneType;             //シーンの生成タイプ(GameSettingsを参照)
