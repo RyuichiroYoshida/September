@@ -34,7 +34,7 @@ public class SceneLoader
     static void SceneInit()
     {
         //現在のシーンの初期化処理をする
-        var execArrayInit = GameObject.FindObjectsOfType<GameExecuterBase>();
+        var execArrayInit = GameObject.FindObjectsByType<GameExecuterBase>(FindObjectsSortMode.None);
         foreach (var exec in execArrayInit)
         {
             exec.InitializeScene();
@@ -44,7 +44,7 @@ public class SceneLoader
     static void SceneTerm()
     {
         //現在のシーンの解放処理をする
-        var execArrayTerm = GameObject.FindObjectsOfType<GameExecuterBase>();
+        var execArrayTerm = GameObject.FindObjectsByType<GameExecuterBase>(FindObjectsSortMode.None);
         foreach (var exec in execArrayTerm)
         {
             exec.FinalizeScene();
