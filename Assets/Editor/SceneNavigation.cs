@@ -1,4 +1,7 @@
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
+
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 
@@ -11,7 +14,7 @@ public static class SceneNavigation
         EditorSceneManager.SaveOpenScenes();
         OpenScene(0);
     }
-    
+
     [MenuItem("Scene/GameScene")]
     public static void Scene01()
     {
@@ -25,18 +28,18 @@ public static class SceneNavigation
         EditorSceneManager.SaveOpenScenes();
         OpenScene(2);
     }
-    
+
     // [MenuItem("Scene/StageSelect")]
     // public static void Scene03()
     // {
     //     EditorSceneManager.SaveOpenScenes();
     //     OpenScene(3);
     // }
-    
-  
-          private static void OpenScene(int sceneIndex)
-            {
-                string scenePath = SceneUtility.GetScenePathByBuildIndex(sceneIndex);
+
+
+    private static void OpenScene(int sceneIndex)
+    {
+        string scenePath = SceneUtility.GetScenePathByBuildIndex(sceneIndex);
         if (!string.IsNullOrEmpty(scenePath))
         {
             EditorSceneManager.OpenScene(scenePath);
