@@ -22,26 +22,26 @@ namespace September.Common
         private void Awake()
         {
             _playerInput = new PlayerInput();
-        }
-
-        public void OnEnable()
-        {
-            if(Runner != null)
+            
+            _playerInput.Enable();
+            _playerInput.Player.Enable();
+            var runner = NetworkRunner.GetRunnerForGameObject(gameObject);
+            if (runner != null && runner.IsRunning)
             {
-                _playerInput.Enable();
-                _playerInput.Player.Enable();
-                Runner.AddCallbacks(this);
-                Runner.AddGlobal(this);
+                runner.AddCallbacks(this);
+                runner.AddGlobal(this);
             }
         }
-        public void OnDisable()
+
+        public void OnDestroy()
         {
-            if(Runner != null)
+            _playerInput.Disable();
+            _playerInput.Player.Disable();
+            var runner = NetworkRunner.GetRunnerForGameObject(gameObject);
+            if (runner != null && runner.IsRunning)
             {
-                _playerInput.Disable();
-                _playerInput.Player.Disable();
-                Runner.RemoveCallbacks( this );
-                Runner.RemoveGlobal(this);
+                runner.RemoveCallbacks(this);
+                runner.RemoveGlobal(this);
             }
         }
         public void OnInput(NetworkRunner runner, NetworkInput input)
