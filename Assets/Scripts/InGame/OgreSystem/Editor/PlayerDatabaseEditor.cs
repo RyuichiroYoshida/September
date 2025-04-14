@@ -1,7 +1,7 @@
 using System;
 using UnityEditor;
 
-namespace September.OgerSystem
+namespace September.OgreSystem
 {
     public class PlayerDatabaseEditor : EditorWindow
     {
