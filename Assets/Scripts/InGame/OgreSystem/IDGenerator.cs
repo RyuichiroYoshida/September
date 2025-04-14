@@ -1,4 +1,4 @@
-namespace September.OgerSystem
+namespace September.OgreSystem
 {
     public class IDGenerator
     {

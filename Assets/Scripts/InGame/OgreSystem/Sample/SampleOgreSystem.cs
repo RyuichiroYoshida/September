@@ -1,15 +1,15 @@
 using UnityEngine;
 
-namespace September.OgerSystem
+namespace September.OgreSystem
 {
     public class SampleOgreSystem : MonoBehaviour, IGameEventListener
     {
-        private OgerManager ogerManager;
+        private OgreManager _ogreManager;
         private IGameEventListener _gameEventListenerImplementation;
 
         void Awake()
         {
-            ogerManager = OgerManager.Instance;
+            _ogreManager = OgreManager.Instance;
         }
         
         void Start()
@@ -18,7 +18,7 @@ namespace September.OgerSystem
             string id = IDGenerator.GenerateID();
             
             var playerData = new PlayerData(id, "shiomi", 20, 20, false, false, this);
-            ogerManager.Register(playerData);
+            _ogreManager.Register(playerData);
         }
 
         public void Register()
@@ -27,23 +27,23 @@ namespace September.OgerSystem
             string id = IDGenerator.GenerateID();
             
             var playerData = new PlayerData(id, "okabe", 20, 20, false, false, this);
-            ogerManager.Register(playerData);
+            _ogreManager.Register(playerData);
         }
 
         //鬼の抽選
         public void Select()
         {
-            ogerManager.ChooseOger();
+            _ogreManager.ChooseOger();
         }
 
 
         //鬼からの攻撃
         public void Attack()
         {
-            ogerManager.SetHp("player0002", "player0001", 1000);
+            _ogreManager.SetHp("player0002", "player0001", 1000);
         }
 
-        public void OnBecomeOger()
+        public void OnBecomeOgre()
         {
             Debug.Log("鬼になった");
         }
