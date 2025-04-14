@@ -14,13 +14,11 @@ namespace September.InGame
 
         public override void Spawned()
         {
-            if (!HasInputAuthority) return;
             _camera = Camera.main.transform;
         }
 
         public override void FixedUpdateNetwork()
         {
-            if (!HasInputAuthority) return;
             if (!GetInput<MyInput>(out var input)) return;
             var pressed = input.Buttons.GetPressed(ButtonsPrevious);
             ButtonsPrevious = input.Buttons;
@@ -29,8 +27,7 @@ namespace September.InGame
             {
                 velocity.y = 5f;
             }
-            var cameraRotation = Quaternion.Euler(0f, _camera.rotation.eulerAngles.y, 0f);
-            var dir = cameraRotation * new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y) * _moveSpeed;
+            var dir = new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y) * _moveSpeed;
             if (dir != Vector3.zero)
             {
                 _body.forward = dir;
