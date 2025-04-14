@@ -6,20 +6,37 @@ namespace September.InGame
 {
     public class PlayerController : NetworkBehaviour
     {
-        Rigidbody _rigidbody;
+        [SerializeField] float _moveSpeed = 5f;
+        [SerializeField] Transform _body;
+        [SerializeField] Rigidbody _rigidbody;
+        [Networked] public NetworkButtons ButtonsPrevious { get; set; }
+        Transform _camera;
 
-        private void Awake()
+        public override void Spawned()
         {
-            _rigidbody = GetComponent<Rigidbody>();
+            if (!HasInputAuthority) return;
+            _camera = Camera.main.transform;
         }
 
         public override void FixedUpdateNetwork()
         {
+            if (!HasInputAuthority) return;
             if (!GetInput<MyInput>(out var input)) return;
-            Debug.Log(input.MoveDirection);
+            var pressed = input.Buttons.GetPressed(ButtonsPrevious);
+            ButtonsPrevious = input.Buttons;
             var velocity = _rigidbody.linearVelocity;
-            velocity.x = input.MoveDirection.x;
-            velocity.z = input.MoveDirection.y;
+            if (pressed.IsSet(MyButtons.Jump))
+            {
+                velocity.y = 5f;
+            }
+            var cameraRotation = Quaternion.Euler(0f, _camera.rotation.eulerAngles.y, 0f);
+            var dir = cameraRotation * new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y) * _moveSpeed;
+            if (dir != Vector3.zero)
+            {
+                _body.forward = dir;
+            }
+            velocity.x = dir.x;
+            velocity.z = dir.z;
             _rigidbody.linearVelocity = velocity;
         }
     }

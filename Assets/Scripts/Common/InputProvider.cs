@@ -15,6 +15,7 @@ namespace September.Common
     {
         public NetworkButtons Buttons;
         public Vector2 MoveDirection;
+        public Vector2 LookDirection;   //  同期する意味ない
     }
     public class InputProvider : SimulationBehaviour, INetworkRunnerCallbacks
     {
@@ -22,34 +23,38 @@ namespace September.Common
         private void Awake()
         {
             _playerInput = new PlayerInput();
+            
+            _playerInput.Enable();
+            _playerInput.Player.Enable();
+            var runner = NetworkRunner.GetRunnerForGameObject(gameObject);
+            if (runner != null && runner.IsRunning)
+            {
+                runner.AddCallbacks(this);
+                runner.AddGlobal(this);
+            }
         }
 
-        public void OnEnable()
+        public void OnDestroy()
         {
-            if(Runner != null)
+            _playerInput.Disable();
+            _playerInput.Player.Disable();
+            var runner = NetworkRunner.GetRunnerForGameObject(gameObject);
+            if (runner != null && runner.IsRunning)
             {
-                _playerInput.Enable();
-                _playerInput.Player.Enable();
-                Runner.AddCallbacks(this);
-                Runner.AddGlobal(this);
+                runner.RemoveCallbacks(this);
+                runner.RemoveGlobal(this);
             }
         }
-        public void OnDisable()
-        {
-            if(Runner != null)
-            {
-                _playerInput.Disable();
-                _playerInput.Player.Disable();
-                Runner.RemoveCallbacks( this );
-                Runner.RemoveGlobal(this);
-            }
-        }
+        /// <summary>
+        /// 現在の入力状況をネットワークに登録する
+        /// </summary>
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
             var myInput = new MyInput();
             var playerActions = _playerInput.Player;
             myInput.Buttons.Set(MyButtons.Jump, playerActions.Jump.IsPressed());
             myInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
+            myInput.LookDirection = playerActions.Look.ReadValue<Vector2>();
             input.Set(myInput);
         }
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
