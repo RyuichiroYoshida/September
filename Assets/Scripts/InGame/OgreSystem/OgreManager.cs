@@ -1,17 +1,17 @@
 using System;
 
-namespace September.OgerSystem
+namespace September.OgreSystem
 {
-    public class OgerManager
+    public class OgreManager
     {
-        private static OgerManager _instance;
+        private static OgreManager _instance;
 
-        public static OgerManager Instance
+        public static OgreManager Instance
         {
             get
             {
                 if (_instance == null)
-                    _instance = new OgerManager();
+                    _instance = new OgreManager();
                 return _instance;
             }
         }
@@ -43,7 +43,7 @@ namespace September.OgerSystem
                 if (player.ID == newOni.ID)
                 {
                     current = player.SetOgre(true);
-                    player.GameEventListener.OnBecomeOger();
+                    player.GameEventListener.OnBecomeOgre();
                 }
                 else
                 {
@@ -98,7 +98,7 @@ namespace September.OgerSystem
                     attacker = attacker.SetOgre(false);
                     target = target.SetOgre(true);
                     attacker.GameEventListener.OnBecomeNormal();
-                    target.GameEventListener.OnBecomeOger();
+                    target.GameEventListener.OnBecomeOgre();
                 }
             }
             

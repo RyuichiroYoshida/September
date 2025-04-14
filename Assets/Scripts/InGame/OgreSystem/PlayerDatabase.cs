@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace September.OgerSystem
+namespace September.OgreSystem
 {
     public class PlayerDatabase
     {
