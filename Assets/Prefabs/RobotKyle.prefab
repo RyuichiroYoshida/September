@@ -2321,7 +2321,8 @@ GameObject:
   - component: {fileID: 2901955456769402457}
   - component: {fileID: 6099435784402053345}
   - component: {fileID: 6397692675244067598}
-  - component: {fileID: -5788039242530297104}
+  - component: {fileID: 2664302539866463009}
+  - component: {fileID: 2913936558690709478}
   m_Layer: 8
   m_Name: RobotKyle
   m_TagString: Player
@@ -2382,6 +2383,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerName: {fileID: 6436515360212940443}
+  _networkAnimator: {fileID: 2664302539866463009}
+  _rigidbody: {fileID: 6099435784402053345}
 --- !u!114 &2463801933549895597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2401,7 +2404,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 2244530496041992887}
   - {fileID: 2901955456769402457}
-  - {fileID: -5788039242530297104}
+  - {fileID: 2664302539866463009}
+  - {fileID: 2913936558690709478}
   - {fileID: 4347137231058705995}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2901955456769402457
@@ -2417,7 +2421,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _moveSpeed: 5
-  _body: {fileID: 8989156989069557817}
+  _body: {fileID: 8736522266100138394}
   _rigidbody: {fileID: 6099435784402053345}
 --- !u!54 &6099435784402053345
 Rigidbody:
@@ -2469,7 +2473,7 @@ CapsuleCollider:
   m_Height: 1.7896743
   m_Direction: 1
   m_Center: {x: 0, y: 0.9212544, z: 0}
---- !u!114 &-5788039242530297104
+--- !u!114 &2664302539866463009
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2478,14 +2482,38 @@ MonoBehaviour:
   m_GameObject: {fileID: 8360875997416129576}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Animator: {fileID: 5268755282073618764}
+  ApplyTiming: 2
+  SyncSettings: 79
+  StateHashes: 0000000084ca1cc0f9c6230b1c6a54339e2518b671a7e1076b36dbedb1afdc305a6c54cd
+  TriggerHashes: 00000000
+  TotalWords: 3
+--- !u!114 &2913936558690709478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360875997416129576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a591d221a634417e9827eb58e17de84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _stateAuthorityChangeErrorCorrectionDelta: 0
   SyncScale: 0
-  SyncParent: 0
-  _autoAOIOverride: 1
-  DisableSharedModeInterpolation: 0
+  SyncParent: 1
+  _interpolationTarget: {fileID: 0}
+  UsePreciseRotation: 0
+  UseRenderSleepThresholds: 1
+  RenderThresholds:
+    UseEnergy: 1
+    Position: 0.01
+    Rotation: 0.01
+    Scale: 0.01
 --- !u!1 &8516414556098384525
 GameObject:
   m_ObjectHideFlags: 0
