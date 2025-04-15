@@ -43,12 +43,12 @@ namespace September.OgreSystem
                 if (player.ID == newOni.ID)
                 {
                     current = player.SetOgre(true);
-                    player.GameEventListener.OnBecomeOgre();
+                    //player.GameEventListener.OnBecomeOgre();
                 }
                 else
                 {
                     current = player.SetOgre(false);
-                    player.GameEventListener.OnBecomeNormal();
+                    //player.GameEventListener.OnBecomeNormal();
                 }
                 
                 //データベースへの更新
@@ -60,7 +60,7 @@ namespace September.OgreSystem
         /// スタン状態の回復
         /// </summary>
         /// <param name="id"></param>
-        public void RecoverStunned(string id)
+        public void RecoverStunned(int id)
         {
             PlayerDatabase.Instatnce.TryGetPlayerData(id, out var playerData);
             var current = playerData.SetStunned(false);
@@ -75,7 +75,7 @@ namespace September.OgreSystem
         /// <param name="targetID">ダメージを与えられるID</param>
         /// <param name="attackerID">ダメージを与えるID</param>
         /// <param name="damage">ダメージ</param>
-        public void SetHp(string targetID, string attackerID, int damage)
+        public void SetHp(int targetID, int attackerID, int damage)
         {
             if (!PlayerDatabase.Instatnce.TryGetPlayerData(targetID, out var target)) return;
             if (!PlayerDatabase.Instatnce.TryGetPlayerData(attackerID, out var attacker)) return;
@@ -90,15 +90,15 @@ namespace September.OgreSystem
             {
                 //気絶処理
                 target = target.SetStunned(true);
-                target.GameEventListener.OnParalyzed();
+                //target.GameEventListener.OnParalyzed();
 
                 //鬼の交代処理
                 if (attacker.IsOgre)
                 {
                     attacker = attacker.SetOgre(false);
                     target = target.SetOgre(true);
-                    attacker.GameEventListener.OnBecomeNormal();
-                    target.GameEventListener.OnBecomeOgre();
+                    //attacker.GameEventListener.OnBecomeNormal();
+                    //target.GameEventListener.OnBecomeOgre();
                 }
             }
             

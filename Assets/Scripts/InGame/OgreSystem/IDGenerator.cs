@@ -4,10 +4,10 @@ namespace September.OgreSystem
     {
         private static int _currentID = 0;
 
-        public static string GenerateID()
+        public static int GenerateID()
         {
             _currentID++;
-            return $"player{_currentID:D4}";
+            return _currentID;
         }
     }
 }

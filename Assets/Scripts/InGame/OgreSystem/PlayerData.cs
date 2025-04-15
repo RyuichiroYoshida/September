@@ -1,16 +1,18 @@
+using Fusion;
+
 namespace September.OgreSystem
 {
     public struct PlayerData
     {
-        public string ID; //ID（これがキーになる）
-        public string PlayerName; //プレイヤー名
+        public int ID; //ID（これがキーになる）
+        public NetworkString<_16> PlayerName; //プレイヤー名
         public int MaxHp; //最大HP
         public int CurrentHp; //現在のHP
-        public bool IsOgre; //鬼のフラグ
-        public bool IsStunned; //スタンのフラグ
-        public IGameEventListener GameEventListener; //通知用のインターフェース
+        public NetworkBool IsOgre; //鬼のフラグ
+        public NetworkBool IsStunned; //スタンのフラグ
+        //public IGameEventListener GameEventListener; //通知用のインターフェース
 
-        public PlayerData(string id, string playerName, int maxHp, int currentHp, bool isOgre, bool isStunned, IGameEventListener gameEventListener)
+        public PlayerData(int id, NetworkString<_16> playerName, int maxHp, int currentHp, bool isOgre, bool isStunned)
         {
             ID = id;
             PlayerName = playerName;
@@ -18,7 +20,7 @@ namespace September.OgreSystem
             CurrentHp = currentHp;
             IsOgre = isOgre;
             IsStunned = isStunned;
-            GameEventListener = gameEventListener;
+            //GameEventListener = gameEventListener;
         }
         
         //状態更新メソッド
@@ -28,16 +30,16 @@ namespace September.OgreSystem
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public PlayerData SetOgre(bool value) =>
-            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, value, IsStunned, GameEventListener);
+        public PlayerData SetOgre(NetworkBool value) =>
+            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, value, IsStunned);
         
         /// <summary>
         /// スタンフラグの更新
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public PlayerData SetStunned(bool value) =>
-            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, IsOgre, value, GameEventListener);
+        public PlayerData SetStunned(NetworkBool value) =>
+            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, IsOgre, value);
         
         /// <summary>
         /// 体力の更新
@@ -45,7 +47,7 @@ namespace September.OgreSystem
         /// <param name="value"></param>
         /// <returns></returns>
         public PlayerData SetHp(int value) =>
-            new PlayerData(ID, PlayerName, MaxHp, value, IsOgre, IsStunned, GameEventListener);
+            new PlayerData(ID, PlayerName, MaxHp, value, IsOgre, IsStunned);
     }
 }
 
