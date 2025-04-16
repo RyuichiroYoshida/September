@@ -15,19 +15,19 @@ namespace September.OgreSystem
         void Start()
         {
             //登録
-            string id = IDGenerator.GenerateID();
+            int id = IDGenerator.GenerateID();
             
-            var playerData = new PlayerData(id, "shiomi", 20, 20, false, false, this);
-            _ogreManager.Register(playerData);
+            //var playerData = new PlayerData(id, "shiomi", 20, 20, false, false);
+            //_ogreManager.Register(playerData);
         }
 
         public void Register()
         {
             //登録
-            string id = IDGenerator.GenerateID();
+            int id = IDGenerator.GenerateID();
             
-            var playerData = new PlayerData(id, "okabe", 20, 20, false, false, this);
-            _ogreManager.Register(playerData);
+            //var playerData = new PlayerData(id, "okabe", 20, 20, false, false);
+            //_ogreManager.Register(playerData);
         }
 
         //鬼の抽選
@@ -40,7 +40,7 @@ namespace September.OgreSystem
         //鬼からの攻撃
         public void Attack()
         {
-            _ogreManager.SetHp("player0002", "player0001", 1000);
+            //_ogreManager.SetHp("player0002", "player0001", 1000);
         }
 
         public void OnBecomeOgre()
