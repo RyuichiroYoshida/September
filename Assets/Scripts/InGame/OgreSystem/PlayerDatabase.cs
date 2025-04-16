@@ -23,11 +23,6 @@ namespace September.OgreSystem
         [Networked, Capacity(8)]
         public NetworkDictionary<int, PlayerData> PlayerDictionary { get;}
 
-        private PlayerDatabase()
-        {
-            PlayerDictionary = new NetworkDictionary<int, PlayerData>();
-        }
-
         /// <summary>
         /// プレイヤーデータを登録する
         /// </summary>
@@ -84,7 +79,7 @@ namespace September.OgreSystem
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
-            PlayerData playerData = new PlayerData(player.PlayerId, "shiomi", 20, 20, false, false);
+            PlayerData playerData = new PlayerData(player.PlayerId, "shiomi", 20, 20, false, false, player);
             Register(playerData);
         }
 

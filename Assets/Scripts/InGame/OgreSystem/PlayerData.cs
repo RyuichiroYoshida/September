@@ -2,7 +2,7 @@ using Fusion;
 
 namespace September.OgreSystem
 {
-    public struct PlayerData
+    public struct PlayerData : INetworkStruct
     {
         public int ID; //ID（これがキーになる）
         public NetworkString<_16> PlayerName; //プレイヤー名
@@ -10,9 +10,9 @@ namespace September.OgreSystem
         public int CurrentHp; //現在のHP
         public NetworkBool IsOgre; //鬼のフラグ
         public NetworkBool IsStunned; //スタンのフラグ
-        //public IGameEventListener GameEventListener; //通知用のインターフェース
+        public PlayerRef PlayerRef; //通知用のインターフェース
 
-        public PlayerData(int id, NetworkString<_16> playerName, int maxHp, int currentHp, bool isOgre, bool isStunned)
+        public PlayerData(int id, NetworkString<_16> playerName, int maxHp, int currentHp, bool isOgre, bool isStunned, PlayerRef playerRef)
         {
             ID = id;
             PlayerName = playerName;
@@ -20,7 +20,7 @@ namespace September.OgreSystem
             CurrentHp = currentHp;
             IsOgre = isOgre;
             IsStunned = isStunned;
-            //GameEventListener = gameEventListener;
+            PlayerRef = playerRef;
         }
         
         //状態更新メソッド
@@ -31,23 +31,23 @@ namespace September.OgreSystem
         /// <param name="value"></param>
         /// <returns></returns>
         public PlayerData SetOgre(NetworkBool value) =>
-            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, value, IsStunned);
+            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, value, IsStunned, PlayerRef);
         
-        /// <summary>
-        /// スタンフラグの更新
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        // /// <summary>
+        // /// スタンフラグの更新
+        // /// </summary>
+        // /// <param name="value"></param>
+        // /// <returns></returns>
         public PlayerData SetStunned(NetworkBool value) =>
-            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, IsOgre, value);
+            new PlayerData(ID, PlayerName, MaxHp, CurrentHp, IsOgre, value, PlayerRef);
         
-        /// <summary>
-        /// 体力の更新
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        // /// <summary>
+        // /// 体力の更新
+        // /// </summary>
+        // /// <param name="value"></param>
+        // /// <returns></returns>
         public PlayerData SetHp(int value) =>
-            new PlayerData(ID, PlayerName, MaxHp, value, IsOgre, IsStunned);
+            new PlayerData(ID, PlayerName, MaxHp, value, IsOgre, IsStunned, PlayerRef);
     }
 }
 

@@ -17,8 +17,8 @@ namespace September.OgreSystem
             //登録
             int id = IDGenerator.GenerateID();
             
-            var playerData = new PlayerData(id, "shiomi", 20, 20, false, false);
-            _ogreManager.Register(playerData);
+            //var playerData = new PlayerData(id, "shiomi", 20, 20, false, false);
+            //_ogreManager.Register(playerData);
         }
 
         public void Register()
@@ -26,8 +26,8 @@ namespace September.OgreSystem
             //登録
             int id = IDGenerator.GenerateID();
             
-            var playerData = new PlayerData(id, "okabe", 20, 20, false, false);
-            _ogreManager.Register(playerData);
+            //var playerData = new PlayerData(id, "okabe", 20, 20, false, false);
+            //_ogreManager.Register(playerData);
         }
 
         //鬼の抽選
