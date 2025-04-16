@@ -27,8 +27,9 @@ public class OkabeMove : MonoBehaviour
       gameObject.SetActive(false);
    }
 
-   public void AppearPlayer()
+   public void AppearPlayer(Transform appearTransform)
    {
+      gameObject.transform.position = appearTransform.position;
       gameObject.SetActive(true);
    }
 
@@ -55,6 +56,6 @@ public class OkabeMove : MonoBehaviour
 
    public void OnFootstep()
    {
-      Debug.Log("OnFootstep");
+      //animationEvent用のメソッド
    }
 }
