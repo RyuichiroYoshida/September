@@ -25,6 +25,7 @@ namespace September.InGame
         {
             _rigidbody = GetComponent<Rigidbody>();
             _isFlying = false;
+            _isStart = false;
         }
 
         private void Update()
