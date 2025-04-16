@@ -15,7 +15,7 @@ namespace September.InGame
                     StartRide();
                     break;
                 default:
-                    Debug.Log("この展示物にはこのアビリティは使えません");
+                    Debug.LogWarning("この展示物にはこのアビリティは使えません");
                     break;
             }
         }
