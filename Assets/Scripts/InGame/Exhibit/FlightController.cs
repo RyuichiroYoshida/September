@@ -1,5 +1,3 @@
-using System;
-using DebugPlayer;
 using UnityEngine;
 
 namespace September.InGame
@@ -7,7 +5,6 @@ namespace September.InGame
     [RequireComponent(typeof(Rigidbody))]
     public class FlightController : MonoBehaviour
     {
-        [SerializeField] private Move _move;
         [SerializeField] private float _moveSpeed = 10f;
         [SerializeField] private float _rotationSpeed = 100f;
         [SerializeField] private float _verticalSpeed = 5f;
