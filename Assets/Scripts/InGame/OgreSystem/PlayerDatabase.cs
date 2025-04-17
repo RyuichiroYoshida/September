@@ -8,20 +8,24 @@ namespace September.OgreSystem
 {
     public class PlayerDatabase : NetworkBehaviour, INetworkRunnerCallbacks
     {
-        private static PlayerDatabase _instance;
+        public static PlayerDatabase Instance{ get; private set; }
 
-        public static PlayerDatabase Instatnce
+
+        private void Awake()
         {
-            get
+            if (Instance == null)
             {
-                if (_instance == null)
-                    _instance = new PlayerDatabase();
-                return _instance;
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
             }
         }
-        
-        [Networked, Capacity(8)]
-        public NetworkDictionary<int, PlayerData> PlayerDictionary { get;}
+
+        [Networked, Capacity(8)] 
+        private NetworkDictionary<int, PlayerData> PlayerDictionary => default;
 
         /// <summary>
         /// プレイヤーデータを登録する
@@ -48,7 +52,7 @@ namespace September.OgreSystem
         /// プレイヤーデータの更新
         /// </summary>
         /// <param name="playerData"></param>
-        public void Update(PlayerData playerData)
+        public void UpdateDatabase(PlayerData playerData)
         {
             PlayerDictionary.Set(playerData.ID, playerData);
         }
