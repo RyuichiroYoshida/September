@@ -24,7 +24,7 @@ namespace September.OgreSystem
         /// <param name="playerData"></param>
         public void Register(PlayerData playerData)
         {
-            PlayerDatabase.Instatnce.Register(playerData);
+            PlayerDatabase.Instance.Register(playerData);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace September.OgreSystem
         /// </summary>
         public void ChooseOger()
         {
-            var allPlayers = PlayerDatabase.Instatnce.GetAll();
+            var allPlayers = PlayerDatabase.Instance.GetAll();
             if (allPlayers.Count == 0) return;
 
             int index = UnityEngine.Random.Range(0, allPlayers.Count);
@@ -60,7 +60,7 @@ namespace September.OgreSystem
                 }
                 
                 //データベースへの更新
-                PlayerDatabase.Instatnce.Update(current);
+                PlayerDatabase.Instance.UpdateDatabase(current);
             }
         }
 
@@ -70,11 +70,11 @@ namespace September.OgreSystem
         /// <param name="id"></param>
         public void RecoverStunned(int id)
         {
-            PlayerDatabase.Instatnce.TryGetPlayerData(id, out var playerData);
+            PlayerDatabase.Instance.TryGetPlayerData(id, out var playerData);
             var current = playerData.SetStunned(false);
             
             //データベースへの更新
-            PlayerDatabase.Instatnce.Update(current);
+            PlayerDatabase.Instance.UpdateDatabase(current);
         }
 
         /// <summary>
@@ -85,8 +85,8 @@ namespace September.OgreSystem
         /// <param name="damage">ダメージ</param>
         public void SetHp(int targetID, int attackerID, int damage)
         {
-             if (!PlayerDatabase.Instatnce.TryGetPlayerData(targetID, out var target)) return;
-             if (!PlayerDatabase.Instatnce.TryGetPlayerData(attackerID, out var attacker)) return;
+             if (!PlayerDatabase.Instance.TryGetPlayerData(targetID, out var target)) return;
+             if (!PlayerDatabase.Instance.TryGetPlayerData(attackerID, out var attacker)) return;
             
              //ダメージ計算
              int newHp = Math.Max(target.CurrentHp - damage, 0);
@@ -117,8 +117,8 @@ namespace September.OgreSystem
              }
              
              //データベースへの更新
-             PlayerDatabase.Instatnce.Update(attacker);
-             PlayerDatabase.Instatnce.Update(target);
+             PlayerDatabase.Instance.UpdateDatabase(attacker);
+             PlayerDatabase.Instance.UpdateDatabase(target);
         }
     }
 }

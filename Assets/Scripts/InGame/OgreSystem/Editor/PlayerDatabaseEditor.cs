@@ -15,7 +15,7 @@ namespace September.OgreSystem
 
         private void OnEnable()
         {
-            _database = PlayerDatabase.Instatnce;
+            _database = PlayerDatabase.Instance;
         }
         
         private void OnGUI()
