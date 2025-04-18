@@ -1,5 +1,6 @@
 using System;
 using Fusion;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace September.OgreSystem
@@ -48,7 +49,8 @@ namespace September.OgreSystem
                     var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
                     var networkObj = runner.GetPlayerObject(player.PlayerRef);
                     var gameEventListener = networkObj.GetComponent<IGameEventListener>();
-                    gameEventListener.OnBecomeOgre();
+                    gameEventListener?.OnBecomeOgre();
+                    Debug.Log(player);
                 }
                 else
                 {
@@ -56,7 +58,7 @@ namespace September.OgreSystem
                     var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
                     var networkObj = runner.GetPlayerObject(player.PlayerRef);
                     var gameEventListener = networkObj.GetComponent<IGameEventListener>();
-                    gameEventListener.OnBecomeOgre();
+                    gameEventListener?.OnBecomeNormal();
                 }
                 
                 //データベースへの更新
@@ -71,8 +73,10 @@ namespace September.OgreSystem
         public void RecoverStunned(int id)
         {
             PlayerDatabase.Instance.TryGetPlayerData(id, out var playerData);
-            var current = playerData.SetStunned(false);
+            var stunnedData = playerData.SetStunned(false);
             
+            //HP回復処理
+            var current = playerData.SetHp(stunnedData.MaxHp);
             //データベースへの更新
             PlayerDatabase.Instance.UpdateDatabase(current);
         }
@@ -101,18 +105,19 @@ namespace September.OgreSystem
                  var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
                  var targetNetworkObj = runner.GetPlayerObject(target.PlayerRef);
                  var targetGameEventListener = targetNetworkObj.GetComponent<IGameEventListener>();
-                 
-                 targetGameEventListener.OnParalyzed();
-            
+
+                 targetGameEventListener?.OnParalyzed();
+
                  //鬼の交代処理
                  if (attacker.IsOgre)
                  { 
                      target = target.SetOgre(true);
-                     targetGameEventListener.OnBecomeOgre();
+                     targetGameEventListener?.OnBecomeOgre();
+
                      attacker = attacker.SetOgre(false);
                      var attackerNetworkObj = runner.GetPlayerObject(target.PlayerRef);
                      var attackerGameEventListener = attackerNetworkObj.GetComponent<IGameEventListener>();
-                     attackerGameEventListener.OnBecomeNormal();
+                     attackerGameEventListener?.OnBecomeNormal();
                  }
              }
              

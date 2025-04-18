@@ -1,4 +1,4 @@
-using System;
+using UnityEngine;
 using UnityEditor;
 
 namespace September.OgreSystem
@@ -15,7 +15,12 @@ namespace September.OgreSystem
 
         private void OnEnable()
         {
-            _database = PlayerDatabase.Instance;
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+            {
+                _database = FindObjectOfType<PlayerDatabase>();
+            }
+#endif
         }
         
         private void OnGUI()
