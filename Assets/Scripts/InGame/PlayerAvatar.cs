@@ -1,5 +1,6 @@
 using Fusion;
 using September.Common;
+using September.OgreSystem;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +18,7 @@ namespace September.InGame
             if (HasInputAuthority) 
             {
                 Rpc_SetNickname(PlayerNetworkSettings.NickName);
+                PlayerDatabase.Rpc_OnPlayerSpawned(Runner, this.Object, Runner.LocalPlayer);
             }
             else
             {

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using Fusion.Sockets;
+using September.InGame;
+using September.Common;
 using UnityEngine;
 
 namespace September.OgreSystem
@@ -18,6 +19,7 @@ namespace September.OgreSystem
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
                 Runner.AddCallbacks(this);
+                GameLauncher.Instance.OnPlayerSpawned += OnPlayerSpawned;
             }
             else
             {
@@ -72,20 +74,36 @@ namespace September.OgreSystem
             return playerData;
         }
 
+        public void OnPlayerSpawned(NetworkObject networkObject, PlayerRef player)
+        {
+            
+        }
+
+        [Rpc]
+        public static void Rpc_OnPlayerSpawned(NetworkRunner networkRunner, NetworkObject networkObject, PlayerRef player)
+        {
+            if (Instance)
+            {
+                var playerAvatar = networkObject.GetComponent<PlayerAvatar>();
+            
+                PlayerData playerData = new PlayerData(player.PlayerId, playerAvatar.NickName, 20, 20, false, false, player);
+                Instance.Register(playerData);
+            }
+        }
+
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
-            PlayerData playerData = new PlayerData(player.PlayerId, "shiomi", 20, 20, false, false, player);
-            Register(playerData);
+            
         }
 
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
