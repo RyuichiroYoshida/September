@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 8282510288357783844}
   - component: {fileID: 20050628600316363}
   - component: {fileID: 4228768168674986006}
-  m_Layer: 0
+  - component: {fileID: 6377361435304764366}
+  m_Layer: 3
   m_Name: Spacefighter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37,6 +38,8 @@ Transform:
   - {fileID: 9149248705904731246}
   - {fileID: 368953031267139992}
   - {fileID: 5791226434431891113}
+  - {fileID: 7166381839979391856}
+  - {fileID: 5707507938200617136}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &8282510288357783844
@@ -99,13 +102,100 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 159d659ea72f92e4b980fed5398009ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _projectilePrefab: {fileID: 6169571750412902452, guid: 553b06a6616f55e46a86f3b695258411, type: 3}
+  _firePoint: {fileID: 0}
+  _projectileSpeed: 50
+  _flightCoolDown: 30
   _moveSpeed: 10
   _rotationSpeed: 100
   _verticalSpeed: 5
   _flightDuration: 5
+  _virtualCamera: {fileID: 0}
+  _lockAtTarget: {fileID: 7208893308966712736}
+  _liftDuration: 1
   _timer: 30
+  _detectionRadius: 20
+  _playerLayer:
+    serializedVersion: 2
+    m_Bits: 0
   _isFlying: 0
-  _isStart: 0
+--- !u!114 &6377361435304764366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 196941331083430099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b81b47e8f332421ca2c6731708006984, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _exhibitName: 
+  _renderer: {fileID: 0}
+  _flightController: {fileID: 4228768168674986006}
+--- !u!1 &2501577753137149078
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5707507938200617136}
+  m_Layer: 3
+  m_Name: Pos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5707507938200617136
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2501577753137149078}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 4.69}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2829565225345075427}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7208893308966712736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7166381839979391856}
+  m_Layer: 8
+  m_Name: LookAtTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7166381839979391856
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7208893308966712736}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.2399998, z: -1.5800002}
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2829565225345075427}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1523383310778342835
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -114,6 +204,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2829565225345075427}
     m_Modifications:
+    - target: {fileID: -8576765932039338176, guid: d5f02142fd614bc429559c3d9c05482c, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: d5f02142fd614bc429559c3d9c05482c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -157,6 +251,10 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: d5f02142fd614bc429559c3d9c05482c, type: 3}
       propertyPath: m_Name
       value: FighterMedium_FBX
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: d5f02142fd614bc429559c3d9c05482c, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -220,6 +318,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: EngineTrails_FBX
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 58752080b7a2b014b984236fa50b1a31, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8759690792700346212, guid: 58752080b7a2b014b984236fa50b1a31, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -282,6 +388,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: FighterLow_FBX
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 6f679f9f2b4323f4eb8c1e642c986c87, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4312680900431057036, guid: 6f679f9f2b4323f4eb8c1e642c986c87, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -300,6 +414,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2829565225345075427}
     m_Modifications:
+    - target: {fileID: -4491995961194562295, guid: 27ae1315ca7386c4380ea66773476fc4, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 27ae1315ca7386c4380ea66773476fc4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -343,6 +461,10 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: 27ae1315ca7386c4380ea66773476fc4, type: 3}
       propertyPath: m_Name
       value: CannonMedium_FBX
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 27ae1315ca7386c4380ea66773476fc4, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -405,6 +527,14 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: 873f12d87be8630438b877f50e96d434, type: 3}
       propertyPath: m_Name
       value: CannonLow_FBX
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 873f12d87be8630438b877f50e96d434, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1841074724568122448, guid: 873f12d87be8630438b877f50e96d434, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
