@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _projectilePrefab: {fileID: 6169571750412902452, guid: 553b06a6616f55e46a86f3b695258411, type: 3}
-  _firePoint: {fileID: 0}
+  _firePoint: {fileID: 5707507938200617136}
   _projectileSpeed: 50
   _flightCoolDown: 30
   _moveSpeed: 10
@@ -117,7 +117,7 @@ MonoBehaviour:
   _detectionRadius: 20
   _playerLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   _isFlying: 0
 --- !u!114 &6377361435304764366
 MonoBehaviour:
