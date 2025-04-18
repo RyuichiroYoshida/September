@@ -8,7 +8,7 @@ namespace September.InGame
     public class PlayerAvatar : NetworkBehaviour
     {
         [SerializeField] Text _playerName;
-        [Networked, OnChangedRender(nameof(OnNickNameChanged))] NetworkString<_16> NickName { get; set; }
+        [Networked, OnChangedRender(nameof(OnNickNameChanged))] public NetworkString<_16> NickName { get; set; }
         [SerializeField] NetworkMecanimAnimator _networkAnimator;
         [SerializeField] Rigidbody _rigidbody;
 
