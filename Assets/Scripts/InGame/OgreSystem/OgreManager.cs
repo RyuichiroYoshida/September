@@ -1,5 +1,6 @@
 using System;
 using Fusion;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace September.OgreSystem
@@ -49,6 +50,7 @@ namespace September.OgreSystem
                     var networkObj = runner.GetPlayerObject(player.PlayerRef);
                     var gameEventListener = networkObj.GetComponent<IGameEventListener>();
                     gameEventListener.OnBecomeOgre();
+                    Debug.Log(player);
                 }
                 else
                 {
@@ -56,7 +58,7 @@ namespace September.OgreSystem
                     var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
                     var networkObj = runner.GetPlayerObject(player.PlayerRef);
                     var gameEventListener = networkObj.GetComponent<IGameEventListener>();
-                    gameEventListener.OnBecomeOgre();
+                    gameEventListener.OnBecomeNormal();
                 }
                 
                 //データベースへの更新
