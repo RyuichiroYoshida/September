@@ -15,7 +15,7 @@ namespace September.Common
         [SerializeField] NetworkRunner _runnerPrefab;
         [SerializeField] string _inGameName;
         NetworkRunner _networkRunner;
-        public Action<NetworkRunner, PlayerRef> OnPlayerSpawned;
+        public Action<NetworkObject, PlayerRef> OnPlayerSpawned;
         private void Start()
         {
             if (Instance == null)
@@ -63,7 +63,7 @@ namespace September.Common
                 var spawnPosition = new Vector3(rand.x, 2f, rand.y);
                 //  GameModeがSharedではないためクライアント側にスポーン権限が無い、ホスト側のランナーでアバターをスポーンさせる
                 var avatar = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, inputAuthority: player, onBeforeSpawned:
-                    (_, _) => OnPlayerSpawned?.Invoke(runner, player));
+                    (targetRunner, targetObj) => OnPlayerSpawned?.Invoke(targetObj, player));
                 runner.SetPlayerObject(player, avatar);
             }
         }
