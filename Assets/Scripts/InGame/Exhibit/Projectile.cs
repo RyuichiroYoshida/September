@@ -16,6 +16,7 @@ namespace September.InGame
             if (other.CompareTag("Player"))
             {
                 Debug.Log("痛い");
+                // ToDo : ダメージ処理
             }
         }
     }

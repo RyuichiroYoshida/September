@@ -115,7 +115,6 @@ namespace September.InGame
 
             if (projectile.TryGetComponent<Rigidbody>(out var rb))
             {
-                Debug.Log(shootDirection * _projectileSpeed);
                 rb.linearVelocity = shootDirection * _projectileSpeed;
             }
         }
@@ -220,7 +219,7 @@ namespace September.InGame
             _canFly = false;
             _okabeMove.AppearPlayer(transform);
             
-            await UniTask.Delay(System.TimeSpan.FromSeconds(_flightCoolDown));
+            await UniTask.Delay(TimeSpan.FromSeconds(_flightCoolDown));
             _canFly = true;
         }
         
