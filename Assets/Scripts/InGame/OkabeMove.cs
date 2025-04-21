@@ -1,61 +1,66 @@
 using System;
 using Cinemachine;
+using September.InGame;
 using UnityEngine;
 
 public class OkabeMove : MonoBehaviour
 {
-   Rigidbody _rigidbody;
-   Animator _animator;
-   [SerializeField]
-   private float _speed = 0;
-   [SerializeField]
-   CinemachineFreeLook _freeLook;
-   private void Start()
-   {
-      Cursor.lockState = CursorLockMode.Locked;
-      _rigidbody = GetComponent<Rigidbody>();
-      _animator = GetComponent<Animator>();
-   }
+    Rigidbody _rigidbody;
+    Animator _animator;
+    [SerializeField] private float _speed = 0;
+    private CinemachineFreeLook _freeLook;
 
-   private void FixedUpdate()
-   {
-      Moving();
-   }
+    private FlightController _flightController;
 
-   public void HidePlayer()
-   {
-      gameObject.SetActive(false);
-   }
+    private void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        _rigidbody = GetComponent<Rigidbody>();
+        _animator = GetComponent<Animator>();
+        _flightController = FindObjectOfType<FlightController>();
+        _flightController.FindOkabeMove(this);
+        _freeLook = FindObjectOfType<CinemachineFreeLook>();
+    }
 
-   public void AppearPlayer(Transform appearTransform)
-   {
-      gameObject.transform.position = appearTransform.position;
-      gameObject.SetActive(true);
-   }
+    private void FixedUpdate()
+    {
+        Moving();
+    }
 
-   void Moving()
-   {
-      var velo = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")).normalized;
-      Vector3 cameraForward = Camera.main.transform.forward;
-      cameraForward.y = 0;
-      cameraForward.Normalize();
-      Vector3 cameraRight = Camera.main.transform.right;
-      cameraRight.y = 0;
-      cameraRight.Normalize();
-      Vector3 moveDirection = cameraForward * velo.z + cameraRight * velo.x;
-      _rigidbody.linearVelocity = moveDirection * _speed;
+    public void HidePlayer()
+    {
+        gameObject.SetActive(false);
+    }
 
-      if (velo.magnitude > 0)
-      {
-         var rot = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), 10f);
-         transform.rotation = rot;
-      }
-      
-    _animator.SetFloat("Speed", _rigidbody.linearVelocity.magnitude);
-   }
+    public void AppearPlayer(Transform appearTransform)
+    {
+        gameObject.transform.position = appearTransform.position;
+        gameObject.SetActive(true);
+    }
 
-   public void OnFootstep()
-   {
-      //animationEvent用のメソッド
-   }
+    void Moving()
+    {
+        var velo = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")).normalized;
+        Vector3 cameraForward = Camera.main.transform.forward;
+        cameraForward.y = 0;
+        cameraForward.Normalize();
+        Vector3 cameraRight = Camera.main.transform.right;
+        cameraRight.y = 0;
+        cameraRight.Normalize();
+        Vector3 moveDirection = cameraForward * velo.z + cameraRight * velo.x;
+        _rigidbody.linearVelocity = moveDirection * _speed;
+
+        if (velo.magnitude > 0)
+        {
+            var rot = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), 10f);
+            transform.rotation = rot;
+        }
+
+        _animator.SetFloat("Speed", _rigidbody.linearVelocity.magnitude);
+    }
+
+    public void OnFootstep()
+    {
+        //animationEvent用のメソッド
+    }
 }

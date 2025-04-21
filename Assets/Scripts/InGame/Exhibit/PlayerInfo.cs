@@ -6,7 +6,6 @@ namespace September.InGame
     // Playerにもたせる
     public class PlayerInfo : MonoBehaviour
     {
-        [SerializeField] private FlightController _flightController;
         [SerializeField] private Color _playerColor;
         [SerializeField] private PlayerAvatar _playerAvatar;
         private IAbility _ability;
@@ -25,13 +24,6 @@ namespace September.InGame
         {
             _ability = new RideAbility();
             _isOkabe = true;
-
-            // ToDo : //public Text PlayerName => _playerName を　PlayerInfoにかく
-            // if (_playerAvatar.PlayerName.text == "オカベライト")
-            // {
-            //     _isOkabe = true;
-            //     Debug.Log(_playerAvatar.PlayerName);
-            // }
         }
 
         private void Update()
@@ -39,7 +31,7 @@ namespace September.InGame
             // 指定の半径で展示物を検出
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectRadius, exhibitLayer);
 
-            _currentExhibit = null;
+            //_currentExhibit = null;
 
             foreach (var col in colliders)
             {
@@ -57,8 +49,13 @@ namespace September.InGame
                 {
                     _ability?.InteractWith(_currentExhibit);
                 }
+                else
+                {
+                    Debug.LogWarning("No exhibit found");
+                }
             }
         }
+        
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
