@@ -11,7 +11,7 @@ namespace September.Common
     public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
     {
         public static GameLauncher Instance;
-        [SerializeField] NetworkPrefabRef _playerPrefab;
+        [SerializeField] NetworkPrefabRef[] _playerPrefab;
         [SerializeField] NetworkRunner _runnerPrefab;
         [SerializeField] string _inGameName;
         NetworkRunner _networkRunner;
@@ -62,7 +62,28 @@ namespace September.Common
                 var rand = Random.insideUnitCircle * 5f;
                 var spawnPosition = new Vector3(rand.x, 2f, rand.y);
                 //  GameModeがSharedではないためクライアント側にスポーン権限が無い、ホスト側のランナーでアバターをスポーンさせる
-                var avatar = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, inputAuthority: player, onBeforeSpawned:
+
+                #region 仮
+                NetworkPrefabRef selectedPrefab;
+
+                switch (player.PlayerId)
+                {
+                    case 1:
+                        selectedPrefab = _playerPrefab[1];
+                        Debug.Log("岡部を生成");
+                        break;
+                    case 2:
+                        selectedPrefab = _playerPrefab[2];
+                        Debug.Log("晴を生成");
+                        break;
+                    default:
+                        selectedPrefab = _playerPrefab[0];
+                        break;
+                }
+
+                #endregion
+                
+                var avatar = runner.Spawn(selectedPrefab, spawnPosition, Quaternion.identity, inputAuthority: player, onBeforeSpawned:
                     (targetRunner, targetObj) => OnPlayerSpawned?.Invoke(targetObj, player));
                 runner.SetPlayerObject(player, avatar);
             }
