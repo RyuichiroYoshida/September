@@ -11,10 +11,11 @@ namespace September.Common
     public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
     {
         public static GameLauncher Instance;
-        [SerializeField] NetworkPrefabRef _playerPrefab;
+        [SerializeField] NetworkPrefabRef[] _playerPrefab;
         [SerializeField] NetworkRunner _runnerPrefab;
         [SerializeField] string _inGameName;
         NetworkRunner _networkRunner;
+        public Action<NetworkObject, PlayerRef> OnPlayerSpawned;
         private void Start()
         {
             if (Instance == null)
@@ -56,17 +57,48 @@ namespace September.Common
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
             //  通知が来たのがホストのランナーなら
-            if (_networkRunner.IsServer)
+            if (runner.IsServer)
             {
                 var rand = Random.insideUnitCircle * 5f;
                 var spawnPosition = new Vector3(rand.x, 2f, rand.y);
                 //  GameModeがSharedではないためクライアント側にスポーン権限が無い、ホスト側のランナーでアバターをスポーンさせる
-                runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, inputAuthority: player);
+
+                #region 仮
+                NetworkPrefabRef selectedPrefab;
+
+                switch (player.PlayerId)
+                {
+                    case 1:
+                        selectedPrefab = _playerPrefab[1];
+                        Debug.Log("岡部を生成");
+                        break;
+                    case 2:
+                        selectedPrefab = _playerPrefab[2];
+                        Debug.Log("晴を生成");
+                        break;
+                    default:
+                        selectedPrefab = _playerPrefab[0];
+                        break;
+                }
+
+                #endregion
+                
+                var avatar = runner.Spawn(selectedPrefab, spawnPosition, Quaternion.identity, inputAuthority: player, onBeforeSpawned:
+                    (targetRunner, targetObj) => OnPlayerSpawned?.Invoke(targetObj, player));
+                runner.SetPlayerObject(player, avatar);
+            }
+        }
+        void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+        {
+            if (!runner.IsServer) return;
+            // 退出したプレイヤーのアバターを破棄する
+            if (runner.TryGetPlayerObject(player, out var avatar)) 
+            {
+                runner.Despawn(avatar);
             }
         }
         void INetworkRunnerCallbacks.OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         void INetworkRunnerCallbacks.OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
-        void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
         void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input) { }
         void INetworkRunnerCallbacks.OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
         void INetworkRunnerCallbacks.OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }

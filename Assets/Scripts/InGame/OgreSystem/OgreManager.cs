@@ -1,4 +1,7 @@
 using System;
+using Fusion;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace September.OgreSystem
 {
@@ -22,7 +25,7 @@ namespace September.OgreSystem
         /// <param name="playerData"></param>
         public void Register(PlayerData playerData)
         {
-            PlayerDatabase.Instatnce.Register(playerData);
+            PlayerDatabase.Instance.Register(playerData);
         }
 
         /// <summary>
@@ -30,7 +33,7 @@ namespace September.OgreSystem
         /// </summary>
         public void ChooseOger()
         {
-            var allPlayers = PlayerDatabase.Instatnce.GetAll();
+            var allPlayers = PlayerDatabase.Instance.GetAll();
             if (allPlayers.Count == 0) return;
 
             int index = UnityEngine.Random.Range(0, allPlayers.Count);
@@ -43,16 +46,23 @@ namespace September.OgreSystem
                 if (player.ID == newOni.ID)
                 {
                     current = player.SetOgre(true);
-                    player.GameEventListener.OnBecomeOgre();
+                    var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
+                    var networkObj = runner.GetPlayerObject(player.PlayerRef);
+                    var gameEventListener = networkObj.GetComponent<IGameEventListener>();
+                    gameEventListener?.OnBecomeOgre();
+                    Debug.Log(player);
                 }
                 else
                 {
                     current = player.SetOgre(false);
-                    player.GameEventListener.OnBecomeNormal();
+                    var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
+                    var networkObj = runner.GetPlayerObject(player.PlayerRef);
+                    var gameEventListener = networkObj.GetComponent<IGameEventListener>();
+                    gameEventListener?.OnBecomeNormal();
                 }
                 
                 //データベースへの更新
-                PlayerDatabase.Instatnce.Update(current);
+                PlayerDatabase.Instance.UpdateDatabase(current);
             }
         }
 
@@ -60,13 +70,15 @@ namespace September.OgreSystem
         /// スタン状態の回復
         /// </summary>
         /// <param name="id"></param>
-        public void RecoverStunned(string id)
+        public void RecoverStunned(int id)
         {
-            PlayerDatabase.Instatnce.TryGetPlayerData(id, out var playerData);
-            var current = playerData.SetStunned(false);
+            PlayerDatabase.Instance.TryGetPlayerData(id, out var playerData);
+            var stunnedData = playerData.SetStunned(false);
             
+            //HP回復処理
+            var current = playerData.SetHp(stunnedData.MaxHp);
             //データベースへの更新
-            PlayerDatabase.Instatnce.Update(current);
+            PlayerDatabase.Instance.UpdateDatabase(current);
         }
 
         /// <summary>
@@ -75,36 +87,43 @@ namespace September.OgreSystem
         /// <param name="targetID">ダメージを与えられるID</param>
         /// <param name="attackerID">ダメージを与えるID</param>
         /// <param name="damage">ダメージ</param>
-        public void SetHp(string targetID, string attackerID, int damage)
+        public void SetHp(int targetID, int attackerID, int damage)
         {
-            if (!PlayerDatabase.Instatnce.TryGetPlayerData(targetID, out var target)) return;
-            if (!PlayerDatabase.Instatnce.TryGetPlayerData(attackerID, out var attacker)) return;
+             if (!PlayerDatabase.Instance.TryGetPlayerData(targetID, out var target)) return;
+             if (!PlayerDatabase.Instance.TryGetPlayerData(attackerID, out var attacker)) return;
             
-            //ダメージ計算
-            int newHp = Math.Max(target.CurrentHp - damage, 0);
+             //ダメージ計算
+             int newHp = Math.Max(target.CurrentHp - damage, 0);
             
-            //HP変更
-            target = target.SetHp(newHp);
+             //HP変更
+             target = target.SetHp(newHp);
             
-            if (target.CurrentHp <= 0)
-            {
-                //気絶処理
-                target = target.SetStunned(true);
-                target.GameEventListener.OnParalyzed();
+             if (target.CurrentHp <= 0)
+             {
+                 //気絶処理
+                 target = target.SetStunned(true);
+                 var runner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
+                 var targetNetworkObj = runner.GetPlayerObject(target.PlayerRef);
+                 var targetGameEventListener = targetNetworkObj.GetComponent<IGameEventListener>();
 
-                //鬼の交代処理
-                if (attacker.IsOgre)
-                {
-                    attacker = attacker.SetOgre(false);
-                    target = target.SetOgre(true);
-                    attacker.GameEventListener.OnBecomeNormal();
-                    target.GameEventListener.OnBecomeOgre();
-                }
-            }
-            
-            //データベースへの更新
-            PlayerDatabase.Instatnce.Update(attacker);
-            PlayerDatabase.Instatnce.Update(target);
+                 targetGameEventListener?.OnParalyzed();
+
+                 //鬼の交代処理
+                 if (attacker.IsOgre)
+                 { 
+                     target = target.SetOgre(true);
+                     targetGameEventListener?.OnBecomeOgre();
+
+                     attacker = attacker.SetOgre(false);
+                     var attackerNetworkObj = runner.GetPlayerObject(target.PlayerRef);
+                     var attackerGameEventListener = attackerNetworkObj.GetComponent<IGameEventListener>();
+                     attackerGameEventListener?.OnBecomeNormal();
+                 }
+             }
+             
+             //データベースへの更新
+             PlayerDatabase.Instance.UpdateDatabase(attacker);
+             PlayerDatabase.Instance.UpdateDatabase(target);
         }
     }
 }
