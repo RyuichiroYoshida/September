@@ -1,12 +1,13 @@
-using System;
 using Cinemachine;
 using September.InGame;
 using UnityEngine;
+using NaughtyAttributes;
 
 public class OkabeMove : MonoBehaviour
 {
     Rigidbody _rigidbody;
     Animator _animator;
+    [SerializeField,Label("カメラ設定")] private GameObject _lockAtTarget;
     [SerializeField] private float _speed = 0;
     private CinemachineFreeLook _freeLook;
 
@@ -34,6 +35,8 @@ public class OkabeMove : MonoBehaviour
 
     public void AppearPlayer(Transform appearTransform)
     {
+        _freeLook.Follow = _lockAtTarget.transform;
+        _freeLook.LookAt =_lockAtTarget.transform;
         gameObject.transform.position = appearTransform.position;
         gameObject.SetActive(true);
     }

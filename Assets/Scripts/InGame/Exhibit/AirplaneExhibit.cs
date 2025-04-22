@@ -12,17 +12,15 @@ namespace September.InGame
             switch (ability.GetAbilityType())
             {
                 case AbilityType.Ride:
-                    StartRide();
+                    _flightController.StartFlight();
+                    break;
+                case AbilityType.Clash:
+                    _flightController.Clash();
                     break;
                 default:
                     Debug.LogWarning("この展示物にはこのアビリティは使えません");
                     break;
             }
-        }
-
-        private void StartRide()
-        {
-            _flightController.StartFlight();
         }
     }
 }

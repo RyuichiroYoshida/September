@@ -2,27 +2,34 @@ using UnityEngine;
 
 namespace September.InGame
 {
-    // モックアップ用
-    // Playerにもたせる
-    public class PlayerInfo : MonoBehaviour
+    public class Player : MonoBehaviour
     {
-        [SerializeField] private Color _playerColor;
         [SerializeField] private PlayerAvatar _playerAvatar;
-        private IAbility _ability;
-        
         [SerializeField] private float detectRadius = 5f;
         [SerializeField] private LayerMask exhibitLayer;
+        [SerializeField] private AbilityType _abilityType;
 
         private ExhibitBase _currentExhibit;
-
+        private IAbility _ability;
         private bool _isOkabe;
-
-        public Color PlayerColor => _playerColor;
+        
         public IAbility Ability => _ability;
 
         private void Start()
         {
-            _ability = new RideAbility();
+            switch (_abilityType)
+            {
+                case AbilityType.Ride:
+                    _ability = new RideAbility();
+                    break;
+                    case AbilityType.Clash:
+                    _ability = new ClashAbility();
+                        break;
+                default:
+                    Debug.LogError($"Unknown ability type: {_abilityType}");
+                    break;
+            }
+            
             _isOkabe = true;
         }
 
@@ -30,9 +37,7 @@ namespace September.InGame
         {
             // 指定の半径で展示物を検出
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectRadius, exhibitLayer);
-
-            //_currentExhibit = null;
-
+            
             foreach (var col in colliders)
             {
                 if (col.TryGetComponent<ExhibitBase>(out var exhibit))
@@ -54,6 +59,11 @@ namespace September.InGame
                     Debug.LogWarning("No exhibit found");
                 }
             }
+        }
+
+        private void Attack()
+        {
+            
         }
         
 #if UNITY_EDITOR
