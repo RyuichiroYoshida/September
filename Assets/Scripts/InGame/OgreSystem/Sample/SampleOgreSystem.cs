@@ -14,7 +14,7 @@ namespace September.OgreSystem
         //鬼の抽選
         public void Select()
         {
-            _ogreManager.ChooseOger();
+            _ogreManager.ChooseOgre();
         }
 
 

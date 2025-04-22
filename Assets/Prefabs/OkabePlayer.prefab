@@ -1743,6 +1743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1b8775e7dcb92f40b59ddfc5e700400, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _lockAtTarget: {fileID: 0}
   _speed: 3
 --- !u!114 &6767704039685649095
 MonoBehaviour:
@@ -1825,6 +1826,7 @@ MonoBehaviour:
       Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   _networkAnimator: {fileID: 6767704039685649095}
   _rigidbody: {fileID: 4369613460588748783}
+  _hp: 10
 --- !u!114 &-7098108407209760292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1837,12 +1839,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2be2c6e083a5454bbda0be5b83163f01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerColor: {r: 0, g: 0, b: 0, a: 0}
-  _playerAvatar: {fileID: 0}
   detectRadius: 5
   exhibitLayer:
     serializedVersion: 2
     m_Bits: 72
+  _abilityType: 0
 --- !u!1 &6783755428985214527
 GameObject:
   m_ObjectHideFlags: 0

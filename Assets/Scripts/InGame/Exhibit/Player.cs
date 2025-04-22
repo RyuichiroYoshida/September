@@ -4,7 +4,6 @@ namespace September.InGame
 {
     public class Player : MonoBehaviour
     {
-        [SerializeField] private PlayerAvatar _playerAvatar;
         [SerializeField] private float detectRadius = 5f;
         [SerializeField] private LayerMask exhibitLayer;
         [SerializeField] private AbilityType _abilityType;
