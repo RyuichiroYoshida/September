@@ -31,7 +31,7 @@ namespace September.OgreSystem
         /// <summary>
         /// 鬼を抽選するメソッド
         /// </summary>
-        public void ChooseOger()
+        public void ChooseOgre()
         {
             var allPlayers = PlayerDatabase.Instance.GetAll();
             if (allPlayers.Count == 0) return;

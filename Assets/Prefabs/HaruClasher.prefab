@@ -2086,6 +2086,7 @@ MonoBehaviour:
       Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   _networkAnimator: {fileID: 8282507870501304620}
   _rigidbody: {fileID: 8871024937122154888}
+  _hp: 10
 --- !u!114 &4509159417925068107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2098,8 +2099,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2be2c6e083a5454bbda0be5b83163f01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerColor: {r: 0, g: 0, b: 0, a: 0}
-  _playerAvatar: {fileID: 0}
   detectRadius: 5
   exhibitLayer:
     serializedVersion: 2
