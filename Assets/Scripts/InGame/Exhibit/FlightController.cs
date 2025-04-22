@@ -13,6 +13,7 @@ namespace September.InGame
         [SerializeField,Label("発射されるPoint")] private Transform _firePoint;
         [SerializeField,Label("弾の速度")] private float _projectileSpeed;
         [SerializeField,Label("飛行が再度可能になる時間")] private float _flightCoolDown = 30f;
+        [SerializeField,Label("飛行が再度可能になる時間")] private float _clashTime = 30f;
         [SerializeField,Label("飛行スピード")] private float _moveSpeed = 10f;
         [SerializeField,Label("回転速度")] private float _rotationSpeed = 100f;
         [SerializeField,Label("上昇速度")] private float _verticalSpeed = 5f;
@@ -20,8 +21,9 @@ namespace September.InGame
         [SerializeField] private CinemachineFreeLook _virtualCamera;
         [SerializeField,Label("カメラ設定")] private GameObject _lockAtTarget;
         [SerializeField,Label("初期上昇")] private float _liftDuration = 1f;
-        [SerializeField,Label("Intaract可能範囲")] private float _detectionRadius = 20f;
+        [SerializeField,Label("Interact可能範囲")] private float _detectionRadius = 20f;
         [SerializeField,Label("固有Abilityを持つLayer")] private LayerMask _playerLayer;
+        [SerializeField] private Material _material;
 
         public bool _isFlying;
         private bool _hasLanded = false;
@@ -37,6 +39,11 @@ namespace September.InGame
         private void Awake()
         {
             Initialize();
+        }
+
+        private void OnDisable()
+        {
+            _material.color = Color.white;
         }
 
         private void Initialize()
@@ -159,6 +166,11 @@ namespace September.InGame
             StartFlightRoutine().Forget();
         }
 
+        public async UniTask Clash()
+        {
+            await Stop(_clashTime);
+        }
+
         private async UniTaskVoid StartFlightRoutine()
         {
             float liftHeight = 1.5f;
@@ -206,8 +218,21 @@ namespace September.InGame
             _canFly = false;
             _okabeMove.AppearPlayer(transform);
 
-            await UniTask.Delay(TimeSpan.FromSeconds(_flightCoolDown));
+            await Stop(_flightCoolDown);
+        }
+
+        private async UniTask Stop(float delay)
+        {
+            _material.color = Color.red;
+
+            if (!_okabeMove.gameObject.activeInHierarchy)
+            {
+                _okabeMove.gameObject.SetActive(true);
+            }
+            
+            await UniTask.Delay(TimeSpan.FromSeconds(delay));
             _canFly = true;
+            _material.color = Color.white;
         }
 
         private void OnCollisionEnter(Collision collision)
