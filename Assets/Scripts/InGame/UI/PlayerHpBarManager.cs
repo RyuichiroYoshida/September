@@ -11,8 +11,9 @@ public class PlayerHpBarManager : MonoBehaviour
         hpBar = GetComponent<Slider>();
     }
 
-    public void SetHpBar(float maxHp)
+    public void SetHpBar(int maxHp)
     {
+        Debug.Log(maxHp);
         hpBar.maxValue = maxHp;
     }
 

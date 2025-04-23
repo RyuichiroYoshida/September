@@ -3199,7 +3199,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerPrefab:
-    RawGuidValue: 566a03c194b2d0041a8e868bb732f1a2
+  - RawGuidValue: 566a03c194b2d0041a8e868bb732f1a2
+  - RawGuidValue: 24e821b0a9085ea459ab16dd7683af03
+  - RawGuidValue: aacdc9d9fa3896047866f34635ce8870
   _runnerPrefab: {fileID: 1984411336199981634, guid: dad36d526af0c934d9791064cf679c8b, type: 3}
   _inGameName: InGameMock
 --- !u!1 &2019171792

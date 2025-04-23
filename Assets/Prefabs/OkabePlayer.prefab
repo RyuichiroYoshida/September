@@ -1843,8 +1843,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1b8775e7dcb92f40b59ddfc5e700400, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lockAtTarget: {fileID: 0}
-  _speed: 0
+  _moveSpeed: 5
+  _body: {fileID: 0}
+  _rigidbody: {fileID: 4369613460588748783}
+  _lockAtTarget: {fileID: 5012674175895838068}
+  _speed: 3
 --- !u!1 &6783755428985214527
 GameObject:
   m_ObjectHideFlags: 0

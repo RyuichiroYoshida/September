@@ -32,8 +32,8 @@ public class PlayerUIContainer : NetworkBehaviour
         _ingameUI_Canvas = gameObject.transform.GetChild(0).gameObject;
         ui.transform.SetParent(_ingameUI_Canvas.transform);
         _playerHpBar = ui.GetComponent<PlayerHpBarManager>();
-        _playerHpBar.SetHpBar(_playerAvatar.Data.MaxHp);
-        _playerHpBarDict.Add(_playerAvatar, _playerHpBar);
+        //_playerHpBar.SetHpBar(_playerAvatar.Data.MaxHp);
+        //_playerHpBarDict.Add(_playerAvatar, _playerHpBar);
     }
    
 }

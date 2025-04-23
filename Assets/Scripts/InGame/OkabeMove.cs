@@ -1,70 +1,76 @@
 using Cinemachine;
 using Fusion;
-using September.InGame;
+using September.Common;
 using UnityEngine;
 using NaughtyAttributes;
 
-public class OkabeMove : NetworkBehaviour
+namespace September.InGame
 {
-    Rigidbody _rigidbody;
-    Animator _animator;
-    [SerializeField,Label("カメラ設定")] private GameObject _lockAtTarget;
-    [SerializeField] private float _speed = 0;
-    private CinemachineFreeLook _freeLook;
-
-    private FlightController _flightController;
-
-    private void Start()
+    public class OkabeMove : NetworkBehaviour
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        _rigidbody = GetComponent<Rigidbody>();
-        _animator = GetComponent<Animator>();
-        _flightController = FindObjectOfType<FlightController>();
-        _flightController.FindOkabeMove(this);
-        _freeLook = FindObjectOfType<CinemachineFreeLook>();
-    }
+        [SerializeField] float _moveSpeed = 5f;
+        [SerializeField] Transform _body;
 
-    public override void FixedUpdateNetwork()
-    {
-        Moving();
-    }
+        [SerializeField] Rigidbody _rigidbody;
 
-    public void HidePlayer()
-    {
-        gameObject.SetActive(false);
-    }
+        //[Networked] public NetworkButtons ButtonsPrevious { get; set; }
+        Animator _animator;
+        [SerializeField, Label("カメラ設定")] private GameObject _lockAtTarget;
+        [SerializeField] private float _speed = 0;
+        private CinemachineFreeLook _freeLook;
 
-    public void AppearPlayer(Transform appearTransform)
-    {
-        _freeLook.Follow = _lockAtTarget.transform;
-        _freeLook.LookAt =_lockAtTarget.transform;
-        gameObject.transform.position = appearTransform.position;
-        gameObject.SetActive(true);
-    }
+        private FlightController _flightController;
 
-    void Moving()
-    {
-        var velo = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")).normalized;
-        Vector3 cameraForward = Camera.main.transform.forward;
-        cameraForward.y = 0;
-        cameraForward.Normalize();
-        Vector3 cameraRight = Camera.main.transform.right;
-        cameraRight.y = 0;
-        cameraRight.Normalize();
-        Vector3 moveDirection = cameraForward * velo.z + cameraRight * velo.x;
-        _rigidbody.linearVelocity = moveDirection * _speed;
-
-        if (velo.magnitude > 0)
+        public override void Spawned()
         {
-            var rot = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), 10f);
-            transform.rotation = rot;
+            Cursor.lockState = CursorLockMode.Locked;
+            _rigidbody = GetComponent<Rigidbody>();
+            _animator = GetComponent<Animator>();
+            _flightController = FindObjectOfType<FlightController>();
+            _flightController.FindOkabeMove(this);
+            _freeLook = FindObjectOfType<CinemachineFreeLook>();
         }
 
-        _animator.SetFloat("Speed", _rigidbody.linearVelocity.magnitude);
+        public override void FixedUpdateNetwork()
+        {
+            if (!GetInput<MyInput>(out var input)) return;
+            // var pressed = input.Buttons.GetPressed(ButtonsPrevious);
+            // ButtonsPrevious = input.Buttons;
+            var velocity = _rigidbody.linearVelocity;
+            // if (pressed.IsSet(MyButtons.Jump))
+            // {
+            //     velocity.y = 5f;
+            // }
+
+            var dir = new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y) * _moveSpeed;
+            if (dir != Vector3.zero)
+            {
+                transform.forward = dir;
+            }
+
+            velocity.x = dir.x;
+            velocity.z = dir.z;
+            _rigidbody.linearVelocity = velocity;
+        }
+
+        public void HidePlayer()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public void AppearPlayer(Transform appearTransform)
+        {
+            _freeLook.Follow = _lockAtTarget.transform;
+            _freeLook.LookAt = _lockAtTarget.transform;
+            gameObject.transform.position = appearTransform.position;
+            gameObject.SetActive(true);
+        }
+
+
+        public void OnFootstep()
+        {
+            //animationEvent用のメソッド
+        }
     }
 
-    public void OnFootstep()
-    {
-        //animationEvent用のメソッド
-    }
 }
