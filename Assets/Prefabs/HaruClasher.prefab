@@ -1887,12 +1887,12 @@ GameObject:
   - component: {fileID: 6258892395558186060}
   - component: {fileID: 8871024937122154888}
   - component: {fileID: 5498090774242603108}
-  - component: {fileID: 5702359382360738240}
   - component: {fileID: 8282507870501304620}
   - component: {fileID: 6317836332611420631}
   - component: {fileID: 3160669095986965893}
   - component: {fileID: 4827723405767554986}
   - component: {fileID: 4509159417925068107}
+  - component: {fileID: 5991219345428612651}
   m_Layer: 8
   m_Name: HaruClasher
   m_TagString: Player
@@ -1991,20 +1991,6 @@ CapsuleCollider:
   m_Height: 1.7896743
   m_Direction: 1
   m_Center: {x: 0, y: 0.9212544, z: 0}
---- !u!114 &5702359382360738240
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6141308324267349752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1b8775e7dcb92f40b59ddfc5e700400, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _lockAtTarget: {fileID: 0}
-  _speed: 3
 --- !u!114 &8282507870501304620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2099,11 +2085,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2be2c6e083a5454bbda0be5b83163f01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectRadius: 5
+  detectRadius: 2
   exhibitLayer:
     serializedVersion: 2
     m_Bits: 8
   _abilityType: 1
+--- !u!114 &5991219345428612651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6141308324267349752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deda83abca2e4c9684a8605dc131c9b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _speed: 5
 --- !u!1 &6265171665049360442
 GameObject:
   m_ObjectHideFlags: 0
