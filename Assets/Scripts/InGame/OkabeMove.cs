@@ -1,9 +1,10 @@
 using Cinemachine;
+using Fusion;
 using September.InGame;
 using UnityEngine;
 using NaughtyAttributes;
 
-public class OkabeMove : MonoBehaviour
+public class OkabeMove : NetworkBehaviour
 {
     Rigidbody _rigidbody;
     Animator _animator;
@@ -23,7 +24,7 @@ public class OkabeMove : MonoBehaviour
         _freeLook = FindObjectOfType<CinemachineFreeLook>();
     }
 
-    private void FixedUpdate()
+    public override void FixedUpdateNetwork()
     {
         Moving();
     }

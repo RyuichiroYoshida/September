@@ -1627,12 +1627,12 @@ GameObject:
   - component: {fileID: 6478696004103428323}
   - component: {fileID: 4369613460588748783}
   - component: {fileID: 1352004204371451602}
-  - component: {fileID: 218414930282284944}
   - component: {fileID: 6767704039685649095}
   - component: {fileID: 6299669587755630265}
   - component: {fileID: 4686791789015215292}
   - component: {fileID: -3548118842859147613}
   - component: {fileID: -7098108407209760292}
+  - component: {fileID: 7371890194219527924}
   m_Layer: 8
   m_Name: OkabePlayer
   m_TagString: Okabe
@@ -1731,20 +1731,6 @@ CapsuleCollider:
   m_Height: 1.7896743
   m_Direction: 1
   m_Center: {x: 0, y: 0.9212544, z: 0}
---- !u!114 &218414930282284944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6597962615836278416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1b8775e7dcb92f40b59ddfc5e700400, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _lockAtTarget: {fileID: 0}
-  _speed: 3
 --- !u!114 &6767704039685649095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1783,6 +1769,7 @@ MonoBehaviour:
   - {fileID: 6767704039685649095}
   - {fileID: 4686791789015215292}
   - {fileID: -3548118842859147613}
+  - {fileID: 7371890194219527924}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4686791789015215292
 MonoBehaviour:
@@ -1824,7 +1811,6 @@ MonoBehaviour:
     _length: 0
     _data:
       Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  _flightController: {fileID: 0}
   _networkAnimator: {fileID: 6767704039685649095}
   _rigidbody: {fileID: 4369613460588748783}
   _hp: 10
@@ -1845,6 +1831,20 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 72
   _abilityType: 0
+--- !u!114 &7371890194219527924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6597962615836278416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b8775e7dcb92f40b59ddfc5e700400, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _lockAtTarget: {fileID: 0}
+  _speed: 0
 --- !u!1 &6783755428985214527
 GameObject:
   m_ObjectHideFlags: 0
