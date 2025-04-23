@@ -29,6 +29,11 @@ namespace September.InGame
             _flightController = FindObjectOfType<FlightController>();
             _flightController.FindOkabeMove(this);
             _freeLook = FindObjectOfType<CinemachineFreeLook>();
+            if (HasInputAuthority)
+            {
+                _freeLook.LookAt = _lockAtTarget.transform;
+                _freeLook.Follow = _lockAtTarget.transform;
+            }
         }
 
         public override void FixedUpdateNetwork()
