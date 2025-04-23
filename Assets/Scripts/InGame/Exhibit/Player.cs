@@ -36,15 +36,24 @@ namespace September.InGame
         {
             // 指定の半径で展示物を検出
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectRadius, exhibitLayer);
+
+            ExhibitBase closestExhibit = null;
+            float closestDistance = float.MaxValue;
             
             foreach (var col in colliders)
             {
                 if (col.TryGetComponent<ExhibitBase>(out var exhibit))
                 {
-                    _currentExhibit = exhibit;
-                    break;
+                    float distance = Vector3.Distance(transform.position, exhibit.transform.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestExhibit = exhibit;
+                    }
                 }
             }
+            
+            _currentExhibit = closestExhibit;
 
             // 入力でアビリティを使用
             if (_isOkabe && Input.GetKeyDown(KeyCode.E))

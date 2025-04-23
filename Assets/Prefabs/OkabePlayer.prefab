@@ -1635,7 +1635,7 @@ GameObject:
   - component: {fileID: -7098108407209760292}
   m_Layer: 8
   m_Name: OkabePlayer
-  m_TagString: Player
+  m_TagString: Okabe
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1824,6 +1824,7 @@ MonoBehaviour:
     _length: 0
     _data:
       Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  _flightController: {fileID: 0}
   _networkAnimator: {fileID: 6767704039685649095}
   _rigidbody: {fileID: 4369613460588748783}
   _hp: 10
@@ -1839,7 +1840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2be2c6e083a5454bbda0be5b83163f01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectRadius: 5
+  detectRadius: 2
   exhibitLayer:
     serializedVersion: 2
     m_Bits: 72
