@@ -2,30 +2,45 @@ using System;
 using UnityEngine;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
+using Fusion;
 using NaughtyAttributes;
 
 namespace September.InGame
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class FlightController : MonoBehaviour
+    public class FlightController : NetworkBehaviour
     {
-        [SerializeField,Label("弾")] private GameObject _projectilePrefab;
-        [SerializeField,Label("発射されるPoint")] private Transform _firePoint;
-        [SerializeField,Label("弾の速度")] private float _projectileSpeed;
-        [SerializeField,Label("飛行が再度可能になる時間")] private float _flightCoolDown = 30f;
-        [SerializeField,Label("飛行が再度可能になる時間")] private float _clashTime = 30f;
-        [SerializeField,Label("飛行スピード")] private float _moveSpeed = 10f;
-        [SerializeField,Label("回転速度")] private float _rotationSpeed = 100f;
-        [SerializeField,Label("上昇速度")] private float _verticalSpeed = 5f;
-        [SerializeField,Label("飛行可能時間")] private float _flightDuration = 30f;
-        [SerializeField] private CinemachineFreeLook _virtualCamera;
-        [SerializeField,Label("カメラ設定")] private GameObject _lockAtTarget;
-        [SerializeField,Label("初期上昇")] private float _liftDuration = 1f;
-        [SerializeField,Label("Interact可能範囲")] private float _detectionRadius = 20f;
-        [SerializeField,Label("固有Abilityを持つLayer")] private LayerMask _playerLayer;
-        [SerializeField] private Material _material;
+        [Header("Flight Settings")] [SerializeField, Label("飛行スピード")]
+        private float _moveSpeed = 10f;
+
+        [SerializeField, Label("回転速度")] private float _rotationSpeed = 100f;
+        [SerializeField, Label("上昇速度")] private float _verticalSpeed = 5f;
+        [SerializeField, Label("飛行可能時間")] private float _flightDuration = 30f;
+        [SerializeField, Label("初期上昇")] private float _liftDuration = 1f;
+        [SerializeField, Label("飛行クールダウン")] private float _flightCoolDown = 30f;
+        [SerializeField, Label("Clashスキル時間")] private float _clashTime = 30f;
+
+        [Header("Projectile Settings")] [SerializeField, Label("弾")]
+        private GameObject _projectilePrefab;
+
+        [SerializeField, Label("発射されるPoint")] private Transform _firePoint;
+        [SerializeField, Label("弾の速度")] private float _projectileSpeed;
+
+        [SerializeField, Label("Interact可能範囲")]
+        private float _detectionRadius = 20f;
+
+        [SerializeField, Label("固有Abilityを持つLayer")]
+        private LayerMask _playerLayer;
+
+        [Header("Camera Settings")] [SerializeField]
+        private CinemachineFreeLook _virtualCamera;
+
+        [SerializeField] private GameObject _lockAtTarget;
+
+        [Header("Misc")] [SerializeField] private Material _material;
 
         public bool _isFlying;
+
         private bool _hasLanded = false;
         private bool _canFly = true;
         private float _timer;
@@ -38,19 +53,14 @@ namespace September.InGame
 
         private void Awake()
         {
-            Initialize();
+            _rigidbody = GetComponent<Rigidbody>();
+            _rigidbody.isKinematic = true;
+            _isFlying = false;
         }
 
         private void OnDisable()
         {
             _material.color = Color.white;
-        }
-
-        private void Initialize()
-        {
-            _rigidbody = GetComponent<Rigidbody>();
-            _isFlying = false;
-            _rigidbody.isKinematic = true;
         }
 
         private void Update()
@@ -61,71 +71,62 @@ namespace September.InGame
             }
         }
 
-        private void FixedUpdate()
+        public override void FixedUpdateNetwork()
         {
-            if (!_isFlying)
-                return;
+            if (!_isFlying) return;
 
             _timer -= Time.fixedDeltaTime;
-
             if (_timer <= 0f)
             {
                 StopFlight();
                 return;
             }
 
-            // 入力取得
-            float horizontalInput = Input.GetAxis("Horizontal");
-            float verticalInput = Input.GetAxis("Vertical");
+            float hInput = Input.GetAxis("Horizontal");
+            float vInput = Input.GetAxis("Vertical");
             float upDownInput = 0f;
-
-            if (Input.GetKey(KeyCode.Space))
+            if (Input.GetKey(KeyCode.Space)) 
                 upDownInput += 1f;
-            if (Input.GetKey(KeyCode.LeftControl))
+            if (Input.GetKey(KeyCode.LeftControl)) 
                 upDownInput -= 1f;
 
-            Rotate(horizontalInput);
-            Move(verticalInput, upDownInput);
+            Rotate(hInput);
+            Move(vInput, upDownInput);
         }
 
         private void FireProjectile()
         {
-            if (_projectilePrefab == null || _firePoint == null)
-                return;
+            if (_projectilePrefab == null || _firePoint == null) return;
 
             Collider[] hits = Physics.OverlapSphere(transform.position, _detectionRadius, _playerLayer);
-
             Transform closestTarget = null;
             float closestDistance = float.MaxValue;
 
             foreach (var hit in hits)
             {
-                float distance = Vector3.Distance(transform.position, hit.transform.position);
-                if (distance < closestDistance)
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                if (dist < closestDistance)
                 {
-                    closestDistance = distance;
+                    closestDistance = dist;
                     closestTarget = hit.transform;
                 }
             }
 
-            Vector3 shootDirection = _firePoint.forward;
-            if (closestTarget != null)
-            {
-                shootDirection = (closestTarget.position - _firePoint.position).normalized;
-            }
+            Vector3 shootDir = closestTarget != null
+                ? (closestTarget.position - _firePoint.position).normalized
+                : _firePoint.forward;
 
             GameObject projectile = Instantiate(_projectilePrefab, _firePoint.position, Quaternion.identity);
 
             if (projectile.TryGetComponent<Rigidbody>(out var rb))
             {
-                rb.linearVelocity = shootDirection * _projectileSpeed;
+                rb.linearVelocity = shootDir * _projectileSpeed;
             }
         }
 
         public void FindOkabeMove(OkabeMove okabeMove)
         {
             _okabeMove = okabeMove.GetComponent<OkabeMove>();
-
             if (_okabeMove == null)
                 Debug.LogWarning("OkabeMoveが見つかりませんでした");
         }
@@ -133,25 +134,24 @@ namespace September.InGame
         private void Rotate(float input)
         {
             float yaw = input * _rotationSpeed * Time.fixedDeltaTime;
-            Quaternion rotation = Quaternion.Euler(0f, yaw, 0f);
-            _rigidbody.MoveRotation(_rigidbody.rotation * rotation);
+            _rigidbody.MoveRotation(_rigidbody.rotation * Quaternion.Euler(0f, yaw, 0f));
         }
 
         private void Move(float forwardInput, float upDownInput)
         {
-            Vector3 moveDirection = transform.forward * (forwardInput * _moveSpeed);
-            moveDirection += Vector3.up * (upDownInput * _verticalSpeed);
-            _rigidbody.linearVelocity = moveDirection;
+            Vector3 direction = transform.forward * forwardInput * _moveSpeed +
+                                Vector3.up * upDownInput * _verticalSpeed;
+            _rigidbody.linearVelocity = direction;
         }
 
         public void StartFlight()
         {
-            if (!_canFly)
-                return;
+            if (!_canFly) return;
 
             _rigidbody.isKinematic = false;
             _isFlying = false;
             _rigidbody.useGravity = false;
+
             _okabeMove.HidePlayer();
 
             if (_virtualCamera != null)
@@ -165,8 +165,25 @@ namespace September.InGame
 
             StartFlightRoutine().Forget();
         }
+        
+        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+        public void RPC_Clash()
+        {
+            RunClashRoutine().Forget();
+        }
 
-        public async UniTask Clash()
+        public void Clash()
+        {
+            if (!HasInputAuthority)
+            {
+                Debug.LogWarning("InputAuthorityがないのでRPCを送れません");
+                return;
+            }
+            
+            RPC_Clash();
+        }
+
+        private async UniTask RunClashRoutine()
         {
             await Stop(_clashTime);
         }
@@ -175,20 +192,18 @@ namespace September.InGame
         {
             float liftHeight = 1.5f;
             Vector3 targetPosition = transform.position + Vector3.up * liftHeight;
+            Vector3 start = transform.position;
             float elapsed = 0f;
-
-            Vector3 startPosition = transform.position;
 
             while (elapsed < _liftDuration)
             {
                 float t = elapsed / _liftDuration;
-                transform.position = Vector3.Lerp(startPosition, targetPosition, t);
+                transform.position = Vector3.Lerp(start, targetPosition, t);
                 elapsed += Time.deltaTime;
                 await UniTask.Yield();
             }
 
             transform.position = targetPosition;
-
             _timer = _flightDuration;
             _isFlying = true;
         }
@@ -203,7 +218,6 @@ namespace September.InGame
         private async UniTaskVoid WaitForLanding()
         {
             _hasLanded = false;
-
             await UniTask.WaitUntil(() => _hasLanded);
 
             _rigidbody.isKinematic = true;
@@ -226,10 +240,8 @@ namespace September.InGame
             _material.color = Color.red;
 
             if (!_okabeMove.gameObject.activeInHierarchy)
-            {
                 _okabeMove.gameObject.SetActive(true);
-            }
-            
+
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
             _canFly = true;
             _material.color = Color.white;
@@ -238,9 +250,7 @@ namespace September.InGame
         private void OnCollisionEnter(Collision collision)
         {
             if (!_isFlying && collision.gameObject.CompareTag("Ground"))
-            {
                 _hasLanded = true;
-            }
         }
     }
 }

@@ -1,8 +1,9 @@
+using Fusion;
 using UnityEngine;
 
 namespace September.InGame
 {
-    public class Player : MonoBehaviour
+    public class Player : NetworkBehaviour
     {
         [SerializeField] private float detectRadius = 5f;
         [SerializeField] private LayerMask exhibitLayer;
@@ -14,8 +15,10 @@ namespace September.InGame
         
         public IAbility Ability => _ability;
 
-        private void Start()
+        public override void Spawned()
         {
+            base.Spawned();
+            
             switch (_abilityType)
             {
                 case AbilityType.Ride:
@@ -33,6 +36,28 @@ namespace September.InGame
         }
 
         private void Update()
+        {
+            // 自分のキャラだけが処理を実行するように
+            if(!HasInputAuthority)
+                return;
+
+            DetectExhibits();
+
+            // 入力でアビリティを使用
+            if (_isOkabe && Input.GetKeyDown(KeyCode.E))
+            {
+                if (_currentExhibit != null)
+                {
+                    _ability?.InteractWith(_currentExhibit);
+                }
+                else
+                {
+                    Debug.LogWarning("No exhibit found");
+                }
+            }
+        }
+
+        private void DetectExhibits()
         {
             // 指定の半径で展示物を検出
             Collider[] colliders = Physics.OverlapSphere(transform.position, detectRadius, exhibitLayer);
@@ -54,26 +79,7 @@ namespace September.InGame
             }
             
             _currentExhibit = closestExhibit;
-
-            // 入力でアビリティを使用
-            if (_isOkabe && Input.GetKeyDown(KeyCode.E))
-            {
-                if (_currentExhibit != null)
-                {
-                    _ability?.InteractWith(_currentExhibit);
-                }
-                else
-                {
-                    Debug.LogWarning("No exhibit found");
-                }
-            }
         }
-
-        private void Attack()
-        {
-            
-        }
-        
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {

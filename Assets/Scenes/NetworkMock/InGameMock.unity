@@ -288,6 +288,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6159683380305089920, guid: 1c37b1111d76e43468ab29e880c2b550, type: 3}
+      propertyPath: m_TagString
+      value: Ground
+      objectReference: {fileID: 0}
     - target: {fileID: 7083997544109074157, guid: 1c37b1111d76e43468ab29e880c2b550, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0
@@ -331,6 +335,10 @@ PrefabInstance:
     - target: {fileID: 7567378432882654295, guid: 1c37b1111d76e43468ab29e880c2b550, type: 3}
       propertyPath: m_Name
       value: Field
+      objectReference: {fileID: 0}
+    - target: {fileID: 7567378432882654295, guid: 1c37b1111d76e43468ab29e880c2b550, type: 3}
+      propertyPath: m_TagString
+      value: Ground
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -848,6 +856,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -139013648642451531, guid: 4af47765e6a007b409ca2571a9def857, type: 3}
+      propertyPath: SortKey
+      value: 2402293781
+      objectReference: {fileID: 0}
     - target: {fileID: 196941331083430099, guid: 4af47765e6a007b409ca2571a9def857, type: 3}
       propertyPath: m_Name
       value: Spacefighter
