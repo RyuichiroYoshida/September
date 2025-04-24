@@ -20,4 +20,14 @@ public class PlayerHpBarManager : MonoBehaviour
     {
         hpBar.value = (float)currentHp / (float)maxHp;
     }
+
+    public void HideHpBar()
+    {
+        hpBar.gameObject.SetActive(false);
+    }
+
+    public void ShowHpBar()
+    {
+        hpBar.gameObject.SetActive(true);
+    }
 }
