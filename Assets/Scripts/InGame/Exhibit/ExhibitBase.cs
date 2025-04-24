@@ -15,10 +15,9 @@ namespace September.InGame
         
         private void OnTriggerEnter(Collider other)
         {
-            if (other.TryGetComponent<PlayerInfo>(out var playerInfo))
+            if (other.TryGetComponent<Player>(out var playerInfo))
             {
                 _currentAbility = playerInfo.Ability;
-                _playerColor = playerInfo.PlayerColor;
 
                 HighLight(_playerColor);
                 _isPlayerInRange = true;
@@ -27,7 +26,7 @@ namespace September.InGame
         
         private void OnTriggerExit(Collider other)
         {
-            if (other.TryGetComponent<PlayerInfo>(out var playerInfo))
+            if (other.TryGetComponent<Player>(out var playerInfo))
             {
                 UnHighlight();
                 _currentAbility = null;

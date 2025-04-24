@@ -1,11 +1,11 @@
 namespace September.InGame
 {
-    public class RideAbility : IAbility
+    public class ClashAbility : IAbility
     {
-        public AbilityType GetAbilityType() => AbilityType.Ride;
+        public AbilityType GetAbilityType() => AbilityType.Clash;
         
         public void Use() { }
-        
+
         public void InteractWith(ExhibitBase exhibit)
         {
             exhibit.Interact(this);

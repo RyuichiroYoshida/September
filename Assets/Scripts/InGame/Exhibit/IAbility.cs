@@ -6,10 +6,11 @@ namespace September.InGame
         Clash
     }
     
-    // Player側の呼び出し方　_ability.InteractWith(_currentExhibit);
     public interface IAbility
     {
+        // 演出が必要なとき
         public void Use();
+        // 展示物の種類によってAbilityを変更する
         public void InteractWith(ExhibitBase exhibit);
         AbilityType GetAbilityType();
     }
