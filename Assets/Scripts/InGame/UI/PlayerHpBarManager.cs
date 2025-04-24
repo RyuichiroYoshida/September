@@ -13,7 +13,6 @@ public class PlayerHpBarManager : MonoBehaviour
 
     public void SetHpBar(int maxHp)
     {
-        Debug.Log(maxHp);
         hpBar.maxValue = maxHp;
     }
 
