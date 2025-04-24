@@ -10,9 +10,9 @@ public class NoticeManager : NetworkBehaviour
       _text = GetComponent<Text>();
    }
 
-   public void UpdateNoticeText(int playerID)
+   public void UpdateNoticeText(string nickName)
    {
-      _text.text = $"鬼がPLayer{playerID}に変更されました";
+      _text.text = $"鬼がPLayer{nickName}に変更されました";
    }
 
    public void HideNoticeText()
