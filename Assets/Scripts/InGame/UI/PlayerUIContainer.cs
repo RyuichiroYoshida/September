@@ -28,9 +28,8 @@ public class PlayerUIContainer : NetworkBehaviour
     public void UI_OnPlayerSpawned(NetworkObject networkObject, PlayerRef player)
     {
         _playerAvatar = networkObject.GetComponent<PlayerAvatar>();
-        var ui = Instantiate(_hpBar);
         _ingameUI_Canvas = gameObject.transform.GetChild(0).gameObject;
-        ui.transform.SetParent(_ingameUI_Canvas.transform);
+        var ui = Instantiate(_hpBar, _ingameUI_Canvas.transform);
         _playerHpBar = ui.GetComponent<PlayerHpBarManager>();
         _playerHpBarDict.Add(_playerAvatar, _playerHpBar);
     }
