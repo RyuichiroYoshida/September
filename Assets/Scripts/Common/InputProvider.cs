@@ -8,7 +8,8 @@ namespace September.Common
 {
     enum MyButtons
     {
-        Jump
+        Jump,
+        Interact
     }
 
     public struct MyInput : INetworkInput
@@ -54,6 +55,7 @@ namespace September.Common
             var myInput = new MyInput();
             var playerActions = _playerInput.Player;
             myInput.Buttons.Set(MyButtons.Jump, playerActions.Jump.IsPressed());
+            myInput.Buttons.Set(MyButtons.Interact, playerActions.Interact.IsPressed());
             if (_camera)
             {
                 var moveDir = playerActions.Move.ReadValue<Vector2>();
