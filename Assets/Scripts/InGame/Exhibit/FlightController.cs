@@ -10,7 +10,8 @@ namespace September.InGame
     [RequireComponent(typeof(Rigidbody))]
     public class FlightController : NetworkBehaviour
     {
-        [Header("Flight Settings")] [SerializeField, Label("飛行スピード")]
+        [Header("Flight Settings")] 
+        [SerializeField, Label("飛行スピード")]
         private float _moveSpeed = 10f;
 
         [SerializeField, Label("回転速度")] private float _rotationSpeed = 100f;
@@ -20,7 +21,8 @@ namespace September.InGame
         [SerializeField, Label("飛行クールダウン")] private float _flightCoolDown = 30f;
         [SerializeField, Label("Clashスキル時間")] private float _clashTime = 30f;
 
-        [Header("Projectile Settings")] [SerializeField, Label("弾")]
+        [Header("Projectile Settings")] 
+        [SerializeField, Label("弾")]
         private GameObject _projectilePrefab;
 
         [SerializeField, Label("発射されるPoint")] private Transform _firePoint;
@@ -51,6 +53,11 @@ namespace September.InGame
         private Transform _originalFollowTarget;
         private Transform _originalLookAtTarget;
 
+        private void OnDisable()
+        {
+            _material.color = Color.white;
+        }
+        
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
@@ -58,22 +65,10 @@ namespace September.InGame
             _isFlying = false;
         }
 
-        private void OnDisable()
-        {
-            _material.color = Color.white;
-        }
-
-        private void Update()
-        {
-            if (_isFlying && Input.GetMouseButtonDown(0))
-            {
-                FireProjectile();
-            }
-        }
-
         public override void FixedUpdateNetwork()
         {
-            if (!_isFlying) return;
+            if (!_isFlying) 
+                return;
 
             _timer -= Time.fixedDeltaTime;
             if (_timer <= 0f)
@@ -92,36 +87,6 @@ namespace September.InGame
 
             Rotate(hInput);
             Move(vInput, upDownInput);
-        }
-
-        private void FireProjectile()
-        {
-            if (_projectilePrefab == null || _firePoint == null) return;
-
-            Collider[] hits = Physics.OverlapSphere(transform.position, _detectionRadius, _playerLayer);
-            Transform closestTarget = null;
-            float closestDistance = float.MaxValue;
-
-            foreach (var hit in hits)
-            {
-                float dist = Vector3.Distance(transform.position, hit.transform.position);
-                if (dist < closestDistance)
-                {
-                    closestDistance = dist;
-                    closestTarget = hit.transform;
-                }
-            }
-
-            Vector3 shootDir = closestTarget != null
-                ? (closestTarget.position - _firePoint.position).normalized
-                : _firePoint.forward;
-
-            GameObject projectile = Instantiate(_projectilePrefab, _firePoint.position, Quaternion.identity);
-
-            if (projectile.TryGetComponent<Rigidbody>(out var rb))
-            {
-                rb.linearVelocity = shootDir * _projectileSpeed;
-            }
         }
 
         public void FindOkabeMove(OkabeMove okabeMove)
@@ -146,14 +111,18 @@ namespace September.InGame
 
         public void StartFlight()
         {
-            if (!_canFly) return;
+            if (!_canFly) 
+                return;
 
+            // フライト可能にする
             _rigidbody.isKinematic = false;
             _isFlying = false;
             _rigidbody.useGravity = false;
 
+            // IntalactしたPlayerを非表示にする
             _okabeMove.HidePlayer();
 
+            // カメラを飛行機視点に切り換える
             if (_virtualCamera != null)
             {
                 _originalFollowTarget = _virtualCamera.Follow;
@@ -166,11 +135,6 @@ namespace September.InGame
             StartFlightRoutine().Forget();
         }
         
-        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-        public void RPC_Clash()
-        {
-            RunClashRoutine().Forget();
-        }
 
         public void Clash()
         {
@@ -182,12 +146,19 @@ namespace September.InGame
             
             RPC_Clash();
         }
+        
+        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+        private void RPC_Clash()
+        {
+            RunClashRoutine().Forget();
+        }
 
         private async UniTask RunClashRoutine()
         {
             await Stop(_clashTime);
         }
 
+        // 飛行処理
         private async UniTaskVoid StartFlightRoutine()
         {
             float liftHeight = 1.5f;
@@ -207,7 +178,32 @@ namespace September.InGame
             _timer = _flightDuration;
             _isFlying = true;
         }
+        
 
+        // 着陸待ち
+        private async UniTaskVoid WaitForLanding()
+        {
+            _hasLanded = false;
+            // 着陸を検知するまで待機
+            await UniTask.WaitUntil(() => _hasLanded);
+
+            // 動けなくする
+            _rigidbody.isKinematic = true;
+            _rigidbody.linearVelocity = Vector3.zero;
+
+            // カメラをPlayerに返す
+            if (_virtualCamera != null)
+            {
+                _virtualCamera.Follow = _originalFollowTarget;
+                _virtualCamera.LookAt = _originalLookAtTarget;
+            }
+            
+            _canFly = false;
+            _okabeMove.AppearPlayer(transform);
+
+            await Stop(_flightCoolDown);
+        }
+        
         private void StopFlight()
         {
             _isFlying = false;
@@ -215,40 +211,27 @@ namespace September.InGame
             WaitForLanding().Forget();
         }
 
-        private async UniTaskVoid WaitForLanding()
-        {
-            _hasLanded = false;
-            await UniTask.WaitUntil(() => _hasLanded);
-
-            _rigidbody.isKinematic = true;
-            _rigidbody.linearVelocity = Vector3.zero;
-
-            if (_virtualCamera != null)
-            {
-                _virtualCamera.Follow = _originalFollowTarget;
-                _virtualCamera.LookAt = _originalLookAtTarget;
-            }
-
-            _canFly = false;
-            _okabeMove.AppearPlayer(transform);
-
-            await Stop(_flightCoolDown);
-        }
-
+        // 飛行終了
         private async UniTask Stop(float delay)
         {
+            // 飛行不可能な場合は赤になる
             _material.color = Color.red;
 
+            // もしインタラクト中に破壊したらインタラクトしたキャラクターを表示する
             if (!_okabeMove.gameObject.activeInHierarchy)
-                _okabeMove.gameObject.SetActive(true);
-
+                _okabeMove.AppearPlayer(transform);
+            
+            // delay分インタラクト不可にする
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
+            
+            // 飛行可能にする
             _canFly = true;
             _material.color = Color.white;
         }
 
         private void OnCollisionEnter(Collision collision)
         {
+            // 落下後、地面に着地したとき
             if (!_isFlying && collision.gameObject.CompareTag("Ground"))
                 _hasLanded = true;
         }
