@@ -38,14 +38,9 @@ namespace September.InGame
 
         public override void FixedUpdateNetwork()
         {
-            if (!GetInput<MyInput>(out var input)) return;
-            // var pressed = input.Buttons.GetPressed(ButtonsPrevious);
-            // ButtonsPrevious = input.Buttons;
+            if (!GetInput<MyInput>(out var input)) 
+                return;
             var velocity = _rigidbody.linearVelocity;
-            // if (pressed.IsSet(MyButtons.Jump))
-            // {
-            //     velocity.y = 5f;
-            // }
 
             var dir = new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y) * _moveSpeed;
             if (dir != Vector3.zero)
