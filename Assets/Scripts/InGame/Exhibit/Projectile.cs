@@ -1,11 +1,16 @@
+using Fusion;
+using Fusion.Addons.Physics;
 using UnityEngine;
 
 namespace September.InGame
 {
-    public class Projectile : MonoBehaviour
+    public class Projectile : NetworkBehaviour
     {
-        [SerializeField] private float _lifeTime = 5f;
-
+        [SerializeField] float _lifeTime = 5f;
+        [SerializeField] bool _isTrigger;
+        [SerializeField] NetworkRigidbody3D _networkRb;
+        public NetworkRigidbody3D NetworkRb => _networkRb;
+        public PlayerController Owner { get; set; }
         private void Start()
         {
             Destroy(gameObject, _lifeTime);
@@ -13,10 +18,19 @@ namespace September.InGame
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.CompareTag("Player"))
+            if(!_isTrigger) return;
+            if (other.TryGetComponent(out PlayerController playerController))
             {
-                Debug.Log("痛い");
-                // ToDo : ダメージ処理
+                playerController.TakeDamage(Owner, Owner.Data.AttackDamage);
+            }
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            if(_isTrigger) return;
+            if (other.gameObject.TryGetComponent(out PlayerController playerController))
+            {
+                playerController.TakeDamage(Owner, Owner.Data.AttackDamage);
             }
         }
     }
