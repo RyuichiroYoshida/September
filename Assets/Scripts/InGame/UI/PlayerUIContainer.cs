@@ -12,10 +12,10 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
     PlayerController _playerController;
     [SerializeField] private GameObject _hpBar;
     GameObject _ingameUI_Canvas;
-    PlayerHpBarManager _playerHpBar;
     List<(PlayerController, PlayerHpBarManager)> _playerHpBarList = new List<(PlayerController, PlayerHpBarManager)>();
     NetworkRunner _networkRunner;
     NoticeManager _noticeManager;
+    [SerializeField] private int _waitFrame = 70;
     private void Start()
     {
          _networkRunner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
@@ -35,7 +35,7 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
     
     public async void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        await UniTask.Delay(50);
+        await UniTask.Delay(_waitFrame);
         var obj =  runner.GetPlayerObject(player); 
         if (_networkRunner.LocalPlayer == player)
         {
@@ -51,10 +51,10 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
     {
         _ingameUI_Canvas = GameObject.Find("IngameCanvas");
         var ui = Instantiate(_hpBar, _ingameUI_Canvas.transform);
-        _playerHpBar = ui.GetComponent<PlayerHpBarManager>();
-        _playerHpBarList.Add((controller, _playerHpBar));
-        _playerHpBar.SetHpBar(controller.Data.HitPoint);
-        controller.OnHpChangedAction += _playerHpBar.FillUpdate;
+        var playerHpBar = ui.GetComponent<PlayerHpBarManager>();
+        _playerHpBarList.Add((controller, playerHpBar));
+        playerHpBar.SetHpBar(controller.Data.HitPoint);
+        controller.OnHpChangedAction += playerHpBar.FillUpdate;
     }
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)

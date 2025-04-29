@@ -1126,7 +1126,6 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 1619179109}
   - {fileID: 7845149201887256589}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &1619179109
@@ -1142,6 +1141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hpBar: {fileID: 8191948423700367078, guid: c689442e8f14d9d4cbeed8fbba2d6fe5, type: 3}
+  _waitFrame: 50
 --- !u!4 &1619179110
 Transform:
   m_ObjectHideFlags: 0
