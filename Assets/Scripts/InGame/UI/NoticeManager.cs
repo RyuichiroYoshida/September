@@ -1,3 +1,5 @@
+using System;
+using Cysharp.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,9 +13,11 @@ public class NoticeManager : NetworkBehaviour
       _text.text = "";
    }
 
-   public void UpdateNoticeText()
+   public async void UpdateNoticeText()
    {
       _text.text = "鬼が変更されました";
+      await UniTask.Delay(TimeSpan.FromSeconds(3));
+      _text.text = "";
    }
 
    public void HideNoticeText()

@@ -20,7 +20,8 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
     {
          _networkRunner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
          AddCallBacks(_networkRunner);
-         _noticeManager = transform.GetChild(1).gameObject.GetComponent<NoticeManager>();
+         _noticeManager = transform.GetChild(0).GetChild(0).gameObject.GetComponent<NoticeManager>();
+         PlayerController.OnOgreChangedRPC += _noticeManager.UpdateNoticeText;
 
     }
     private void AddCallBacks(NetworkRunner runner)
@@ -39,10 +40,8 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
         var obj =  runner.GetPlayerObject(player); 
         if (_networkRunner.LocalPlayer == player)
         {
-            Debug.Log($"{GetInstanceID()}");
             UI_OnPlayerSpawned(obj.GetComponent<PlayerController>(),player);
         }
-       
     }
     
     
