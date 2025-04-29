@@ -1,12 +1,29 @@
+using UnityEngine;
+
 namespace September.InGame
 {
-    public class RideAbility : IAbility
+    public class RideAbility : BaseAbility
     {
-        public AbilityType GetAbilityType() => AbilityType.Ride;
+        public void HidePlayer()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public void AppearPlayer(Transform appearTransform)
+        {
+            PlayerCameraController.LookHeadTransform();
+            gameObject.SetActive(true);
+            Rigidbody.position = appearTransform.position;
+        }
+        public override void Attack()
+        {
+        }
+
+        public override AbilityType GetAbilityType() => AbilityType.Ride;
         
-        public void Use() { }
+        public override void Use() { }
         
-        public void InteractWith(ExhibitBase exhibit)
+        public override void InteractWith(ExhibitBase exhibit)
         {
             exhibit.Interact(this);
         }
