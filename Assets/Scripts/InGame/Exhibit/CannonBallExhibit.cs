@@ -2,20 +2,16 @@ using UnityEngine;
 
 namespace September.InGame
 {
-    public class AirplaneExhibit : ExhibitBase
+    public class CannonBallExhibit : ExhibitBase
     {
-        [SerializeField] private FlightController _flightController;
-        
-        // 呼び出すと飛行が始まる
         public override void Interact(BaseAbility baseAbility)
         {
             switch (baseAbility.GetAbilityType())
             {
-                case AbilityType.Ride:
-                    _flightController.StartFlight(baseAbility as RideAbility);
-                    break;
                 case AbilityType.Clash:
-                    _flightController.RPC_Clash();
+                    var clashAbility = baseAbility as ClashAbility;
+                    clashAbility.HasCannonBall = true;
+                    Destroy(gameObject);
                     break;
                 default:
                     Debug.LogWarning("この展示物にはこのアビリティは使えません");

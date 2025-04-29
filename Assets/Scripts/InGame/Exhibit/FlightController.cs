@@ -45,14 +45,14 @@ namespace September.InGame
 
         private bool _hasLanded = false;
         private bool _canFly = true;
-        private float _timer;
 
         private Rigidbody _rigidbody;
-        private OkabeMove _okabeMove;
+        private RideAbility _rideAbility;
 
         private Transform _originalFollowTarget;
         private Transform _originalLookAtTarget;
 
+        [Networked] TickTimer FlightTimer { get; set; }
         private void OnDisable()
         {
             _material.color = Color.white;
@@ -70,8 +70,7 @@ namespace September.InGame
             if (!_isFlying) 
                 return;
 
-            _timer -= Time.fixedDeltaTime;
-            if (_timer <= 0f)
+            if (FlightTimer.Expired(Runner))
             {
                 StopFlight();
                 return;
@@ -89,13 +88,6 @@ namespace September.InGame
             Move(vInput, upDownInput);
         }
 
-        public void FindOkabeMove(OkabeMove okabeMove)
-        {
-            _okabeMove = okabeMove.GetComponent<OkabeMove>();
-            if (_okabeMove == null)
-                Debug.LogWarning("OkabeMoveが見つかりませんでした");
-        }
-
         private void Rotate(float input)
         {
             float yaw = input * _rotationSpeed * Time.fixedDeltaTime;
@@ -109,18 +101,19 @@ namespace September.InGame
             _rigidbody.linearVelocity = direction;
         }
 
-        public void StartFlight()
+        public void StartFlight(RideAbility rideAbility)
         {
             if (!_canFly) 
                 return;
-
+            //  RideAbilityを注入する
+            _rideAbility = rideAbility;
             // フライト可能にする
             _rigidbody.isKinematic = false;
             _isFlying = false;
             _rigidbody.useGravity = false;
 
             // IntalactしたPlayerを非表示にする
-            _okabeMove.HidePlayer();
+            _rideAbility.HidePlayer();
 
             // カメラを飛行機視点に切り換える
             if (_virtualCamera != null)
@@ -135,20 +128,8 @@ namespace September.InGame
             StartFlightRoutine().Forget();
         }
         
-
-        public void Clash()
-        {
-            if (!HasInputAuthority)
-            {
-                Debug.LogWarning("InputAuthorityがないのでRPCを送れません");
-                return;
-            }
-            
-            RPC_Clash();
-        }
-        
-        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-        private void RPC_Clash()
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void RPC_Clash()
         {
             RunClashRoutine().Forget();
         }
@@ -175,7 +156,7 @@ namespace September.InGame
             }
 
             transform.position = targetPosition;
-            _timer = _flightDuration;
+            FlightTimer = TickTimer.CreateFromSeconds(Runner, _flightDuration);
             _isFlying = true;
         }
         
@@ -199,7 +180,7 @@ namespace September.InGame
             }
             
             _canFly = false;
-            _okabeMove.AppearPlayer(transform);
+            _rideAbility.AppearPlayer(transform);
 
             await Stop(_flightCoolDown);
         }
@@ -218,8 +199,8 @@ namespace September.InGame
             _material.color = Color.red;
 
             // もしインタラクト中に破壊したらインタラクトしたキャラクターを表示する
-            if (!_okabeMove.gameObject.activeInHierarchy)
-                _okabeMove.AppearPlayer(transform);
+            if (_rideAbility && !_rideAbility.gameObject.activeInHierarchy)
+                _rideAbility.AppearPlayer(transform);
             
             // delay分インタラクト不可にする
             await UniTask.Delay(TimeSpan.FromSeconds(delay));

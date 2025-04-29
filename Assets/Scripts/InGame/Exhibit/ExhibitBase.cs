@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 
 namespace September.InGame
@@ -9,46 +10,46 @@ namespace September.InGame
         
         # region モックアップのみ
         
-        private IAbility _currentAbility;
+        private BaseAbility _currentBaseAbility;
         private Color _playerColor;
         private bool _isPlayerInRange = false;
         
-        private void OnTriggerEnter(Collider other)
-        {
-            if (other.TryGetComponent<Player>(out var playerInfo))
-            {
-                _currentAbility = playerInfo.Ability;
-
-                HighLight(_playerColor);
-                _isPlayerInRange = true;
-            }
-        }
-        
-        private void OnTriggerExit(Collider other)
-        {
-            if (other.TryGetComponent<Player>(out var playerInfo))
-            {
-                UnHighlight();
-                _currentAbility = null;
-                _isPlayerInRange = false;
-            }
-        }
-        
-        private void Update()
-        {
-            if (_isPlayerInRange && Input.GetKeyDown(KeyCode.E))
-            {
-                if (_currentAbility != null)
-                {
-                    Interact(_currentAbility);
-                }
-            }
-        }
+        // private void OnTriggerEnter(Collider other)
+        // {
+        //     if (other.TryGetComponent<PlayerAbilityController>(out var playerInfo))
+        //     {
+        //         _currentBaseAbility = playerInfo.Ability;
+        //
+        //         HighLight(_playerColor);
+        //         _isPlayerInRange = true;
+        //     }
+        // }
+        //
+        // private void OnTriggerExit(Collider other)
+        // {
+        //     if (other.TryGetComponent<PlayerAbilityController>(out var playerInfo))
+        //     {
+        //         UnHighlight();
+        //         _currentBaseAbility = null;
+        //         _isPlayerInRange = false;
+        //     }
+        // }
+        //
+        // private void Update()
+        // {
+        //     if (_isPlayerInRange && Input.GetKeyDown(KeyCode.E))
+        //     {
+        //         if (_currentBaseAbility != null)
+        //         {
+        //             Interact(_currentBaseAbility);
+        //         }
+        //     }
+        // }
         
         #endregion
         
         /// <summary>固有アビリティの設定</summary>
-        public abstract void Interact(IAbility ability);
+        public abstract void Interact(BaseAbility baseAbility);
 
         public virtual void HighLight(Color color)
         {

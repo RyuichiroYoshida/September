@@ -9,7 +9,8 @@ namespace September.Common
     enum MyButtons
     {
         Jump,
-        Interact
+        Interact,
+        Attack
     }
 
     public struct MyInput : INetworkInput
@@ -18,6 +19,9 @@ namespace September.Common
         public Vector2 MoveDirection;
         public Vector2 LookDirection;   //  同期する意味ない
     }
+    /// <summary>
+    /// ネットワークの入力管理クラス
+    /// </summary>
     public class InputProvider : SimulationBehaviour, INetworkRunnerCallbacks
     {
         PlayerInput _playerInput;
@@ -54,8 +58,10 @@ namespace September.Common
         {
             var myInput = new MyInput();
             var playerActions = _playerInput.Player;
+            //  Input Actionからデータを取り出してネットワークに登録する
             myInput.Buttons.Set(MyButtons.Jump, playerActions.Jump.IsPressed());
             myInput.Buttons.Set(MyButtons.Interact, playerActions.Interact.IsPressed());
+            myInput.Buttons.Set(MyButtons.Attack, playerActions.Attack.IsPressed());
             if (_camera)
             {
                 var moveDir = playerActions.Move.ReadValue<Vector2>();
