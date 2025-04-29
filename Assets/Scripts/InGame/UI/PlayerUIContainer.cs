@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using Fusion.Sockets;
-using September.Common;
 using September.InGame;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
 {
-    public static PlayerUIContainer Instance;
-    PlayerAvatar _playerAvatar;
+    PlayerController _playerController;
     [SerializeField] private GameObject _hpBar;
     GameObject _ingameUI_Canvas;
     PlayerHpBarManager _playerHpBar;
-    List<(PlayerAvatar, PlayerHpBarManager)> _playerHpBarList = new List<(PlayerAvatar, PlayerHpBarManager)>();
+    List<(PlayerController, PlayerHpBarManager)> _playerHpBarList = new List<(PlayerController, PlayerHpBarManager)>();
     NetworkRunner _networkRunner;
+    NoticeManager _noticeManager;
     private void Start()
     {
          _networkRunner = NetworkRunner.GetRunnerForScene(SceneManager.GetActiveScene());
          AddCallBacks(_networkRunner);
+         _noticeManager = transform.GetChild(1).gameObject.GetComponent<NoticeManager>();
 
     }
     private void AddCallBacks(NetworkRunner runner)
@@ -40,19 +40,21 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
         if (_networkRunner.LocalPlayer == player)
         {
             Debug.Log($"{GetInstanceID()}");
-            UI_OnPlayerSpawned(obj.GetComponent<PlayerAvatar>(),player);
+            UI_OnPlayerSpawned(obj.GetComponent<PlayerController>(),player);
         }
        
     }
     
     
 
-    public void UI_OnPlayerSpawned(PlayerAvatar avatar, PlayerRef player)
+    public void UI_OnPlayerSpawned(PlayerController controller, PlayerRef player)
     {
         _ingameUI_Canvas = GameObject.Find("IngameCanvas");
         var ui = Instantiate(_hpBar, _ingameUI_Canvas.transform);
         _playerHpBar = ui.GetComponent<PlayerHpBarManager>();
-        _playerHpBarList.Add((avatar, _playerHpBar));
+        _playerHpBarList.Add((controller, _playerHpBar));
+        _playerHpBar.SetHpBar(controller.Data.HitPoint);
+        controller.OnHpChangedAction += _playerHpBar.FillUpdate;
     }
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)

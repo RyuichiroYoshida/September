@@ -25,7 +25,7 @@ namespace September.InGame
         [Networked] 
         TickTimer StunTimer { get; set; }
         public Action OnOgreChangedAction { get; set; }
-        public Action OnHpChangedAction { get; set; }
+        public Action<int,int> OnHpChangedAction { get; set; }
         public PlayerData Data => _playerData;
         public override void Spawned()
         {
@@ -82,7 +82,7 @@ namespace September.InGame
         }
 
         public void OnOgreChanged() => OnOgreChangedAction?.Invoke();
-        public void OnHpChanged() => OnHpChangedAction?.Invoke();
+        public void OnHpChanged() => OnHpChangedAction?.Invoke(CurrentHp , _playerData.HitPoint);
         public void OnNickNameChanged()
         {
             _playerNameDisplay.text = NickName.Value;

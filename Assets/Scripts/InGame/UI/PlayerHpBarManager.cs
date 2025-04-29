@@ -21,7 +21,7 @@ public class PlayerHpBarManager : MonoBehaviour
         _hpBar.maxValue = maxHp;
     }
 
-    public void FillUpdate(int maxHp, int currentHp)
+    public void FillUpdate(int currentHp, int maxHp)
     {
         _hpBar.value = (float)currentHp / (float)maxHp;
     }
