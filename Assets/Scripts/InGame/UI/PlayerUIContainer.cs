@@ -52,7 +52,7 @@ public class PlayerUIContainer : MonoBehaviour,INetworkRunnerCallbacks
         var ui = Instantiate(_hpBar, _ingameUI_Canvas.transform);
         var playerHpBar = ui.GetComponent<PlayerHpBarManager>();
         _playerHpBarList.Add((controller, playerHpBar));
-        playerHpBar.SetHpBar(controller.Data.HitPoint);
+        playerHpBar.FillUpdate(controller.CurrentHp,controller.Data.HitPoint);
         controller.OnHpChangedAction += playerHpBar.FillUpdate;
     }
 
