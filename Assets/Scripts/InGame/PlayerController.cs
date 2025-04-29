@@ -24,9 +24,17 @@ namespace September.InGame
         public int CurrentHp { get; set; }
         [Networked] 
         TickTimer StunTimer { get; set; }
+        //  交代した2人に鬼が変わったことを通知する
         public Action OnOgreChangedAction { get; set; }
+<<<<<<< HEAD
         public Action<int,int> OnHpChangedAction { get; set; }
+=======
+        public Action<int, int> OnHpChangedAction { get; set; }
+>>>>>>> origin/develop
         public PlayerData Data => _playerData;
+        //  全員に鬼が交代したことを通知する
+        public static Action OnOgreChangedRPC { get; set; }
+        
         public override void Spawned()
         {
             if (HasInputAuthority)
@@ -74,15 +82,20 @@ namespace September.InGame
 
             // 対象のhpが0より大きければ交代は発生しない
             if (CurrentHp > 0) return;
-
+            
             CurrentHp = _playerData.HitPoint;
             attackerController.IsOgre = false;
             IsOgre = true;
+            Rpc_OnOgreChanged();
             Stun();
         }
 
         public void OnOgreChanged() => OnOgreChangedAction?.Invoke();
+<<<<<<< HEAD
         public void OnHpChanged() => OnHpChangedAction?.Invoke(CurrentHp , _playerData.HitPoint);
+=======
+        public void OnHpChanged() => OnHpChangedAction?.Invoke(CurrentHp, _playerData.HitPoint);
+>>>>>>> origin/develop
         public void OnNickNameChanged()
         {
             _playerNameDisplay.text = NickName.Value;
@@ -92,6 +105,11 @@ namespace September.InGame
         {
             NickName = nickname;
         }
+        [Rpc]
+        public static void Rpc_OnOgreChanged()
+        {
+            OnOgreChangedRPC?.Invoke();
+        } 
         public void OnFootstep(){}
     }
 }
