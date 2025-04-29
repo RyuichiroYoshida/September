@@ -86,7 +86,7 @@ namespace September.InGame
             CurrentHp = _playerData.HitPoint;
             attackerController.IsOgre = false;
             IsOgre = true;
-            Rpc_OnOgreChanged();
+            Rpc_OnOgreChanged(Runner);
             Stun();
         }
 
@@ -106,7 +106,7 @@ namespace September.InGame
             NickName = nickname;
         }
         [Rpc]
-        public static void Rpc_OnOgreChanged()
+        public static void Rpc_OnOgreChanged(NetworkRunner runner)
         {
             OnOgreChangedRPC?.Invoke();
         } 
