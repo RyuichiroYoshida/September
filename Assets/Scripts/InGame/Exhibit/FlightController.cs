@@ -4,6 +4,7 @@ using Cinemachine;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using NaughtyAttributes;
+using September.Common;
 
 namespace September.InGame
 {
@@ -34,12 +35,12 @@ namespace September.InGame
         [SerializeField, Label("固有Abilityを持つLayer")]
         private LayerMask _playerLayer;
 
-        [Header("Camera Settings")] [SerializeField]
+        [Header("Camera Settings")] 
         private CinemachineFreeLook _virtualCamera;
 
         [SerializeField] private GameObject _lockAtTarget;
 
-        [Header("Misc")] [SerializeField] private Material _material;
+        [SerializeField] private Material _material;
 
         public bool _isFlying;
 
@@ -52,7 +53,7 @@ namespace September.InGame
         private Transform _originalFollowTarget;
         private Transform _originalLookAtTarget;
 
-        [Networked] TickTimer FlightTimer { get; set; }
+        [Networked] private TickTimer FlightTimer { get; set; }
         private void OnDisable()
         {
             _material.color = Color.white;
@@ -65,29 +66,42 @@ namespace September.InGame
             _isFlying = false;
         }
 
+        private void Start()
+        {
+            _virtualCamera = GameObject.Find("PlayerVirtualCamera").GetComponent<CinemachineFreeLook>();
+            
+            if(_virtualCamera == null) 
+                Debug.LogWarning(_virtualCamera);
+        }
+
         public override void FixedUpdateNetwork()
         {
-            if (!_isFlying) 
+            if (!_isFlying)
+            {
                 return;
-
+            }
+            
             if (FlightTimer.Expired(Runner))
             {
                 StopFlight();
+                Debug.Log("飛行を終了");
                 return;
             }
 
-            float hInput = Input.GetAxis("Horizontal");
-            float vInput = Input.GetAxis("Vertical");
-            float upDownInput = 0f;
-            if (Input.GetKey(KeyCode.Space)) 
-                upDownInput += 1f;
-            if (Input.GetKey(KeyCode.LeftControl)) 
-                upDownInput -= 1f;
+            if (!GetInput<MyInput>(out var input))
+            { 
+                Debug.LogWarning($"MyInput<{nameof(MyInput)}> is null");
+                return;   
+            }
+            
+            float h = input.MoveDirection.x;
+            float v = input.MoveDirection.y;
+            float upDown = input.UpDown;
 
-            Rotate(hInput);
-            Move(vInput, upDownInput);
+            Rotate(h);
+            Move(v,upDown);
         }
-
+        
         private void Rotate(float input)
         {
             float yaw = input * _rotationSpeed * Time.fixedDeltaTime;
@@ -96,6 +110,7 @@ namespace September.InGame
 
         private void Move(float forwardInput, float upDownInput)
         {
+            Debug.Log($"[Move] forward: {forwardInput}, upDown: {upDownInput}");
             Vector3 direction = transform.forward * forwardInput * _moveSpeed +
                                 Vector3.up * upDownInput * _verticalSpeed;
             _rigidbody.linearVelocity = direction;
@@ -105,18 +120,14 @@ namespace September.InGame
         {
             if (!_canFly) 
                 return;
-            //  RideAbilityを注入する
+            
             _rideAbility = rideAbility;
-            // フライト可能にする
+            
             _rigidbody.isKinematic = false;
             _isFlying = false;
             _rigidbody.useGravity = false;
-
-            // IntalactしたPlayerを非表示にする
-            _rideAbility.HidePlayer();
-
-            // カメラを飛行機視点に切り換える
-            if (_virtualCamera != null)
+            
+            if (_virtualCamera != null && Object.HasInputAuthority)
             {
                 _originalFollowTarget = _virtualCamera.Follow;
                 _originalLookAtTarget = _virtualCamera.LookAt;
@@ -125,6 +136,7 @@ namespace September.InGame
                 _virtualCamera.LookAt = _lockAtTarget.transform;
             }
 
+            _rideAbility.HidePlayer();
             StartFlightRoutine().Forget();
         }
         
@@ -142,6 +154,15 @@ namespace September.InGame
         // 飛行処理
         private async UniTaskVoid StartFlightRoutine()
         {
+            if (!Object.HasInputAuthority)
+            {
+                Debug.LogWarning("所有者ではありません");
+                return;
+            }
+            
+            _rigidbody.isKinematic = false;
+            _rigidbody.useGravity = false;
+            
             float liftHeight = 1.5f;
             Vector3 targetPosition = transform.position + Vector3.up * liftHeight;
             Vector3 start = transform.position;
@@ -149,7 +170,7 @@ namespace September.InGame
 
             while (elapsed < _liftDuration)
             {
-                float t = elapsed / _liftDuration;
+                float t = Mathf.Clamp01(elapsed / _liftDuration);
                 transform.position = Vector3.Lerp(start, targetPosition, t);
                 elapsed += Time.deltaTime;
                 await UniTask.Yield();
@@ -165,15 +186,13 @@ namespace September.InGame
         private async UniTaskVoid WaitForLanding()
         {
             _hasLanded = false;
-            // 着陸を検知するまで待機
+            
             await UniTask.WaitUntil(() => _hasLanded);
-
-            // 動けなくする
+            
             _rigidbody.isKinematic = true;
             _rigidbody.linearVelocity = Vector3.zero;
-
-            // カメラをPlayerに返す
-            if (_virtualCamera != null)
+            
+            if (_virtualCamera != null && Object.HasInputAuthority)
             {
                 _virtualCamera.Follow = _originalFollowTarget;
                 _virtualCamera.LookAt = _originalLookAtTarget;
@@ -195,24 +214,20 @@ namespace September.InGame
         // 飛行終了
         private async UniTask Stop(float delay)
         {
-            // 飛行不可能な場合は赤になる
             _material.color = Color.red;
-
-            // もしインタラクト中に破壊したらインタラクトしたキャラクターを表示する
+            
             if (_rideAbility && !_rideAbility.gameObject.activeInHierarchy)
                 _rideAbility.AppearPlayer(transform);
             
-            // delay分インタラクト不可にする
             await UniTask.Delay(TimeSpan.FromSeconds(delay));
             
-            // 飛行可能にする
             _canFly = true;
             _material.color = Color.white;
         }
 
         private void OnCollisionEnter(Collision collision)
         {
-            // 落下後、地面に着地したとき
+            
             if (!_isFlying && collision.gameObject.CompareTag("Ground"))
                 _hasLanded = true;
         }

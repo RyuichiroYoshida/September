@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 
 namespace September.InGame
@@ -6,14 +7,26 @@ namespace September.InGame
     {
         public void HidePlayer()
         {
+            RPC_HidePlayer();
+        }
+        
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_HidePlayer()
+        {
             gameObject.SetActive(false);
         }
 
         public void AppearPlayer(Transform appearTransform)
         {
+            RPC_AppearPlayer(appearTransform.position);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_AppearPlayer(Vector3 appearPosition)
+        {
             PlayerCameraController.LookHeadTransform();
             gameObject.SetActive(true);
-            Rigidbody.position = appearTransform.position;
+            Rigidbody.position = appearPosition;
         }
         public override void Attack()
         {

@@ -14,6 +14,7 @@ namespace September.Common
         [SerializeField] NetworkPrefabRef[] _playerPrefab;
         [SerializeField] NetworkRunner _runnerPrefab;
         [SerializeField] string _inGameName;
+        [SerializeField] private GameObject _airPlane;
         NetworkRunner _networkRunner;
         public Action<NetworkObject, PlayerRef> OnPlayerSpawned;
         private void Start()
@@ -61,7 +62,6 @@ namespace September.Common
             {
                 var rand = Random.insideUnitCircle * 5f;
                 var spawnPosition = new Vector3(rand.x, 2f, rand.y);
-                //  GameModeがSharedではないためクライアント側にスポーン権限が無い、ホスト側のランナーでアバターをスポーンさせる
 
                 #region 仮
                 NetworkPrefabRef selectedPrefab;
@@ -70,11 +70,9 @@ namespace September.Common
                 {
                     case 1:
                         selectedPrefab = _playerPrefab[1];
-                        Debug.Log("岡部を生成");
                         break;
                     case 2:
                         selectedPrefab = _playerPrefab[2];
-                        Debug.Log("晴を生成");
                         break;
                     default:
                         selectedPrefab = _playerPrefab[0];
@@ -86,6 +84,15 @@ namespace September.Common
                 var avatar = runner.Spawn(selectedPrefab, spawnPosition, Quaternion.identity, inputAuthority: player, onBeforeSpawned:
                     (targetRunner, targetObj) => OnPlayerSpawned?.Invoke(targetObj, player));
                 runner.SetPlayerObject(player, avatar);
+
+                if (player.PlayerId == 2)
+                {
+                    runner.Spawn(_airPlane,_airPlane.transform.position,Quaternion.identity,inputAuthority: player, onBeforeSpawned:
+                        (targetRunner, targetObj) =>
+                        {
+                            Debug.Log($" {player} に飛行機を割り当て");
+                        });
+                }
             }
         }
         void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player)
