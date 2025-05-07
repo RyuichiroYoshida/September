@@ -15,10 +15,11 @@ namespace September.Common
 
     public struct MyInput : INetworkInput
     {
-        public float UpDown; // 飛行機用に追加
+        public float UpDown;
         public NetworkButtons Buttons;
         public Vector2 MoveDirection;
         public Vector2 LookDirection;   //  同期する意味ない
+        public NetworkBool Shot;
     }
     /// <summary>
     /// ネットワークの入力管理クラス
@@ -70,6 +71,7 @@ namespace September.Common
             myInput.Buttons.Set(MyButtons.Jump, playerActions.Jump.IsPressed());
             myInput.Buttons.Set(MyButtons.Interact, playerActions.Interact.IsPressed());
             myInput.Buttons.Set(MyButtons.Attack, playerActions.Attack.IsPressed());
+            myInput.Shot = playerActions.Shot.triggered;
             if (_camera)
             {
                 var moveDir = playerActions.Move.ReadValue<Vector2>();

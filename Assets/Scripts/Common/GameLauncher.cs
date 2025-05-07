@@ -85,7 +85,8 @@ namespace September.Common
                     (targetRunner, targetObj) => OnPlayerSpawned?.Invoke(targetObj, player));
                 runner.SetPlayerObject(player, avatar);
 
-                if (player.PlayerId == 2)
+                // ここかえないと1番目が所有者で固定される
+                if (player.PlayerId == 1)
                 {
                     runner.Spawn(_airPlane,_airPlane.transform.position,Quaternion.identity,inputAuthority: player, onBeforeSpawned:
                         (targetRunner, targetObj) =>

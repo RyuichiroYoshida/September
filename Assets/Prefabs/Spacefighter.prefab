@@ -69,7 +69,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!65 &20050628600316363
 BoxCollider:
@@ -107,11 +107,11 @@ MonoBehaviour:
   _moveSpeed: 10
   _rotationSpeed: 100
   _verticalSpeed: 5
-  _flightDuration: 5
-  _liftDuration: 1
+  _flightDuration: 30
+  _liftDuration: 2
   _flightCoolDown: 30
   _clashTime: 30
-  _projectilePrefab: {fileID: 6169571750412902452, guid: 553b06a6616f55e46a86f3b695258411, type: 3}
+  _projectilePrefab: {fileID: 542100548692821890, guid: 553b06a6616f55e46a86f3b695258411, type: 3}
   _firePoint: {fileID: 5707507938200617136}
   _projectileSpeed: 50
   _detectionRadius: 20

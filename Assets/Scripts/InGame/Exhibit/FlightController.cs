@@ -24,7 +24,7 @@ namespace September.InGame
 
         [Header("Projectile Settings")] 
         [SerializeField, Label("弾")]
-        private GameObject _projectilePrefab;
+        private Projectile _projectilePrefab;
 
         [SerializeField, Label("発射されるPoint")] private Transform _firePoint;
         [SerializeField, Label("弾の速度")] private float _projectileSpeed;
@@ -44,6 +44,8 @@ namespace September.InGame
 
         public bool _isFlying;
 
+        private PlayerController _ownerPlayer;
+
         private bool _hasLanded = false;
         private bool _canFly = true;
 
@@ -52,6 +54,9 @@ namespace September.InGame
 
         private Transform _originalFollowTarget;
         private Transform _originalLookAtTarget;
+        
+        private float _airborneTime = 0f; 
+        private const float _maxAirborneDuration = 3f;
 
         [Networked] private TickTimer FlightTimer { get; set; }
         private void OnDisable()
@@ -77,16 +82,15 @@ namespace September.InGame
         public override void FixedUpdateNetwork()
         {
             if (!_isFlying)
-            {
                 return;
-            }
             
             if (FlightTimer.Expired(Runner))
             {
-                StopFlight();
-                Debug.Log("飛行を終了");
+                EndFlight();
                 return;
             }
+
+            UpdateLanded();
 
             if (!GetInput<MyInput>(out var input))
             { 
@@ -94,12 +98,50 @@ namespace September.InGame
                 return;   
             }
             
-            float h = input.MoveDirection.x;
-            float v = input.MoveDirection.y;
-            float upDown = input.UpDown;
+            Rotate(input.MoveDirection.x);
+            Move(input.MoveDirection, input.UpDown);
 
-            Rotate(h);
-            Move(v,upDown);
+            if (input.Shot)
+                FireProjectile();
+        }
+        
+        private void Move(Vector2 inputMove, float upDownInput)
+        {
+            if (_virtualCamera == null) 
+                return;
+            // カメラの前方向と右方向を取得（水平だけ）
+            Vector3 camForward = _virtualCamera.transform.forward;
+            Vector3 camRight = _virtualCamera.transform.right;
+            camForward.y = 0;
+            camRight.y = 0;
+            camForward.Normalize();
+            camRight.Normalize();
+
+            // 入力に応じた移動方向
+            Vector3 moveDir = camForward * inputMove.y + camRight * inputMove.x;
+
+            // 上下入力を加える
+            moveDir += Vector3.up * upDownInput;
+
+            _rigidbody.linearVelocity = moveDir.normalized * _moveSpeed;
+        }
+
+        // 強制着地
+        private void UpdateLanded()
+        {
+            // 着地していなければタイマー進行
+            if (!_hasLanded)
+            {
+                _airborneTime += Runner.DeltaTime;
+                if (_airborneTime >= _maxAirborneDuration)
+                {
+                    _hasLanded = true;
+                    _airborneTime = 0f;
+                    Debug.Log("強制着地判定: 空中に3秒滞在");
+                }
+            }
+            else
+                _airborneTime = 0f;
         }
         
         private void Rotate(float input)
@@ -108,20 +150,19 @@ namespace September.InGame
             _rigidbody.MoveRotation(_rigidbody.rotation * Quaternion.Euler(0f, yaw, 0f));
         }
 
-        private void Move(float forwardInput, float upDownInput)
-        {
-            Debug.Log($"[Move] forward: {forwardInput}, upDown: {upDownInput}");
-            Vector3 direction = transform.forward * forwardInput * _moveSpeed +
-                                Vector3.up * upDownInput * _verticalSpeed;
-            _rigidbody.linearVelocity = direction;
-        }
-
         public void StartFlight(RideAbility rideAbility)
         {
             if (!_canFly) 
                 return;
             
             _rideAbility = rideAbility;
+            
+            _ownerPlayer = rideAbility.GetComponent<PlayerController>();
+            if (_ownerPlayer == null)
+            {
+                Debug.LogWarning("PlayerControllerが見つかりません");
+                return;
+            }
             
             _rigidbody.isKinematic = false;
             _isFlying = false;
@@ -138,17 +179,6 @@ namespace September.InGame
 
             _rideAbility.HidePlayer();
             StartFlightRoutine().Forget();
-        }
-        
-        [Rpc(RpcSources.All, RpcTargets.All)]
-        public void RPC_Clash()
-        {
-            RunClashRoutine().Forget();
-        }
-
-        private async UniTask RunClashRoutine()
-        {
-            await Stop(_clashTime);
         }
 
         // 飛行処理
@@ -181,7 +211,6 @@ namespace September.InGame
             _isFlying = true;
         }
         
-
         // 着陸待ち
         private async UniTaskVoid WaitForLanding()
         {
@@ -204,14 +233,26 @@ namespace September.InGame
             await Stop(_flightCoolDown);
         }
         
-        private void StopFlight()
+        // フライトを終了する
+        private void EndFlight()
         {
             _isFlying = false;
             _rigidbody.useGravity = true;
             WaitForLanding().Forget();
         }
+        
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void RPC_Clash()
+        {
+            ClashRoutine().Forget();
+        }
 
-        // 飛行終了
+        private async UniTask ClashRoutine()
+        {
+            await Stop(_clashTime);
+        }
+        
+        // フライト可能待ち時間
         private async UniTask Stop(float delay)
         {
             _material.color = Color.red;
@@ -224,12 +265,47 @@ namespace September.InGame
             _canFly = true;
             _material.color = Color.white;
         }
+        
+        
+        private void FireProjectile()
+        {
+            if (!Object.HasInputAuthority)
+                return;
+
+            Vector3 fireOrigin = _firePoint.position;
+            Vector3 fireDirection = _virtualCamera.transform.forward;
+
+            float sphereRadius = 5.0f;
+            float sphereDistance = 300f;
+
+            Vector3 direction = fireDirection;
+
+            if (Physics.SphereCast(fireOrigin, sphereRadius, fireDirection, out RaycastHit hit, sphereDistance, _playerLayer))
+            {
+                direction = (hit.point - _firePoint.position).normalized;
+            }
+
+            RPC_FireProjectile(direction);
+        }
+
+        [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+        private void RPC_FireProjectile(Vector3 direction)
+        {
+            var projectile = Runner.Spawn(_projectilePrefab,
+                _firePoint.position,
+                Quaternion.LookRotation(direction));
+
+            projectile.NetworkRb.Rigidbody.linearVelocity = direction.normalized * _projectileSpeed;
+            projectile.Owner = _ownerPlayer; 
+        }
 
         private void OnCollisionEnter(Collision collision)
         {
-            
             if (!_isFlying && collision.gameObject.CompareTag("Ground"))
+            {
                 _hasLanded = true;
+                _airborneTime = 0f;
+            }
         }
     }
 }

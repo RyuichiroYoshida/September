@@ -18,7 +18,9 @@ namespace September.InGame
 
         private void OnTriggerEnter(Collider other)
         {
-            if(!_isTrigger) return;
+            if(!_isTrigger)
+                return;
+            
             if (other.TryGetComponent(out PlayerController playerController))
             {
                 playerController.TakeDamage(Owner, Owner.Data.AttackDamage);
