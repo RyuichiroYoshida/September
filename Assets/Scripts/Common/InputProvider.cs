@@ -26,8 +26,13 @@ namespace September.Common
     {
         PlayerInput _playerInput;
         Camera _camera;
+        
+        public static InputProvider Instance;
+        public PlayerInput GetPlayerInput => _playerInput;
+        
         private void Awake()
         {
+            Instance = this;
             _playerInput = new PlayerInput();
             
             _playerInput.Enable();
