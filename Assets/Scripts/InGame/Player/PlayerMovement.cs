@@ -1,35 +1,47 @@
+using System;
+using Fusion;
+using Fusion.Addons.Physics;
 using September.Common;
 using UnityEngine;
 
 namespace InGame.Player
 {
-    public class PlayerMovement : MonoBehaviour
+    public class PlayerMovement : NetworkBehaviour
     {
         [SerializeField] float _moveSpeed = 5f;
 
         private Rigidbody _rb;
-        Camera _mainCamera;
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            _mainCamera = Camera.main;
         }
 
-        private void Update()
+        public override void FixedUpdateNetwork()
         {
-            // inputそのままの速度
-            Vector2 inputVec = InputProvider.Instance.GetPlayerInput.Player.Move.ReadValue<Vector2>();
-            Vector3 inputCameraDir = _mainCamera.transform.TransformDirection(new Vector3(inputVec.x, 0f, inputVec.y));
-            Vector3 velocity = new Vector3(inputCameraDir.x, 0, inputCameraDir.z) * _moveSpeed;
+            if (GetInput<PlayerInput>(out var input))
+            {
+                Move(input.MoveDirection, input.CameraYaw);
+            }
+        }
+
+        void Move(Vector2 moveInput, float cameraYaw)
+        {
+            // CameraYawから入力を回転させる
+            float radYaw = -cameraYaw * Mathf.Deg2Rad;
+            Vector3 rotated = new Vector3(
+                moveInput.x * Mathf.Cos(radYaw) - moveInput.y * Mathf.Sin(radYaw),
+                0f,
+                moveInput.x * Mathf.Sin(radYaw) + moveInput.y * Mathf.Cos(radYaw)
+            );
+            
+            Vector3 velocity = rotated * _moveSpeed;
             velocity.y = _rb.linearVelocity.y;
             _rb.linearVelocity = velocity;
         
-            // 進行を向く
-            if (inputVec != Vector2.zero)
-            {
-                transform.localRotation = Quaternion.LookRotation(new Vector3(inputCameraDir.x, 0, inputCameraDir.z));  
-            }
+            // 移動による回転までとりあえずここに書く
+            transform.LookAt(transform.position + rotated, Vector3.up);
+            _rb.angularVelocity = Vector3.zero;
         }
     }
 }

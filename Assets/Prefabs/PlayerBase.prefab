@@ -2315,10 +2315,11 @@ GameObject:
   - component: {fileID: 6099435784402053345}
   - component: {fileID: 5268755282073618764}
   - component: {fileID: 2463801933549895597}
-  - component: {fileID: 2913936558690709478}
+  - component: {fileID: -189776657306787398}
   - component: {fileID: 2664302539866463009}
   - component: {fileID: -4668177863944640257}
   - component: {fileID: 3242880713039265549}
+  - component: {fileID: -7253597389089903898}
   m_Layer: 6
   m_Name: PlayerBase
   m_TagString: Player
@@ -2433,12 +2434,13 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 2913936558690709478}
+  - {fileID: -189776657306787398}
   - {fileID: 2664302539866463009}
   - {fileID: -4668177863944640257}
+  - {fileID: 3242880713039265549}
   - {fileID: 4347137231058705995}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &2913936558690709478
+--- !u!114 &-189776657306787398
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2506,6 +2508,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _moveSpeed: 5
+  _useNetworkRigidbody: 0
+--- !u!114 &-7253597389089903898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360875997416129576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e544505e48afa5e489941d6d26363b98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _abilities:
+    rid: -2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!1 &8516414556098384525
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,7 +15,7 @@ namespace InGame.Player
 
         public override void Spawned()
         {
-            if (HasStateAuthority)
+            if (HasInputAuthority)
             {
                 // カメラの設定
                 var virtualCamera = Instantiate(_playerCameraPrefab, transform);
@@ -23,8 +23,8 @@ namespace InGame.Player
                 virtualCamera.LookAt = _lookAtTf;
                 
                 // カーソルを消す todo:ゲームロジックがやるべき
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
+                // Cursor.visible = false;
+                // Cursor.lockState = CursorLockMode.Locked;
             }
         }
     }

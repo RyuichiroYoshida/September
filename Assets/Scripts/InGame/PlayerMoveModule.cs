@@ -7,7 +7,7 @@ namespace September.InGame
     {
         public override void FixedUpdateNetwork()
         {
-            if (!GetInput<MyInput>(out var input)) return;
+            if (!GetInput<PlayerInput>(out var input)) return;
             var velocity = Rigidbody.linearVelocity;
             var dir = new Vector3(input.MoveDirection.x, 0f, input.MoveDirection.y) * PlayerData.Speed;
             if (dir != Vector3.zero)
