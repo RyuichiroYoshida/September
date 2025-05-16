@@ -1,99 +1,119 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 public class EditorButton : EditorWindow
 {
+    private bool _showImportWindow;
 
-    private static Dictionary<string, string> _packages = new Dictionary<string, string>
-    {
-        { "Package1", "https://drive.google.com/uc?export=download&id=13EUNNvpz1tmuvZ1CINxtHA5QCwl3yj7U" },
-        { "Test", "https://drive.google.com/uc?export=download&id=11yQLaD23-dtCFDdisTG0XLRF0pjEshsg" }
-    };
+    private bool _isInitialized = true;
+    private Color _defaultLabelColor;
     
-    private static string _saveDirectory = "Assets/DownloadedPackages/";
+    private AssetsImporter _importer = new();
+    // まめちしき
+    // Unityには UnityEditor.AssetImporter というテクスチャ等のアセットを自動でインポートするやつがあるらしいわよ
+    // https://light11.hatenadiary.com/entry/2018/04/05/194303
+    // https://light11.hatenadiary.com/entry/2018/04/05/194529
+    
     [MenuItem("September/Import")]
     public static void ShowWindow()
     {
-        var window = EditorWindow.GetWindow<EditorButton>("ImportWindow");
+        var window = GetWindow<EditorButton>("ImportWindow");
         window.Show();
     }
 
     private void OnGUI()
     {
+        if (_isInitialized)
+        {
+            // Labelの色を上書きしてしまうため、元に戻す用でデフォルトカラーを保存しておく
+            _defaultLabelColor = GUI.skin.label.normal.textColor;
+        }
+
+        _isInitialized = false;
+        
+        DrawColorLabel("インポートが終わるまでUnityのシーンを再生しないでください！", Color.red);
+
+        // UnityPackageをインポートするときのファイル選択ウィンドウを表示するかのフラグ (デフォルトは表示しない false)
+        _showImportWindow = EditorGUILayout.Toggle("アセットの手動インポート", _showImportWindow);
+
+        // 状態を表示
+        EditorGUILayout.LabelField(_showImportWindow
+            ? "現在、アセットインポート時にインポートするフォルダを選べます"
+            : "現在、自動的に全てのアセットの中身がインポートされます");
+
         if (GUILayout.Button("インポート"))
         {
-           DownLoad();
+            _ = DownLoad();
         }
-    }
-
-    private void DownLoad()
-    {
-        if (!Directory.Exists(_saveDirectory))
+        
+        if (GUILayout.Button("test"))
         {
-            Directory.CreateDirectory(_saveDirectory);
-            Debug.Log($"Created directory: {_saveDirectory}");
+            _ = _importer.Test(); 
         }
-
-        if (_packages.Count == 0)
-        {
-            Debug.LogWarning("URLが一つも存在しません");
-        }
-
-        foreach (var package in _packages)
-        {
-            string packageName = package.Key;
-            string url = package.Value;
-            string savePath =Path.Combine(_saveDirectory, packageName + ".unitypackage");
-            
-            if (File.Exists(savePath))
-            {
-                Debug.Log($"Skipping download: {packageName} (Already exists)");
-            }
-            else
-            {
-                using (WebClient client = new WebClient())
-                {
-                    try
-                    {
-                        client.DownloadFile(url, savePath);
-                        Debug.Log($"Downloaded: {packageName} -> {savePath}");
-                    }
-                    catch(Exception e)
-                    {
-                        Debug.LogError($"Failed to download {packageName}: {e.Message}");
-                    }
-                }
-            }
-             
-            AssetDatabase.ImportPackage(savePath, false);
-            DeletePackageFile(savePath);
-          
-        }
-        Debug.Log("All packages processed.");
     }
     
-    private void DeletePackageFile(string savePath)
+
+    private async Task DownLoad()
     {
-        // インポート後にパッケージファイルを削除
-        if (File.Exists(savePath))
+        // UnityPackageの存在チェックはAssetsImporter.csで行うので、ここではやらない
+
+        var task = _importer.StartFetching();
+        var result = await task;
+
+        if (string.IsNullOrEmpty(result))
         {
-            try
+            Debug.LogError("ファイルのパスが取得できませんでした");
+            return;
+        }
+
+        try
+        {
+            var files = Directory.GetFiles(result, "*.unitypackage", SearchOption.AllDirectories);
+
+            foreach (var file in files)
             {
-                File.Delete(savePath);
-                Debug.Log($"Deleted package file: {savePath}");
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Failed to delete package file: {savePath} -> {e.Message}");
+                AssetDatabase.ImportPackage(file, _showImportWindow);
             }
         }
-        else
+        catch (Exception e)
         {
-            Debug.LogWarning($"Package file not found for deletion: {savePath}");
+            Debug.LogError($"Exception {e}");
         }
+        finally
+        {
+            Directory.Delete(result, true);
+        }
+    }
+    
+    private void DrawColorLabel(string text, Color color)
+    {
+        var style = GUI.skin.label;
+        var styleState = new GUIStyleState
+        {
+            textColor = color
+        };
+        style.normal = styleState;
+        
+        GUILayout.Label(text, style);
+
+        // Labelの色を元に戻す
+        var styleState2 = new GUIStyleState
+        {
+            textColor = _defaultLabelColor
+        };
+        style.normal = styleState2;
     }
 }
