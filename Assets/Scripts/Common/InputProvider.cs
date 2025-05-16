@@ -9,6 +9,7 @@ namespace September.Common
     enum PlayerButtons
     {
         Jump,
+        Dash,
         Interact,
         Attack
     }
@@ -46,6 +47,7 @@ namespace September.Common
             var playerActions = _playerInput.Player;
             //  Input Actionからデータを取り出してネットワークに登録する
             playerInput.Buttons.Set(PlayerButtons.Jump, playerActions.Jump.IsPressed());
+            playerInput.Buttons.Set(PlayerButtons.Dash, playerActions.Dash.IsPressed());
             playerInput.Buttons.Set(PlayerButtons.Interact, playerActions.Interact.IsPressed());
             playerInput.Buttons.Set(PlayerButtons.Attack, playerActions.Attack.IsPressed());
             playerInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
