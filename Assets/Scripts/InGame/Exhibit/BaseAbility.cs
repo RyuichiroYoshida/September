@@ -22,13 +22,13 @@ namespace September.InGame
         public override void FixedUpdateNetwork()
         {
             // 入力でアビリティを使用
-            if (!GetInput<MyInput>(out var input))
+            if (!GetInput<Common.PlayerInput>(out var input))
                 return;
 
             var pressed = input.Buttons.GetPressed(ButtonsPrevious);
             ButtonsPrevious = input.Buttons;
 
-            if (pressed.IsSet(MyButtons.Interact))
+            if (pressed.IsSet(PlayerButtons.Interact))
             {
                 DetectExhibits();
                 if (_currentExhibit != null)
@@ -38,7 +38,7 @@ namespace September.InGame
                 else
                     Debug.LogWarning("No exhibit found");
             }
-            if (pressed.IsSet(MyButtons.Attack))
+            if (pressed.IsSet(PlayerButtons.Attack))
             {
                 Attack();
             }
