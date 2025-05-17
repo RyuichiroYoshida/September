@@ -61,10 +61,14 @@ public class EditorButton : EditorWindow
         
         if (GUILayout.Button("test"))
         {
-            _ = _importer.Test(); 
         }
     }
-    
+
+    private void OnDisable()
+    {
+        _importer.Dispose();
+    }
+
 
     private async Task DownLoad()
     {
