@@ -1,9 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -12,134 +10,100 @@ using UnityEngine.Networking;
 
 public class AssetsImporter
 {
-    private string _downloadUrl;
-    private CancellationTokenSource _cts = new();
+    private readonly CancellationTokenSource _cts;
+    private readonly CancellationToken _defaultToken;
 
-    public async Task Test()
+    private const string GasURL =
+        "https://script.google.com/macros/s/AKfycbyq3HvEVdpSucXgKPn6gNuLmn231XwVaLHf2-lzseDHCrEb2HhwGNQLV9nWAf0z0ge4/exec";
+
+    public AssetsImporter()
     {
-        await DownloadFileAsync("1NMt0nEGOkyPJ1kCX4xzgyFfba9kkxxPm", "Unity.zip");
+        _cts = new CancellationTokenSource();
+        _defaultToken = _cts.Token;
     }
 
-    private static readonly HttpClientHandler Handler = new()
+    public void Dispose()
     {
-        CookieContainer = new CookieContainer(),
-        AllowAutoRedirect = true,
-        UseCookies = true
-    };
-
-    private static readonly HttpClient Client = new(Handler);
-
-    public static async Task DownloadFileAsync(string fileId, string outputPath)
-    {
-        var baseUrl = $"https://drive.google.com/uc?export=download&id={fileId}";
-
-        // Step 1: 最初のリクエスト（ウイルススキャンページ）
-        var response = await Client.GetAsync(baseUrl);
-        var content = await response.Content.ReadAsStringAsync();
-
-        // Step 2: confirm トークンを正規表現で抽出
-        var match = Regex.Match(content, @"confirm=([0-9A-Za-z_]+)");
-        var confirmToken = match.Success ? match.Groups[1].Value : "t";
-
-        // Step 3: confirm トークン付きで再リクエスト
-        var downloadUrl = $"https://drive.google.com/uc?export=download&confirm={confirmToken}&id={fileId}";
-        var fileResponse = await Client.GetAsync(downloadUrl);
-
-        fileResponse.EnsureSuccessStatusCode();
-
-        using (var fs = new FileStream(outputPath, FileMode.Create))
+        try
         {
-            await fileResponse.Content.CopyToAsync(fs);
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+        catch (Exception)
+        {
+            // ignore
+        }
+    }
+
+    public async Task GetReleases(string route, CancellationToken token = default)
+    {
+        var ct = token == CancellationToken.None ? _defaultToken : token;
+        var req = UnityWebRequest.Get($"{GasURL}?route={route}");
+        await req.SendWebRequest().ToUniTask(cancellationToken: ct);
+
+        if (req.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError("Releases Get Error: " + req.error);
         }
 
-        Debug.Log("File downloaded successfully.");
+        Debug.Log(req.downloadHandler.text);
     }
 
-    // public async Task Test()
-    // {
-    //     const string fileId = "1NMt0nEGOkyPJ1kCX4xzgyFfba9kkxxPm";
-    //     var url = $"https://drive.google.com/uc?export=download&id={fileId}";
-    //         
-    //     var req = UnityWebRequest.Get(url);
-    //     req.downloadHandler = new DownloadHandlerBuffer();
-    //     await req.SendWebRequest();
-    //     
-    //     if (req.result != UnityWebRequest.Result.Success)
-    //     {
-    //         Debug.LogError("Initial request failed: " + req.error);
-    //         return;
-    //     }
-    //     
-    //     // Step 2: confirm=t が含まれている場合（Virus Scan確認）
-    //     var containsConfirmT = req.downloadHandler.text.Contains("name=\"confirm\" value=\"t\"");
-    //     var confirmToken = containsConfirmT ? "t" : "";
-    //
-    //     // Step 3: 再ダウンロード（正しいファイル本体取得）
-    //     var finalUrl = string.IsNullOrEmpty(confirmToken)
-    //         ? url
-    //         : $"https://drive.google.com/uc?export=download&confirm={confirmToken}&id={fileId}";
-    //
-    //     var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
-    //     var downloadReq = UnityWebRequest.Get(finalUrl);
-    //     downloadReq.downloadHandler = new DownloadHandlerFile(zipPath);
-    //     await downloadReq.SendWebRequest();
-    // }
+    public async Task GetAssetUrl(string route, string assetId, CancellationToken token = default)
+    {
+        var ct = token == CancellationToken.None ? _defaultToken : token;
+        var req = UnityWebRequest.Get($"{GasURL}?route={route}&id={assetId}");
+        await req.SendWebRequest().ToUniTask(cancellationToken: ct);
+
+        if (req.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError("Releases Get Error: " + req.error);
+        }
+
+        Debug.Log(req.downloadHandler.text);
+    }
 
     public async UniTask<string> StartFetching()
     {
-        // TODO: 実行時間が1分くらいかかるので、APIを軽量化したい
-        // Google Apps ScriptのURL
-        const string gasUrl =
-            "https://script.google.com/macros/s/AKfycbyhfhBWdQgnGO0RQnuLfAdzoE1_wBcS5szmdhnvMNH8J5kK59g3alaLH_dXFkjUkQ7f/exec";
-
         var ct = _cts.Token;
-
-        //_downloadUrl = await FetchURLAsync(gasUrl, ct);
-        _downloadUrl = "https://drive.google.com/uc?export=download&id=1oh_5onnMxn5-A3rweZnBkqVdjyo7ybqI";
-
-        if (!string.IsNullOrEmpty(_downloadUrl))
+        using (var request = UnityWebRequest.Get(GasURL))
         {
-            // URLを使用した後続処理
-
-            using (var request = UnityWebRequest.Get(_downloadUrl))
+            try
             {
-                try
+                var asyncOp = await request.SendWebRequest().ToUniTask(cancellationToken: ct);
+                if (request.result is UnityWebRequest.Result.ConnectionError
+                    or UnityWebRequest.Result.ProtocolError)
                 {
-                    var asyncOp = await request.SendWebRequest().ToUniTask(cancellationToken: ct);
-                    if (request.result is UnityWebRequest.Result.ConnectionError
-                        or UnityWebRequest.Result.ProtocolError)
-                    {
-                        Debug.LogError($"ダウンロードエラー: {request.error}");
-                        return "";
-                    }
-
-                    Debug.Log(request.result);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"アセットダウンロードエラー: {e}");
-                    throw;
-                }
-
-                try
-                {
-                    var fileData = request.downloadHandler.data;
-
-                    var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
-                    Debug.Log($"zipPath: {zipPath}");
-                    await File.WriteAllBytesAsync(zipPath, fileData, ct);
-
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
-                    Debug.Log($"filePath: {filePath}");
-                    await ExtractZipFile(zipPath, filePath, ct);
-
-                    return filePath;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Error: {e}");
+                    Debug.LogError($"ダウンロードエラー: {request.error}");
                     return "";
                 }
+
+                Debug.Log(request.result);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"アセットダウンロードエラー: {e}");
+                throw;
+            }
+
+            try
+            {
+                var fileData = request.downloadHandler.data;
+
+                var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
+                Debug.Log($"zipPath: {zipPath}");
+                await File.WriteAllBytesAsync(zipPath, fileData, ct);
+
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
+                Debug.Log($"filePath: {filePath}");
+                await ExtractZipFile(zipPath, filePath, ct);
+
+                return filePath;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error: {e}");
+                return "";
             }
         }
 
@@ -245,3 +209,34 @@ public class AssetsImporter
     //     _cts.Cancel();
     // }
 }
+
+
+[Serializable]
+public struct Release
+{
+    public int _id;
+    public string _name;
+    public string _tagName;
+    public string _publishedAt;
+    public List<Asset> _assets;
+}
+
+[Serializable]
+public struct Asset
+{
+    public int _id;
+    public string _name;
+    public string _url;
+    public long _size;
+}
+
+// データサンプル
+// { id: 219025835,
+//     name: 'Release main',
+//     tag_name: 'main',
+//     published_at: '2025-05-16T07:52:08Z',
+//     assets: 
+//     [ { id: 255181855,
+//         name: 'Unity.zip',
+//         download_url: 'https://github.com/RyuichiroYoshida/SepDriveActions/releases/download/main/Unity.zip',
+//         size: 63003695 } ] }
