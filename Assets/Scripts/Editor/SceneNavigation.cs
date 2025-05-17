@@ -29,14 +29,6 @@ public static class SceneNavigation
         OpenScene(2);
     }
 
-    // [MenuItem("Scene/StageSelect")]
-    // public static void Scene03()
-    // {
-    //     EditorSceneManager.SaveOpenScenes();
-    //     OpenScene(3);
-    // }
-
-
     private static void OpenScene(int sceneIndex)
     {
         string scenePath = SceneUtility.GetScenePathByBuildIndex(sceneIndex);

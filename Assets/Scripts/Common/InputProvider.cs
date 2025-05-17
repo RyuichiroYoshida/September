@@ -6,81 +6,55 @@ using UnityEngine;
 
 namespace September.Common
 {
-    enum MyButtons
+    enum PlayerButtons
     {
         Jump,
+        Dash,
         Interact,
         Attack
     }
 
-    public struct MyInput : INetworkInput
+    public struct PlayerInput : INetworkInput
     {
         public NetworkButtons Buttons;
         public Vector2 MoveDirection;
-        public Vector2 LookDirection;   //  同期する意味ない
+        public float CameraYaw;
     }
     /// <summary>
     /// ネットワークの入力管理クラス
     /// </summary>
     public class InputProvider : SimulationBehaviour, INetworkRunnerCallbacks
     {
-        PlayerInput _playerInput;
-        Camera _camera;
-        
-        public static InputProvider Instance;
-        public PlayerInput GetPlayerInput => _playerInput;
+        GameInput _playerInput;
+        Camera _mainCamera;
         
         private void Awake()
         {
-            Instance = this;
-            _playerInput = new PlayerInput();
-            
+            // InputSystemを有効にする
+            _playerInput = new GameInput();
             _playerInput.Enable();
             _playerInput.Player.Enable();
-            var runner = NetworkRunner.GetRunnerForGameObject(gameObject);
-            if (runner != null && runner.IsRunning)
-            {
-                runner.AddCallbacks(this);
-                runner.AddGlobal(this);
-            }
+            
+            _mainCamera = Camera.main;
         }
-
-        public void OnDestroy()
-        {
-            _playerInput.Disable();
-            _playerInput.Player.Disable();
-            var runner = NetworkRunner.GetRunnerForGameObject(gameObject);
-            if (runner != null && runner.IsRunning)
-            {
-                runner.RemoveCallbacks(this);
-                runner.RemoveGlobal(this);
-            }
-        }
+        
         /// <summary>
         /// 現在の入力状況をネットワークに登録する
         /// </summary>
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
-            var myInput = new MyInput();
+            var playerInput = new PlayerInput();
             var playerActions = _playerInput.Player;
             //  Input Actionからデータを取り出してネットワークに登録する
-            myInput.Buttons.Set(MyButtons.Jump, playerActions.Jump.IsPressed());
-            myInput.Buttons.Set(MyButtons.Interact, playerActions.Interact.IsPressed());
-            myInput.Buttons.Set(MyButtons.Attack, playerActions.Attack.IsPressed());
-            if (_camera)
-            {
-                var moveDir = playerActions.Move.ReadValue<Vector2>();
-                var cameraRotation = Quaternion.Euler(0f, _camera.transform.rotation.eulerAngles.y, 0f);
-                var dir = cameraRotation * new Vector3(moveDir.x, 0f, moveDir.y);
-                myInput.MoveDirection = new Vector2(dir.x, dir.z);
-            }
-            else
-            {
-                myInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
-            }
-            myInput.LookDirection = playerActions.Look.ReadValue<Vector2>();
-            input.Set(myInput);
+            playerInput.Buttons.Set(PlayerButtons.Jump, playerActions.Jump.IsPressed());
+            playerInput.Buttons.Set(PlayerButtons.Dash, playerActions.Dash.IsPressed());
+            playerInput.Buttons.Set(PlayerButtons.Interact, playerActions.Interact.IsPressed());
+            playerInput.Buttons.Set(PlayerButtons.Attack, playerActions.Attack.IsPressed());
+            playerInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
+            playerInput.CameraYaw = _mainCamera.transform.rotation.eulerAngles.y;
+            input.Set(playerInput);
         }
+        
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
@@ -100,7 +74,7 @@ namespace September.Common
 
         public void OnSceneLoadDone(NetworkRunner runner)
         {
-            _camera = Camera.main;
+            _mainCamera = Camera.main;
         }
         public void OnSceneLoadStart(NetworkRunner runner) { }
     }
