@@ -5,11 +5,14 @@ using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class AssetsImporter
 {
+    private static List<Release> _releases = new();
+    
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _defaultToken;
 
@@ -35,9 +38,9 @@ public class AssetsImporter
         }
     }
 
-    public async Task GetReleases(string route, CancellationToken token = default)
+    public async Task GetReleases(string route, CancellationToken? token = null)
     {
-        var ct = token == CancellationToken.None ? _defaultToken : token;
+        var ct = token ?? _defaultToken;
         var req = UnityWebRequest.Get($"{GasURL}?route={route}");
         await req.SendWebRequest().ToUniTask(cancellationToken: ct);
 
@@ -46,12 +49,33 @@ public class AssetsImporter
             Debug.LogError("Releases Get Error: " + req.error);
         }
 
-        Debug.Log(req.downloadHandler.text);
+        Debug.Log("生データ: " + req.downloadHandler.text);
+        
+        // JSON文字列を取得
+        try
+        {
+            // JSONをデシリアライズ
+            _releases = JsonConvert.DeserializeObject<List<Release>>(req.downloadHandler.text);
+
+            // データ確認
+            foreach (var release in _releases)
+            {
+                Debug.Log($"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}");
+                foreach (var asset in release.Assets)
+                {
+                    Debug.Log($"Asset: ID: {asset.ID}, Name: {asset.Name}, URL: {asset.URL}, Size: {asset.Size}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"JSONパースエラー: {e.Message}");
+        }
     }
 
-    public async Task GetAssetUrl(string route, string assetId, CancellationToken token = default)
+    public async Task GetAssetUrl(string route, int assetId, CancellationToken? token = null)
     {
-        var ct = token == CancellationToken.None ? _defaultToken : token;
+        var ct = token ?? _defaultToken;
         var req = UnityWebRequest.Get($"{GasURL}?route={route}&id={assetId}");
         await req.SendWebRequest().ToUniTask(cancellationToken: ct);
 
@@ -210,33 +234,49 @@ public class AssetsImporter
     // }
 }
 
-
 [Serializable]
 public struct Release
 {
-    public int _id;
-    public string _name;
-    public string _tagName;
-    public string _publishedAt;
-    public List<Asset> _assets;
+    [JsonProperty("id")]
+    public int ID { get; set; }
+    [JsonProperty("name")]
+    public string Name { get; set; }
+    [JsonProperty("tag_name")]
+    public string TagName { get; set; }
+    [JsonProperty("published_at")]
+    public string PublishedAt { get; set; }
+    [JsonProperty("assets")]
+    public List<Asset> Assets { get; set; }
 }
 
 [Serializable]
 public struct Asset
 {
-    public int _id;
-    public string _name;
-    public string _url;
-    public long _size;
+    [JsonProperty("id")]
+    public int ID { get; set; }
+    [JsonProperty("name")]
+    public string Name { get; set; }
+    [JsonProperty("download_url")]
+    public string URL { get; set; }
+    [JsonProperty("size")]
+    public int Size { get; set; }
 }
 
 // データサンプル
-// { id: 219025835,
-//     name: 'Release main',
-//     tag_name: 'main',
-//     published_at: '2025-05-16T07:52:08Z',
-//     assets: 
-//     [ { id: 255181855,
-//         name: 'Unity.zip',
-//         download_url: 'https://github.com/RyuichiroYoshida/SepDriveActions/releases/download/main/Unity.zip',
-//         size: 63003695 } ] }
+// {
+//     [
+//         id: 219025835,
+//         name: 'Release main',
+//         tag_name: 'main',
+//         published_at: '2025-05-16T07:52:08Z',
+//         assets: 
+//             [
+//                 {
+//                     id: 255181855,
+//                     name: 'Unity.zip',
+//                     download_url: 'https://github.com/RyuichiroYoshida/SepDriveActions/releases/download/main/Unity.zip',
+//                     size: 63003695
+//                 },
+//             ]
+//     ],
+// }
