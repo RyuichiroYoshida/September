@@ -11,13 +11,13 @@ using UnityEngine.Networking;
 
 public class AssetsImporter
 {
-    private static List<Release> _releases = new();
-    
+    private const string GasURL =
+        "https://script.google.com/macros/s/AKfycbyq3HvEVdpSucXgKPn6gNuLmn231XwVaLHf2-lzseDHCrEb2HhwGNQLV9nWAf0z0ge4/exec";
+
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _defaultToken;
 
-    private const string GasURL =
-        "https://script.google.com/macros/s/AKfycbyq3HvEVdpSucXgKPn6gNuLmn231XwVaLHf2-lzseDHCrEb2HhwGNQLV9nWAf0z0ge4/exec";
+    public List<Release> Releases { get; private set; } = new();
 
     public AssetsImporter()
     {
@@ -38,7 +38,7 @@ public class AssetsImporter
         }
     }
 
-    public async Task GetReleases(string route, CancellationToken? token = null)
+    public async UniTask<bool> GetReleases(string route, CancellationToken? token = null)
     {
         var ct = token ?? _defaultToken;
         var req = UnityWebRequest.Get($"{GasURL}?route={route}");
@@ -47,6 +47,7 @@ public class AssetsImporter
         if (req.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Releases Get Error: " + req.error);
+            return false;
         }
 
         Debug.Log("生データ: " + req.downloadHandler.text);
@@ -55,12 +56,13 @@ public class AssetsImporter
         try
         {
             // JSONをデシリアライズ
-            _releases = JsonConvert.DeserializeObject<List<Release>>(req.downloadHandler.text);
+            Releases = JsonConvert.DeserializeObject<List<Release>>(req.downloadHandler.text);
 
             // データ確認
-            foreach (var release in _releases)
+            foreach (var release in Releases)
             {
-                Debug.Log($"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}");
+                Debug.Log(
+                    $"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}");
                 foreach (var asset in release.Assets)
                 {
                     Debug.Log($"Asset: ID: {asset.ID}, Name: {asset.Name}, URL: {asset.URL}, Size: {asset.Size}");
@@ -69,11 +71,14 @@ public class AssetsImporter
         }
         catch (Exception e)
         {
-            Console.WriteLine($"JSONパースエラー: {e.Message}");
+            Debug.LogError($"JSONパースエラー: {e.Message}");
+            return false;
         }
+        
+        return true;
     }
 
-    public async Task GetAssetUrl(string route, int assetId, CancellationToken? token = null)
+    public async UniTask GetAssetUrl(string route, int assetId, CancellationToken? token = null)
     {
         var ct = token ?? _defaultToken;
         var req = UnityWebRequest.Get($"{GasURL}?route={route}&id={assetId}");

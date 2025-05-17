@@ -1,14 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using UniRx;
 using UnityEngine;
-using UnityEngine.Networking;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -16,17 +13,25 @@ using UnityEditor;
 
 public class EditorButton : EditorWindow
 {
-    private bool _showImportWindow;
+    private readonly CancellationTokenSource _cts = new();
+    private CancellationToken _ct;
 
+    private ReactiveProperty<bool> _syncReleases = new();
+    private string _importText;
+    
+    private int _releasesSelectedIndex;
+    private List<string> _releasesList = new();
+    
+    private bool _showImportWindow;
     private bool _isInitialized = true;
     private Color _defaultLabelColor;
-    
-    private AssetsImporter _importer = new();
+
+    private AssetsImporter _importer;
     // まめちしき
     // Unityには UnityEditor.AssetImporter というテクスチャ等のアセットを自動でインポートするやつがあるらしいわよ
     // https://light11.hatenadiary.com/entry/2018/04/05/194303
     // https://light11.hatenadiary.com/entry/2018/04/05/194529
-    
+
     [MenuItem("September/Import")]
     public static void ShowWindow()
     {
@@ -43,6 +48,12 @@ public class EditorButton : EditorWindow
         }
 
         _isInitialized = false;
+
+        if (_releasesList.Count == 0)
+        {
+            DrawColorLabel("初期化中...", Color.red);
+            return;
+        }
         
         DrawColorLabel("インポートが終わるまでUnityのシーンを再生しないでください！", Color.red);
 
@@ -53,22 +64,68 @@ public class EditorButton : EditorWindow
         EditorGUILayout.LabelField(_showImportWindow
             ? "現在、アセットインポート時にインポートするフォルダを選べます"
             : "現在、自動的に全てのアセットの中身がインポートされます");
-
+        
+        _releasesSelectedIndex = EditorGUILayout.Popup("パッケージバージョン", _releasesSelectedIndex, _releasesList.ToArray());
+        
+        GUILayout.Space(10);
+        GUILayout.Label("Selected: " + _releasesList[_releasesSelectedIndex]);
+        
         if (GUILayout.Button("インポート"))
         {
             _ = DownLoad();
         }
-        
-        if (GUILayout.Button("test"))
+
+        GUILayout.Space(10);
+
+        if (GUILayout.Button("Sync Releases"))
         {
+            _syncReleases.Value = false;
+            _ = Sync();
         }
+
+        GUILayout.Label(_importText);
+
+        GUILayout.Space(10);
+
+        if (GUILayout.Button("Assets"))
+        {
+            _ = Import();
+        }
+    }
+
+    private void OnEnable()
+    {
+        _ct = _cts.Token;
+
+        _syncReleases.Subscribe(completed => _importText = completed ? "リソース読み込みが完了しました" : "リソース読み込み待機中");
+        
+        _ = Sync();
     }
 
     private void OnDisable()
     {
+        _cts.Cancel();
         _importer.Dispose();
     }
 
+    private async UniTaskVoid Sync()
+    {
+        _importer = new AssetsImporter();
+        await _importer.GetReleases("releases", _ct);
+        _releasesList.Clear();
+        foreach (var release in _importer.Releases)
+        {
+            _releasesList.Add(release.TagName);
+        }
+        _syncReleases.Value = true;
+    }
+
+    private async UniTaskVoid Import()
+    {
+        var id = _importer.Releases[_releasesSelectedIndex].Assets[0].ID;
+        
+        await _importer.GetAssetUrl("asset", id, _ct);
+    }
 
     private async Task DownLoad()
     {
@@ -101,7 +158,7 @@ public class EditorButton : EditorWindow
             Directory.Delete(result, true);
         }
     }
-    
+
     private void DrawColorLabel(string text, Color color)
     {
         var style = GUI.skin.label;
@@ -110,7 +167,7 @@ public class EditorButton : EditorWindow
             textColor = color
         };
         style.normal = styleState;
-        
+
         GUILayout.Label(text, style);
 
         // Labelの色を元に戻す
