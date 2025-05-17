@@ -1,6 +1,7 @@
 using System;
 using Cinemachine;
 using Fusion;
+using UniRx;
 using UnityEngine;
 
 namespace InGame.Player
@@ -12,19 +13,23 @@ namespace InGame.Player
     {
         [SerializeField] CinemachineVirtualCameraBase _playerCameraPrefab;
         [SerializeField] Transform _lookAtTf;
+        [SerializeField] PlayerStatus _playerStatus;
+        
+        public PlayerStatus PlayerStatus => _playerStatus;
+        public bool IsLocalPlayer => HasInputAuthority;
 
         public override void Spawned()
         {
-            if (HasStateAuthority)
+            if (HasInputAuthority)
             {
                 // カメラの設定
-                var virtualCamera = Instantiate(_playerCameraPrefab, transform);
+                var virtualCamera = Instantiate(_playerCameraPrefab);
                 virtualCamera.Follow = transform;
                 virtualCamera.LookAt = _lookAtTf;
                 
                 // カーソルを消す todo:ゲームロジックがやるべき
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
+                // Cursor.visible = false;
+                // Cursor.lockState = CursorLockMode.Locked;
             }
         }
     }
