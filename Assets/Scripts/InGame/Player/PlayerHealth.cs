@@ -24,6 +24,7 @@ namespace InGame.Player
             }
         }
 
+        // ダメージを受ける
         public void TakeDamage(int damage)
         {
             if (HasStateAuthority)

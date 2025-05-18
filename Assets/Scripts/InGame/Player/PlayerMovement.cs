@@ -13,7 +13,7 @@ namespace InGame.Player
         [SerializeField] float _moveSpeed = 5f;
         [SerializeField] float _dashSpeed = 10f;
         // スタミナ切れた時のダッシュできない時間(仮)
-        [SerializeField] private float _dashCoolTime = 3f;
+        [SerializeField] private float _dashCooldown = 3f;
 
         // スタミナ消費量
         private float _staminaConsumption;
@@ -80,7 +80,7 @@ namespace InGame.Player
                 {
                     // クールタイムに入れて一定時間後に解除
                     _isDashCoolTime = true;
-                    Observable.Timer(TimeSpan.FromSeconds(_dashCoolTime))
+                    Observable.Timer(TimeSpan.FromSeconds(_dashCooldown))
                         .Subscribe(_ => _isDashCoolTime = false).AddTo(this);
                 }
             }
