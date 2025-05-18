@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace InGame.Player
 {
+    // デバッグ用にPlayer情報をUIに出す
     public class DisplayPlayerDebug : MonoBehaviour
     {
         [SerializeField] TMP_Text _healthText;
