@@ -374,6 +374,8 @@ GameObject:
   m_Component:
   - component: {fileID: 9004895562984058669}
   - component: {fileID: 7989801277942638952}
+  - component: {fileID: 4936226308030862041}
+  - component: {fileID: 2168161223561744792}
   m_Layer: 5
   m_Name: StaminaBar
   m_TagString: Untagged
@@ -400,8 +402,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -715, y: 340.5}
-  m_SizeDelta: {x: -1590, y: -799}
+  m_AnchoredPosition: {x: -768, y: 311}
+  m_SizeDelta: {x: -1590, y: -1031.752}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7989801277942638952
 MonoBehaviour:
@@ -454,6 +456,42 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4936226308030862041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4568012801660025878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a68ae3a3b041bc906c244acecd54f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _uiType: 2
+  _dataBase: {fileID: 11400000, guid: 532134cc553a67141a68bfa35b089b76, type: 2}
+--- !u!95 &2168161223561744792
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4568012801660025878}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 0e62a75c1c5f73748bc7346b2f196490, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4647924620282202341
 GameObject:
   m_ObjectHideFlags: 0
@@ -536,6 +574,8 @@ GameObject:
   m_Component:
   - component: {fileID: 543538734869654471}
   - component: {fileID: 6599107934356704905}
+  - component: {fileID: 422129471991923295}
+  - component: {fileID: 325352178403710760}
   m_Layer: 5
   m_Name: SwoonBar
   m_TagString: Untagged
@@ -562,8 +602,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -715, y: 340.5}
-  m_SizeDelta: {x: -1590, y: -799}
+  m_AnchoredPosition: {x: -762, y: 415}
+  m_SizeDelta: {x: -1590, y: -1042.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &6599107934356704905
 MonoBehaviour:
@@ -616,6 +656,42 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &422129471991923295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6390539698572214657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a68ae3a3b041bc906c244acecd54f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _uiType: 1
+  _dataBase: {fileID: 11400000, guid: 532134cc553a67141a68bfa35b089b76, type: 2}
+--- !u!95 &325352178403710760
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6390539698572214657}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: bbd74d2782453f64180ae127688ec6fa, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &6678974944764947758
 GameObject:
   m_ObjectHideFlags: 0
@@ -774,6 +850,8 @@ GameObject:
   - component: {fileID: 1180145715457491420}
   - component: {fileID: 2635784277982778759}
   - component: {fileID: 7822225331503942098}
+  - component: {fileID: 8724163993938110927}
+  - component: {fileID: 2632376543568392668}
   m_Layer: 5
   m_Name: Score
   m_TagString: Untagged
@@ -798,7 +876,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -433, y: 340}
+  m_AnchoredPosition: {x: -465, y: 362}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2635784277982778759
@@ -839,6 +917,42 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8724163993938110927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8366321577238773262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70a68ae3a3b041bc906c244acecd54f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _uiType: 4
+  _dataBase: {fileID: 11400000, guid: 532134cc553a67141a68bfa35b089b76, type: 2}
+--- !u!95 &2632376543568392668
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8366321577238773262}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 488c85876e5cf3b4c88e8a664c02d879, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8577218371724943841
 GameObject:
   m_ObjectHideFlags: 0
