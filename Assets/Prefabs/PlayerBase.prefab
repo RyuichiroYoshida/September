@@ -2321,6 +2321,7 @@ GameObject:
   - component: {fileID: 3242880713039265549}
   - component: {fileID: 5358505061852357365}
   - component: {fileID: -3905644752378878134}
+  - component: {fileID: -6901572262234536162}
   m_Layer: 6
   m_Name: PlayerBase
   m_TagString: Player
@@ -2441,6 +2442,7 @@ MonoBehaviour:
   - {fileID: -4668177863944640257}
   - {fileID: 3242880713039265549}
   - {fileID: 5358505061852357365}
+  - {fileID: -6901572262234536162}
   - {fileID: 4347137231058705995}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-189776657306787398
@@ -2513,7 +2515,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _moveSpeed: 5
   _dashSpeed: 10
-  _dashCoolTime: 3
+  _dashCooldown: 3
+  _MaxStamina: 0
 --- !u!114 &5358505061852357365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2526,6 +2529,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a48bc921e4c1add42b1038c5e786fbc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _MaxHealth: 0
 --- !u!114 &-3905644752378878134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2538,6 +2542,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a97fa1f5e591252438ae6f1ea8b0742b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-6901572262234536162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360875997416129576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b02981bbfa7f214c9d99ac846c751ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _abilities:
+  - rid: 1540697657372835924
+  references:
+    version: 2
+    RefIds:
+    - rid: 1540697657372835924
+      type: {class: AbilityB, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+      data:
+        _abilityInputType: 0
+        _cooldown: 0
 --- !u!1 &8516414556098384525
 GameObject:
   m_ObjectHideFlags: 0
