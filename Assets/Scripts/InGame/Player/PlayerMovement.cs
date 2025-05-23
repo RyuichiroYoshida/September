@@ -91,8 +91,8 @@ namespace InGame.Player
             _rb.linearVelocity = velocity;
         
             // 移動による回転までとりあえずここに書く
-            transform.LookAt(transform.position + rotated, Vector3.up);
             _rb.angularVelocity = Vector3.zero;
+            transform.LookAt(transform.position + rotated, Vector3.up);
         }
     }
 }

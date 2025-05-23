@@ -11,8 +11,6 @@ namespace InGame.Player
     /// </summary>
     public class PlayerManager : NetworkBehaviour
     {
-        [SerializeField] CinemachineVirtualCameraBase _playerCameraPrefab;
-        [SerializeField] Transform _lookAtTf;
         [SerializeField] PlayerStatus _playerStatus;
         
         public PlayerStatus PlayerStatus => _playerStatus;
@@ -22,11 +20,6 @@ namespace InGame.Player
         {
             if (HasInputAuthority)
             {
-                // カメラの設定
-                var virtualCamera = Instantiate(_playerCameraPrefab);
-                virtualCamera.Follow = transform;
-                virtualCamera.LookAt = _lookAtTf;
-                
                 // カーソルを消す todo:ゲームロジックがやるべき
                 // Cursor.visible = false;
                 // Cursor.lockState = CursorLockMode.Locked;
