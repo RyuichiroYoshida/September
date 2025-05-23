@@ -11,8 +11,7 @@ using UnityEngine.Networking;
 
 public class AssetsImporter
 {
-    private const string GasURL =
-        "https://script.google.com/macros/s/AKfycbyq3HvEVdpSucXgKPn6gNuLmn231XwVaLHf2-lzseDHCrEb2HhwGNQLV9nWAf0z0ge4/exec";
+    private const string ApiUrl = "https://asset-importer-538394701382.asia-northeast1.run.app";
 
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _defaultToken;
@@ -41,8 +40,16 @@ public class AssetsImporter
     public async UniTask<bool> GetReleases(string route, CancellationToken? token = null)
     {
         var ct = token ?? _defaultToken;
-        var req = UnityWebRequest.Get($"{GasURL}?route={route}");
-        await req.SendWebRequest().ToUniTask(cancellationToken: ct);
+        var req = UnityWebRequest.Get($"{ApiUrl}/{route}");
+        try
+        {
+            await req.SendWebRequest().ToUniTask(cancellationToken: ct);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Releases Get Error: " + e.Message);
+            return false;
+        }
 
         if (req.result != UnityWebRequest.Result.Success)
         {
@@ -51,14 +58,10 @@ public class AssetsImporter
         }
 
         Debug.Log("生データ: " + req.downloadHandler.text);
-        
-        // JSON文字列を取得
+
         try
         {
-            // JSONをデシリアライズ
             Releases = JsonConvert.DeserializeObject<List<Release>>(req.downloadHandler.text);
-
-            // データ確認
             foreach (var release in Releases)
             {
                 Debug.Log(
@@ -74,28 +77,72 @@ public class AssetsImporter
             Debug.LogError($"JSONパースエラー: {e.Message}");
             return false;
         }
-        
+
         return true;
     }
 
-    public async UniTask GetAssetUrl(string route, int assetId, CancellationToken? token = null)
+    public async UniTask<string> GetAsset(string route, int assetId, CancellationToken? token = null)
     {
         var ct = token ?? _defaultToken;
-        var req = UnityWebRequest.Get($"{GasURL}?route={route}&id={assetId}");
-        await req.SendWebRequest().ToUniTask(cancellationToken: ct);
-
-        if (req.result != UnityWebRequest.Result.Success)
+        var urlReq = UnityWebRequest.Get($"{ApiUrl}/{route}?id={assetId}");
+        try
         {
-            Debug.LogError("Releases Get Error: " + req.error);
+            await urlReq.SendWebRequest().ToUniTask(cancellationToken: ct);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Url Get Error: " + e.Message);
+            return "";
         }
 
-        Debug.Log(req.downloadHandler.text);
+        if (urlReq.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError("Url Get Error: " + urlReq.error);
+            return "";
+        }
+
+        // var assetReq = UnityWebRequest.Get(urlReq.downloadHandler.text);
+        // try
+        // {
+        //     await assetReq.SendWebRequest().ToUniTask(cancellationToken: ct);
+        // }
+        // catch (Exception e)
+        // {
+        //     Debug.LogError("Asset Get Error: " + e.Message);
+        //     return "";
+        // }
+        //
+        // if (assetReq.result != UnityWebRequest.Result.Success)
+        // {
+        //     Debug.LogError("Asset Get Error: " + assetReq.error);
+        //     return "";
+        // }
+
+        try
+        {
+            var fileData = urlReq.downloadHandler.data;
+
+            var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
+            Debug.Log($"zipPath: {zipPath}");
+            await File.WriteAllBytesAsync(zipPath, fileData, ct);
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
+            Debug.Log($"filePath: {filePath}");
+            await ExtractZipFile(zipPath, filePath, ct);
+
+            return filePath;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error: {e}");
+            return "";
+        }
     }
 
     public async UniTask<string> StartFetching()
     {
         var ct = _cts.Token;
-        using (var request = UnityWebRequest.Get(GasURL))
+        using (var request = UnityWebRequest.Get(ApiUrl))
         {
             try
             {
@@ -192,7 +239,7 @@ public class AssetsImporter
     /// <param name="zipPath">zipファイルのPath</param>
     /// <param name="filePath">解凍先のフォルダのPath</param>
     /// <param name="ct">基本的にはシーン再生時にキャンセルされる</param>
-    private async Task ExtractZipFile(string zipPath, string filePath, CancellationToken ct)
+    private async UniTask ExtractZipFile(string zipPath, string filePath, CancellationToken ct)
     {
         try
         {
@@ -223,48 +270,25 @@ public class AssetsImporter
             }
         }
     }
-
-    // [ContextMenu("Hoge")]
-    // public void Hoge()
-    // {
-    //     Debug.Log("ぼたんわよ");
-    //     StartFetching().Forget();
-    // }
-
-    // TODO: キャンセル処理はいずれどうにかしたい
-    // private void Start()
-    // {
-    //     // アセットダウンロード処理中にエディターを再生し始めた場合、処理をキャンセルする
-    //     _cts.Cancel();
-    // }
 }
 
 [Serializable]
 public struct Release
 {
-    [JsonProperty("id")]
-    public int ID { get; set; }
-    [JsonProperty("name")]
-    public string Name { get; set; }
-    [JsonProperty("tag_name")]
-    public string TagName { get; set; }
-    [JsonProperty("published_at")]
-    public string PublishedAt { get; set; }
-    [JsonProperty("assets")]
-    public List<Asset> Assets { get; set; }
+    [JsonProperty("id")] public int ID { get; set; }
+    [JsonProperty("name")] public string Name { get; set; }
+    [JsonProperty("tag_name")] public string TagName { get; set; }
+    [JsonProperty("published_at")] public string PublishedAt { get; set; }
+    [JsonProperty("assets")] public List<Asset> Assets { get; set; }
 }
 
 [Serializable]
 public struct Asset
 {
-    [JsonProperty("id")]
-    public int ID { get; set; }
-    [JsonProperty("name")]
-    public string Name { get; set; }
-    [JsonProperty("download_url")]
-    public string URL { get; set; }
-    [JsonProperty("size")]
-    public int Size { get; set; }
+    [JsonProperty("id")] public int ID { get; set; }
+    [JsonProperty("name")] public string Name { get; set; }
+    [JsonProperty("download_url")] public string URL { get; set; }
+    [JsonProperty("size")] public int Size { get; set; }
 }
 
 // データサンプル
