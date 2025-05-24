@@ -101,23 +101,6 @@ public class AssetsImporter
             return "";
         }
 
-        // var assetReq = UnityWebRequest.Get(urlReq.downloadHandler.text);
-        // try
-        // {
-        //     await assetReq.SendWebRequest().ToUniTask(cancellationToken: ct);
-        // }
-        // catch (Exception e)
-        // {
-        //     Debug.LogError("Asset Get Error: " + e.Message);
-        //     return "";
-        // }
-        //
-        // if (assetReq.result != UnityWebRequest.Result.Success)
-        // {
-        //     Debug.LogError("Asset Get Error: " + assetReq.error);
-        //     return "";
-        // }
-
         try
         {
             var fileData = urlReq.downloadHandler.data;
