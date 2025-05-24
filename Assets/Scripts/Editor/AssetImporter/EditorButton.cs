@@ -4,10 +4,7 @@ using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 
 public class EditorButton : EditorWindow
 {
@@ -25,6 +22,8 @@ public class EditorButton : EditorWindow
     private Color _defaultLabelColor;
 
     private AssetsImporter _importer;
+
+    private bool _isFileChecking;
     // まめちしき
     // Unityには UnityEditor.AssetImporter というテクスチャ等のアセットを自動でインポートするやつがあるらしいわよ
     // https://light11.hatenadiary.com/entry/2018/04/05/194303
@@ -69,29 +68,34 @@ public class EditorButton : EditorWindow
         GUILayout.Label("Selected: " + _releasesList[_releasesSelectedIndex]);
 
         GUILayout.Space(10);
-        
-        if (GUILayout.Button("Assets"))
+
+        if (GUILayout.Button("アセットのインポート"))
         {
             _syncImportingText = "アセットインポート中";
             _ = Import(result => _syncImportingText = result);
         }
+
         GUILayout.Label(_syncImportingText);
-        
+
         GUILayout.Space(10);
 
-        if (GUILayout.Button("Sync Releases"))
+        if (GUILayout.Button("アセット一覧の同期"))
         {
             _syncWaitingText = "リソース読み込み中";
             _ = Sync(result => _syncWaitingText = result);
         }
 
         GUILayout.Label(_syncWaitingText);
+
+        GUILayout.Space(50);
+        GUILayout.Label("-----------------これより下はプログラマー用-----------------");
+        _isFileChecking = GUILayout.Toggle(_isFileChecking, "ファイルの存在確認");
     }
 
     private void OnEnable()
     {
         _ct = _cts.Token;
-        
+
         _ = Sync(result => _syncWaitingText = result);
     }
 
@@ -148,7 +152,7 @@ public class EditorButton : EditorWindow
                 Debug.LogError("ファイルのパスが取得できませんでした");
                 return;
             }
-            
+
             var files = Directory.GetFiles(result, "*.unitypackage", SearchOption.AllDirectories);
 
             foreach (var file in files)
@@ -160,10 +164,13 @@ public class EditorButton : EditorWindow
         {
             Debug.LogError($"Download Exception: {e}");
         }
-        finally
+
+        if (_isFileChecking)
         {
-            Directory.Delete(result, true);
+            return;
         }
+
+        Directory.Delete(result, true);
     }
 
     /// <summary>
