@@ -260,9 +260,13 @@ public class AssetsImporter
                 File.Delete(zipPath); // ZIPファイルを削除
                 // File.Delete(zipPath + ".meta"); // metaも削除
             }
+            else if (Directory.Exists(filePath))
+            {
+                Directory.Delete(filePath, true); // Delete directory and its contents
+            }
             else if (File.Exists(filePath))
             {
-                File.Delete(filePath);
+                File.Delete(filePath); // Delete file
             }
             else
             {
