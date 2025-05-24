@@ -165,56 +165,7 @@ public class AssetsImporter
                 return "";
             }
         }
-
-        Debug.LogError("URLの取得に失敗しました");
-        return "";
     }
-
-    public async UniTask<string> FetchURLAsync(string apiUrl, CancellationToken ct)
-    {
-        using (var request = UnityWebRequest.Get(apiUrl))
-        {
-            var asyncOp = await request.SendWebRequest().ToUniTask(cancellationToken: ct);
-
-            try
-            {
-                if (request.result is UnityWebRequest.Result.ConnectionError or UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogError("ダウンロードURL取得エラー: " + request.error);
-                }
-
-
-                return request.downloadHandler.text;
-
-                // // JSON文字列を取得
-                // var json = request.downloadHandler.text;
-                //
-                // // JSONをデシリアライズ
-                // var responseData = JsonUtility.FromJson<ResponseData>(json);
-                //
-                // if (responseData is { _items: not null })
-                // {
-                //     // 整形して出力
-                //     foreach (var item in responseData._items)
-                //     {
-                //         Debug.Log($"Item: {item}");
-                //     }
-                // }
-                // else
-                // {
-                //     Debug.LogError("JSONのデシリアライズに失敗しました");
-                // }
-                //
-                // return "";
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"RequestError: {request.error}\n Exception: {e}");
-                return null;
-            }
-        }
-    }
-
 
     /// <summary>
     /// ファイルの解凍処理
