@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -105,11 +106,23 @@ public class AssetsImporter
         {
             var fileData = urlReq.downloadHandler.data;
 
-            var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
+            // アセット名を取得
+            var assetName = Releases
+                .SelectMany(r => r.Assets)
+                .FirstOrDefault(a => a.ID == assetId).Name ?? "Asset.zip";
+            // 先頭の \ や / を除去
+            assetName = assetName.Replace("\\", "").Replace("/", "");
+
+            // zipファイルのパス
+            var zipPath = Path.Combine(Directory.GetCurrentDirectory(), assetName);
+
+            // ディレクトリ名も同様に先頭の \ や / を除去
+            var fileDirName = Path.GetFileNameWithoutExtension(assetName).TrimStart('\\', '/');
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileDirName);
+            
             Debug.Log($"zipPath: {zipPath}");
             await File.WriteAllBytesAsync(zipPath, fileData, ct);
-
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
+            
             Debug.Log($"filePath: {filePath}");
             await ExtractZipFile(zipPath, filePath, ct);
 
@@ -119,51 +132,6 @@ public class AssetsImporter
         {
             Debug.LogError($"Error: {e}");
             return "";
-        }
-    }
-
-    public async UniTask<string> StartFetching()
-    {
-        var ct = _cts.Token;
-        using (var request = UnityWebRequest.Get(ApiUrl))
-        {
-            try
-            {
-                var asyncOp = await request.SendWebRequest().ToUniTask(cancellationToken: ct);
-                if (request.result is UnityWebRequest.Result.ConnectionError
-                    or UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogError($"ダウンロードエラー: {request.error}");
-                    return "";
-                }
-
-                Debug.Log(request.result);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"アセットダウンロードエラー: {e}");
-                throw;
-            }
-
-            try
-            {
-                var fileData = request.downloadHandler.data;
-
-                var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
-                Debug.Log($"zipPath: {zipPath}");
-                await File.WriteAllBytesAsync(zipPath, fileData, ct);
-
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
-                Debug.Log($"filePath: {filePath}");
-                await ExtractZipFile(zipPath, filePath, ct);
-
-                return filePath;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error: {e}");
-                return "";
-            }
         }
     }
 
