@@ -1,0 +1,79 @@
+using System;
+using System.Linq;
+using Fusion;
+using Random = UnityEngine.Random;
+
+namespace September.Common
+{
+    public class PlayerDatabase : NetworkBehaviour
+    {
+        [Networked, OnChangedRender(nameof(OnChangedPlayerData)), Capacity(10)]
+        public NetworkDictionary<PlayerRef, PlayerData> PlayerDataDic => default;
+        public Action<PlayerRef, PlayerData> ChangedDataAction;
+        public static PlayerDatabase Instance;
+        public override void Spawned()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Runner.Despawn(Object);
+            }
+        }
+        
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
+        public void Rpc_SetPlayerData(PlayerRef playerRef, PlayerData data)
+        {
+            PlayerDataDic.Set(playerRef, data);
+        }
+        
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
+        public void Rpc_SetCharacter(PlayerRef playerRef, CharacterType characterType)
+        {
+            if (!PlayerDataDic.TryGet(playerRef, out var playerData)) return;
+            playerData.CharacterType = characterType;
+            PlayerDataDic.Set(playerRef, playerData);
+        }
+
+        void OnChangedPlayerData()
+        {
+            foreach (var kv in PlayerDataDic)
+            {
+                ChangedDataAction?.Invoke(kv.Key, kv.Value);
+            }
+        }
+
+        public bool CanAttack(PlayerRef attackerPlayerRef, PlayerRef victimPlayerRef)
+        {
+            return PlayerDataDic.Get(attackerPlayerRef).IsOgre && !PlayerDataDic.Get(victimPlayerRef).IsOgre;
+        }
+        public void PlayerKilled(PlayerRef killerPlayerRef, PlayerRef victimPlayerRef)
+        {
+            if (!Runner.IsServer) return;
+            var killerData = PlayerDataDic.Get(killerPlayerRef);
+            killerData.IsOgre = false;
+            PlayerDataDic.Set(killerPlayerRef, killerData);
+            
+            var victimData = PlayerDataDic.Get(victimPlayerRef);
+            victimData.IsOgre = true;
+            PlayerDataDic.Set(victimPlayerRef, victimData);
+        }
+        /// <summary>
+        /// 鬼を抽選するメソッド
+        /// </summary>
+        public void ChooseOgre()
+        {
+            if (PlayerDataDic.Count <= 0 || !Runner.IsServer) return;
+            
+            var index = Random.Range(0, PlayerDataDic.Count);
+            var ogreKey = PlayerDataDic.ToArray()[index].Key;
+            var data = PlayerDataDic.Get(ogreKey);
+            data.IsOgre = true;
+            PlayerDataDic.Set(ogreKey, data);
+        }
+    }
+}
+

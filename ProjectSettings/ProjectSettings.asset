@@ -817,7 +817,26 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   scriptingDefineSymbols:
+    Android: DOTWEEN
+    EmbeddedLinux: DOTWEEN
+    GameCoreScarlett: DOTWEEN
+    GameCoreXboxOne: DOTWEEN
+    LinuxHeadlessSimulation: DOTWEEN
+    Nintendo Switch: DOTWEEN
+    PS4: DOTWEEN
+    PS5: DOTWEEN
+    QNX: DOTWEEN
+    ReservedCFE: DOTWEEN
+    Standalone: UNITASK_DOTWEEN_SUPPORT;DOTWEEN
+    VisionOS: DOTWEEN
+    WebGL: DOTWEEN
+    Windows Store Apps: DOTWEEN
+    XboxOne: DOTWEEN
+    iPhone: DOTWEEN
+    tvOS: DOTWEEN
+=======
     Standalone: UNITASK_DOTWEEN_SUPPORT;FUSION_WEAVER;FUSION2;FUSION_LOGLEVEL_INFO
+>>>>>>> c2a3897ca4e672e7f7ec4225f4eae1da9c2eb384
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
