@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using Fusion;
-using Fusion.Menu;
 using Fusion.Sockets;
 using Random = UnityEngine.Random;
 
@@ -30,24 +29,10 @@ namespace September.Common
             
             var result = await networkRunner.StartGame(new StartGameArgs
             {
-                GameMode = GameMode.Host,
+                GameMode = GameMode.AutoHostOrClient,
                 SessionName = roomName,
                 PlayerCount = 2
             });
-
-            // その名前のセッションがあったらClientとして参加する
-            if (!result.Ok)
-            {
-                networkRunner = Instantiate(_networkRunner);
-                networkRunner.AddCallbacks(this);
-                networkRunner.ProvideInput = true;
-                
-                result = await networkRunner.StartGame(new StartGameArgs
-                {
-                    GameMode = GameMode.Client,
-                    SessionName = roomName
-                });
-            }
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)

@@ -827,16 +827,13 @@ PlayerSettings:
     PS5: DOTWEEN
     QNX: DOTWEEN
     ReservedCFE: DOTWEEN
-    Standalone: UNITASK_DOTWEEN_SUPPORT;DOTWEEN
+    Standalone: UNITASK_DOTWEEN_SUPPORT;DOTWEEN;FUSION_WEAVER;FUSION2;FUSION_LOGLEVEL_INFO
     VisionOS: DOTWEEN
     WebGL: DOTWEEN
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
     iPhone: DOTWEEN
     tvOS: DOTWEEN
-=======
-    Standalone: UNITASK_DOTWEEN_SUPPORT;FUSION_WEAVER;FUSION2;FUSION_LOGLEVEL_INFO
->>>>>>> c2a3897ca4e672e7f7ec4225f4eae1da9c2eb384
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
