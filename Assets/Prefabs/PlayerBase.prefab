@@ -2515,12 +2515,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sens: 10
+  _characterTf: {fileID: 8736522266100138394}
   _cameraPivot: {fileID: 8156254438002643843}
   _cameraTf: {fileID: 339817392409267713}
   _collideAgainst:
     serializedVersion: 2
     m_Bits: 4294967295
   _cameraRadius: 0.1
+  _moveDuration: 0.3
+  _moveEase: 9
 --- !u!114 &5358505061852357365
 MonoBehaviour:
   m_ObjectHideFlags: 0
