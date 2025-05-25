@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -101,32 +102,27 @@ public class AssetsImporter
             return "";
         }
 
-        // var assetReq = UnityWebRequest.Get(urlReq.downloadHandler.text);
-        // try
-        // {
-        //     await assetReq.SendWebRequest().ToUniTask(cancellationToken: ct);
-        // }
-        // catch (Exception e)
-        // {
-        //     Debug.LogError("Asset Get Error: " + e.Message);
-        //     return "";
-        // }
-        //
-        // if (assetReq.result != UnityWebRequest.Result.Success)
-        // {
-        //     Debug.LogError("Asset Get Error: " + assetReq.error);
-        //     return "";
-        // }
-
         try
         {
             var fileData = urlReq.downloadHandler.data;
 
-            var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
+            // アセット名を取得
+            var assetName = Releases
+                .SelectMany(r => r.Assets)
+                .FirstOrDefault(a => a.ID == assetId).Name ?? "Asset.zip";
+            // 先頭の \ や / を除去
+            assetName = assetName.Replace("\\", "").Replace("/", "");
+
+            // zipファイルのパス
+            var zipPath = Path.Combine(Directory.GetCurrentDirectory(), assetName);
+
+            // ディレクトリ名も同様に先頭の \ や / を除去
+            var fileDirName = Path.GetFileNameWithoutExtension(assetName).TrimStart('\\', '/');
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileDirName);
+            
             Debug.Log($"zipPath: {zipPath}");
             await File.WriteAllBytesAsync(zipPath, fileData, ct);
-
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
+            
             Debug.Log($"filePath: {filePath}");
             await ExtractZipFile(zipPath, filePath, ct);
 
@@ -138,100 +134,6 @@ public class AssetsImporter
             return "";
         }
     }
-
-    public async UniTask<string> StartFetching()
-    {
-        var ct = _cts.Token;
-        using (var request = UnityWebRequest.Get(ApiUrl))
-        {
-            try
-            {
-                var asyncOp = await request.SendWebRequest().ToUniTask(cancellationToken: ct);
-                if (request.result is UnityWebRequest.Result.ConnectionError
-                    or UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogError($"ダウンロードエラー: {request.error}");
-                    return "";
-                }
-
-                Debug.Log(request.result);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"アセットダウンロードエラー: {e}");
-                throw;
-            }
-
-            try
-            {
-                var fileData = request.downloadHandler.data;
-
-                var zipPath = Path.Combine(Directory.GetCurrentDirectory(), "Unity.zip");
-                Debug.Log($"zipPath: {zipPath}");
-                await File.WriteAllBytesAsync(zipPath, fileData, ct);
-
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Unity");
-                Debug.Log($"filePath: {filePath}");
-                await ExtractZipFile(zipPath, filePath, ct);
-
-                return filePath;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Error: {e}");
-                return "";
-            }
-        }
-
-        Debug.LogError("URLの取得に失敗しました");
-        return "";
-    }
-
-    public async UniTask<string> FetchURLAsync(string apiUrl, CancellationToken ct)
-    {
-        using (var request = UnityWebRequest.Get(apiUrl))
-        {
-            var asyncOp = await request.SendWebRequest().ToUniTask(cancellationToken: ct);
-
-            try
-            {
-                if (request.result is UnityWebRequest.Result.ConnectionError or UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogError("ダウンロードURL取得エラー: " + request.error);
-                }
-
-
-                return request.downloadHandler.text;
-
-                // // JSON文字列を取得
-                // var json = request.downloadHandler.text;
-                //
-                // // JSONをデシリアライズ
-                // var responseData = JsonUtility.FromJson<ResponseData>(json);
-                //
-                // if (responseData is { _items: not null })
-                // {
-                //     // 整形して出力
-                //     foreach (var item in responseData._items)
-                //     {
-                //         Debug.Log($"Item: {item}");
-                //     }
-                // }
-                // else
-                // {
-                //     Debug.LogError("JSONのデシリアライズに失敗しました");
-                // }
-                //
-                // return "";
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"RequestError: {request.error}\n Exception: {e}");
-                return null;
-            }
-        }
-    }
-
 
     /// <summary>
     /// ファイルの解凍処理
