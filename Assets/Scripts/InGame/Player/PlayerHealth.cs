@@ -1,6 +1,7 @@
 using Fusion;
 using UniRx;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace InGame.Player
 {
@@ -10,7 +11,7 @@ namespace InGame.Player
 
         [Networked, OnChangedRender(nameof(OnChangeHealth))] private int Health { get; set; }
         void OnChangeHealth() => OnHealthChanged.OnNext(Health);
-        [Networked] public int MaxHealth { get; private set; }
+        [Networked, HideInInspector] public int MaxHealth { get; private set; }
 
         public void Init(int health)
         {

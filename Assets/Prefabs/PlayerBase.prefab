@@ -2522,8 +2522,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   _cameraRadius: 0.1
-  _moveDuration: 0.3
-  _moveEase: 9
+  _motionDuration: 0.3
+  _motionEase: 9
 --- !u!114 &5358505061852357365
 MonoBehaviour:
   m_ObjectHideFlags: 0

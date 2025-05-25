@@ -26,7 +26,7 @@ namespace InGame.Player
         
         [Networked, OnChangedRender(nameof(OnChangedStamina))] private float Stamina { get; set; }
         private void OnChangedStamina() => OnStaminaChanged.OnNext(Stamina);
-        [Networked] public float MaxStamina { get; private set; }
+        [Networked, HideInInspector] public float MaxStamina { get; private set; }
 
         private void Awake()
         {
