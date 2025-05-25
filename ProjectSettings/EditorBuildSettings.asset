@@ -18,8 +18,12 @@ EditorBuildSettings:
     path: Assets/Scenes/NetworkMock/TitleMock.unity
     guid: 937e5083d8f462c4d88a95b995d49dbc
   - enabled: 1
+    path: Assets/Scenes/NetworkMock/Lobby.unity
+    guid: 6a8a1e02f6e06b745b60399e1fa33c1a
+  - enabled: 1
     path: Assets/Scenes/NetworkMock/InGameMock.unity
     guid: 41bc177a3815d694c9753c8e79acda82
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: f6cb3f85ebbf85c45b9274aa20555b46, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

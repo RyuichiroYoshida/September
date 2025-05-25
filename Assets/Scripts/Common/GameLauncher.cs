@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using Fusion.Sockets;
+using NaughtyAttributes;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using UnityEngine.SceneManagement;
 
 namespace September.Common
 {
     public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
     {
         public static GameLauncher Instance;
-        [SerializeField] NetworkPrefabRef[] _playerPrefab;
         [SerializeField] NetworkRunner _runnerPrefab;
-        [SerializeField] string _inGameName;
+        [SerializeField] PlayerDatabase _playerDatabasePrefab;
+        [SerializeField, Scene] string _titleSceneName;
+        [SerializeField, Scene] string _lobbySceneName;
+        [SerializeField, Scene] string _gameSceneName;
         NetworkRunner _networkRunner;
-        public Action<NetworkObject, PlayerRef> OnPlayerSpawned;
+        UniTask _currentTask;
         private void Start()
         {
             if (Instance == null)
@@ -30,72 +33,78 @@ namespace September.Common
                 Destroy(gameObject);
             }
         }
-
-        public async UniTaskVoid CreateGame(string gameName, int playerCount)
+        public void CreateLobby(string gameName, int playerCount)
         {
-            await _networkRunner.StartGame(new StartGameArgs
+            if (!_currentTask.Status.IsCompleted()) return;
+            _currentTask = CreateLobbyAsync(gameName, playerCount).Preserve();
+        }
+        async UniTask CreateLobbyAsync(string gameName, int playerCount)
+        {
+            var result = await _networkRunner.StartGame(new StartGameArgs
             {
                 GameMode = GameMode.Host,
                 SessionName = gameName,
-                PlayerCount = playerCount,
+                PlayerCount = playerCount
             });
-            _networkRunner.LoadScene(_inGameName);
+            if (!result.Ok)
+            {
+                Debug.Log(result.ShutdownReason);
+                await InitializeRunner();
+                return;
+            }
+            await _networkRunner.SpawnAsync(_playerDatabasePrefab);
+            await _networkRunner.LoadScene(_lobbySceneName);
         }
-
-        public void JoinGame(string gameName)
+        public void JoinLobby(string gameName)
         {
-            _networkRunner.StartGame(new StartGameArgs
+            if (!_currentTask.Status.IsCompleted()) return;
+            _currentTask = JoinLobbyAsync(gameName).Preserve();
+        }
+        async UniTask JoinLobbyAsync(string gameName)
+        {
+            var result = await _networkRunner.StartGame(new StartGameArgs
             {
                 GameMode = GameMode.Client,
                 SessionName = gameName
             });
+            if (!result.Ok)
+            {
+                Debug.Log(result.ShutdownReason);
+                await InitializeRunner();
+            }
+        }
+        async UniTask InitializeRunner()
+        {
+            await _networkRunner.Shutdown();
+            _networkRunner = Instantiate(_runnerPrefab);
+            _networkRunner.AddCallbacks(this);
+        }
+        public async UniTaskVoid QuitLobby()
+        {
+            await _networkRunner.Shutdown();
+            await SceneManager.LoadSceneAsync(_titleSceneName);
+            _networkRunner = Instantiate(_runnerPrefab);
+            _networkRunner.AddCallbacks(this);
         }
 
-        /// <summary>
-        /// プレイヤーが参加した際に呼ばれる
-        /// </summary>
+        public async UniTaskVoid StartGame()
+        {
+            if (!_networkRunner.IsServer) return;
+            await _networkRunner.LoadScene(_gameSceneName);
+            PlayerDatabase.Instance.ChooseOgre();
+            var container = CharacterDataContainer.Instance;
+            foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
+            {
+                await _networkRunner.SpawnAsync(container.GetCharacterData(pair.Value.CharacterType).Prefab,
+                    inputAuthority: pair.Key);
+            }
+        }
+        
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
-            //  通知が来たのがホストのランナーなら
-            if (runner.IsServer)
-            {
-                var rand = Random.insideUnitCircle * 5f;
-                var spawnPosition = new Vector3(rand.x, 2f, rand.y);
-                //  GameModeがSharedではないためクライアント側にスポーン権限が無い、ホスト側のランナーでアバターをスポーンさせる
-
-                #region 仮
-                NetworkPrefabRef selectedPrefab;
-
-                switch (player.PlayerId)
-                {
-                    case 1:
-                        selectedPrefab = _playerPrefab[1];
-                        Debug.Log("岡部を生成");
-                        break;
-                    case 2:
-                        selectedPrefab = _playerPrefab[2];
-                        Debug.Log("晴を生成");
-                        break;
-                    default:
-                        selectedPrefab = _playerPrefab[0];
-                        break;
-                }
-
-                #endregion
-                
-                var avatar = runner.Spawn(selectedPrefab, spawnPosition, Quaternion.identity, inputAuthority: player, onBeforeSpawned:
-                    (targetRunner, targetObj) => OnPlayerSpawned?.Invoke(targetObj, player));
-                runner.SetPlayerObject(player, avatar);
-            }
         }
         void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
-            if (!runner.IsServer) return;
-            // 退出したプレイヤーのアバターを破棄する
-            if (runner.TryGetPlayerObject(player, out var avatar)) 
-            {
-                runner.Despawn(avatar);
-            }
         }
         void INetworkRunnerCallbacks.OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         void INetworkRunnerCallbacks.OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
