@@ -6,12 +6,14 @@ using UnityEngine;
 
 namespace September.Common
 {
-    enum PlayerButtons
+    public enum PlayerButtons
     {
         Jump,
         Dash,
         Interact,
-        Attack
+        Attack,
+        Ability1,
+        Ability2,
     }
 
     public struct PlayerInput : INetworkInput

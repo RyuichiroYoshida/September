@@ -1,0 +1,100 @@
+using System.Collections.Generic;
+using Fusion;
+using UnityEngine;
+
+/// <summary>
+/// 完全にホスト専用のSpawner。クライアントは一切呼び出さないこと。
+/// </summary>
+public class PhotonSpawner : MonoBehaviour, ISpawner
+{
+    [SerializeField] private SpawnablePrefabDatabase _database;
+    private readonly Dictionary<int, NetworkObject> _spawnedObjects = new();
+    private int _nextId = 0;
+
+    private NetworkRunner _runner;
+
+    private void Awake()
+    {
+        _runner = FindObjectOfType<NetworkRunner>();
+        if (_runner == null)
+        {
+            Debug.LogError("NetworkRunnerがありません");
+        }
+    }
+
+    /// <summary>
+    /// ホスト専用：オブジェクト生成
+    /// </summary>
+    public int Spawn(string prefabGuid, Vector3 position, Quaternion rotation)
+    {
+        if (_runner == null)
+        {
+            _runner = FindObjectOfType<NetworkRunner>();
+            if (_runner == null)
+            {
+                Debug.LogError("NetworkRunnerがありません");
+                return -1;
+            }
+        }
+
+        if (!_runner.IsServer)
+        {
+            Debug.LogError("Spawn() はホスト専用です。クライアントでは呼び出さないでください");
+            return -1;
+        }
+
+        return SpawnInternal(prefabGuid, position, rotation);
+    }
+
+    private int SpawnInternal(string prefabGuid, Vector3 position, Quaternion rotation)
+    {
+        var prefab = _database.GetPrefab(prefabGuid);
+        if (prefab == null)
+        {
+            Debug.LogError($"GUID '{prefabGuid}' に対応するプレハブが見つかりません");
+            return -1;
+        }
+
+        var obj = _runner.Spawn(prefab, position, rotation);
+        int id = _nextId++;
+        _spawnedObjects[id] = obj;
+        return id;
+    }
+
+    /// <summary>
+    /// ホスト専用：オブジェクト破棄
+    /// </summary>
+    public void Despawn(int objId)
+    {
+        if (_runner == null)
+        {
+            _runner = FindObjectOfType<NetworkRunner>();
+            if (_runner == null)
+            {
+                Debug.LogError("NetworkRunnerがありません");
+                return;
+            }
+        }
+
+        if (!_runner.IsServer)
+        {
+            Debug.LogError("Despawn() はホスト専用です。クライアントでは呼び出さないでください");
+            return;
+        }
+
+        DespawnInternal(objId);
+    }
+
+    private void DespawnInternal(int objId)
+    {
+        if (_spawnedObjects.TryGetValue(objId, out var obj) && obj != null && obj.IsValid)
+        {
+            _runner.Despawn(obj);
+            _spawnedObjects.Remove(objId);
+        }
+        else
+        {
+            Debug.LogWarning($"ID {objId} に対応する NetworkObject が見つかりませんでした");
+        }
+    }
+}
