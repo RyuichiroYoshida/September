@@ -1,3 +1,4 @@
+using System;
 using Fusion;
 using InGame.Player;
 using September.Common;
@@ -10,7 +11,9 @@ public class InGameManager : NetworkBehaviour
     [Header("ゲーム時間（秒）")]
     [SerializeField]
     private int _gameTime = 1200;
-    
+
+    public Action OnOgreChanged;
+
     public override void Spawned()
     {
         StartTimer();
@@ -30,6 +33,7 @@ public class InGameManager : NetworkBehaviour
         var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(killed);
         killedData.IsOgre = false;
         PlayerDatabase.Instance.PlayerDataDic.Set(killed, killedData);
+        OnPlayerDeath?.Invoke();
         //　IsOgreの切り替え、キルログを出すためのイベントInvoke、PlayerDataBase更新等
     }
 
