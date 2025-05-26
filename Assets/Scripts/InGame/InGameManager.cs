@@ -10,6 +10,7 @@ public class InGameManager : NetworkBehaviour
     public override void Spawned()
     {
         StartTimer();
+        HideCursor();
     }
     
     /// <summary>
@@ -18,6 +19,12 @@ public class InGameManager : NetworkBehaviour
     public void RPC_OnPlayerKilled(PlayerManager killer, PlayerManager killed)
     {
         //　IsOgreの切り替え、キルログを出すためのイベントInvoke、PlayerDataBase更新等
+    }
+
+    void HideCursor()
+    {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void StartTimer()
