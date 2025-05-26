@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using InGame.Common;
+using September.Common;
 using UnityEngine;
 
 namespace InGame.Player.Ability
@@ -17,7 +19,6 @@ namespace InGame.Player.Ability
             None,
             Started,
             Active,
-            Ending,
             Ended
         }
 
@@ -26,8 +27,18 @@ namespace InGame.Player.Ability
         protected AbilityPhase _phase = AbilityPhase.None;
         protected ISpawner _spawner;
         public event Action OnEndAbilityEvent;
+        private float _cooldownStartTime = -1f;
+        private INetworkTimeProvider _timeProvider;
         public float Cooldown => _cooldown;
-        public float CurrentCooldown { get; protected set; }
+        public float CurrentCooldown
+        {
+            get
+            {
+                if (_cooldownStartTime < 0 || _timeProvider == null) return 0f;
+                var elapsed = _timeProvider.GetTime() - _cooldownStartTime;
+                return Mathf.Max(0f, _cooldown - elapsed);
+            }
+        }
         public virtual string DisplayName => AbilityName.ToString();
         public AbilityName AbilityName => _abilityName;
         public AbilityContext Context { get; private set; }
@@ -38,24 +49,19 @@ namespace InGame.Player.Ability
         {
             _abilityName = abilityReference._abilityName;
             _cooldown = abilityReference._cooldown;
+            _cooldownStartTime = abilityReference._cooldownStartTime;
         }
 
         protected bool IsCooldown => CurrentCooldown > 0f;
-
-        /// <summary>
-        /// ホストとクライアントで共有する変数の計算を行う
-        /// 例えばクールタイムはクライアント側でも現在の値を参照したいのでここに書く
-        /// </summary>
-        /// <param name="deltaTime"></param>
-        public virtual void CalculateSharedVariable(float deltaTime)
-        {
-            if (CurrentCooldown > 0f) CurrentCooldown -= deltaTime;
-            if (CurrentCooldown < 0f) CurrentCooldown = 0f;
-        }
         
-        public virtual void ResetSharedVariable()
+        public void InjectTimeProvider(INetworkTimeProvider timeProvider)
         {
-            CurrentCooldown = _cooldown;
+            _timeProvider = timeProvider;
+        }
+
+        public void ResetCooldown()
+        {
+            _cooldownStartTime = _timeProvider?.GetTime() ?? -1f;
         }
 
         public abstract AbilityBase Clone(AbilityBase abilityReference);
@@ -98,6 +104,7 @@ namespace InGame.Player.Ability
                 case AbilityActionType.発動:
                     if (currentPlayerActiveAbilityInfo == null || currentPlayerActiveAbilityInfo.All(x => x.Instance.AbilityName != AbilityName))
                     {
+                        ResetCooldown();
                         InitAbility(context, spawner);
                         _phase = AbilityPhase.Started;
                         return true;
@@ -108,7 +115,7 @@ namespace InGame.Player.Ability
                     if (currentRunningAbility != null)
                     {
                         currentRunningAbility.Instance.ForceEnd();
-                        _phase = AbilityPhase.Ending;
+                        _phase = AbilityPhase.Ended;
                     }
                     break;
             }

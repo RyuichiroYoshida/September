@@ -1,11 +1,15 @@
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using Fusion;
+using InGame.Common;
+using September.Common;
+using September.InGame.Common;
 using UnityEngine;
 
 /// <summary>
 /// 完全にホスト専用のSpawner。クライアントは一切呼び出さないこと。
 /// </summary>
-public class PhotonSpawner : MonoBehaviour, ISpawner
+public class PhotonSpawner : MonoBehaviour, ISpawner, IRegisterableService
 {
     [SerializeField] private SpawnablePrefabDatabase _database;
     private readonly Dictionary<int, NetworkObject> _spawnedObjects = new();
@@ -25,7 +29,7 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
     /// <summary>
     /// ホスト専用：オブジェクト生成
     /// </summary>
-    public int Spawn(string prefabGuid, Vector3 position, Quaternion rotation)
+    public int Spawn(string prefabGuid, Vector3 position, Quaternion rotation, IPlayerRef playerRef = default)
     {
         if (_runner == null)
         {
@@ -42,11 +46,11 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
             Debug.LogError("Spawn() はホスト専用です。クライアントでは呼び出さないでください");
             return -1;
         }
-
-        return SpawnInternal(prefabGuid, position, rotation);
+        var castPlayerRef = playerRef?.As<PlayerRef>();
+        return SpawnInternal(prefabGuid, position, rotation, castPlayerRef ?? default);
     }
 
-    private int SpawnInternal(string prefabGuid, Vector3 position, Quaternion rotation)
+    private int SpawnInternal(string prefabGuid, Vector3 position, Quaternion rotation, PlayerRef inputAuthority = default)
     {
         var prefab = _database.GetPrefab(prefabGuid);
         if (prefab == null)
@@ -55,7 +59,7 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
             return -1;
         }
 
-        var obj = _runner.Spawn(prefab, position, rotation);
+        var obj = _runner.Spawn(prefab, position, rotation, inputAuthority);
         int id = _nextId++;
         _spawnedObjects[id] = obj;
         return id;
@@ -96,5 +100,10 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
         {
             Debug.LogWarning($"ID {objId} に対応する NetworkObject が見つかりませんでした");
         }
+    }
+
+    public void Register(ServiceLocator locator)
+    {
+        locator.Register<ISpawner>(this);
     }
 }

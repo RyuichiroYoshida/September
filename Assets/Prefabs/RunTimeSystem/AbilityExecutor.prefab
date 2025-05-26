@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3873900256575586363}
   - component: {fileID: 7007072612738674990}
   - component: {fileID: 355170716067853116}
-  - component: {fileID: 4714033468406103360}
   m_Layer: 0
   m_Name: AbilityExecutor
   m_TagString: Untagged
@@ -77,16 +76,3 @@ MonoBehaviour:
         _abilityName: 1
         _cooldown: 1
         _floorPrefab: {fileID: 7045929907601370250, guid: faf9ec27ccd233e428d9e66595732aef, type: 3}
---- !u!114 &4714033468406103360
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 193234231845119750}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91ffe84397d2499478b6a89d5e121c99, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _database: {fileID: 11400000, guid: dd7942b06c3f5e7498aac431649eae6c, type: 2}
