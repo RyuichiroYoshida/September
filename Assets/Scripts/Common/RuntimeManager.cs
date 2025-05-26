@@ -1,8 +1,10 @@
 using CRISound;
+using September.Common;
 using UnityEngine;
 
 public static class RuntimeManager
 {
+    const string CharacterDataContainerAssetPath = "Assets/ScriptableObjects/CharacterDataContainer.asset";
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RuntimeInitializeOnLoadMethod()
     {
@@ -18,5 +20,7 @@ public static class RuntimeManager
         }
         else
             Debug.LogError($"{prefab.name} is not found in Resources");
+        
+        CharacterDataContainer.LoadAssetAsync(CharacterDataContainerAssetPath).Forget();
     }
 }

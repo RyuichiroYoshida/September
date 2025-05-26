@@ -1,13 +1,12 @@
 using System;
-using System.Threading.Tasks;
 using Fusion;
-using September.Common;
 using UniRx;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace InGame.Player
 {
+    /// <summary> プレイヤーの移動 </summary>
     public class PlayerMovement : NetworkBehaviour
     {
         [SerializeField] float _moveSpeed = 5f;
@@ -20,7 +19,6 @@ namespace InGame.Player
         // スタミナ回復量
         float _staminaRegen;
         private Rigidbody _rb;
-        private PlayerManager _playerManager;
         private bool CanDash => !_isDashCoolTime && Stamina > 0;
         private bool _isDashCoolTime;
 
@@ -28,34 +26,24 @@ namespace InGame.Player
         
         [Networked, OnChangedRender(nameof(OnChangedStamina))] private float Stamina { get; set; }
         private void OnChangedStamina() => OnStaminaChanged.OnNext(Stamina);
-        [Networked] public float MaxStamina { get; private set; }
+        [Networked, HideInInspector] public float MaxStamina { get; private set; }
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            _playerManager = GetComponent<PlayerManager>();
         }
 
-        public override void Spawned()
+        public void Init(float stamina, float staminaConsumption, float staminaRegen)
         {
-            if (HasStateAuthority)
-            {
-                Stamina = _playerManager.PlayerStatus.Stamina;
-                MaxStamina = _playerManager.PlayerStatus.Stamina;
-                _staminaConsumption = _playerManager.PlayerStatus.StaminaConsumption;
-                _staminaRegen = _playerManager.PlayerStatus.StaminaRegen;
-            }
+            Stamina = stamina;
+            MaxStamina = stamina;
+            _staminaConsumption = staminaConsumption;
+            _staminaRegen = staminaRegen;
+            
+            OnStaminaChanged.OnNext(Stamina);
         }
 
-        public override void FixedUpdateNetwork()
-        {
-            if (GetInput<PlayerInput>(out var input))
-            {
-                Move(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), input.CameraYaw, Runner.DeltaTime);
-            }
-        }
-
-        void Move(Vector2 moveInput, bool isDash, float cameraYaw, float deltaTime)
+        public void Move(Vector2 moveInput, bool isDash, float cameraYaw, float deltaTime)
         {
             // スタミナ回復
             if (!isDash || _isDashCoolTime) Stamina = math.min(MaxStamina, Stamina + _staminaRegen * deltaTime);
@@ -91,8 +79,8 @@ namespace InGame.Player
             _rb.linearVelocity = velocity;
         
             // 移動による回転までとりあえずここに書く
-            transform.LookAt(transform.position + rotated, Vector3.up);
             _rb.angularVelocity = Vector3.zero;
+            transform.LookAt(transform.position + rotated, Vector3.up);
         }
     }
 }
