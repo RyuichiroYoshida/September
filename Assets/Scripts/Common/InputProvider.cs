@@ -52,6 +52,7 @@ namespace September.Common
             playerInput.Buttons.Set(PlayerButtons.Dash, playerActions.Dash.IsPressed());
             playerInput.Buttons.Set(PlayerButtons.Interact, playerActions.Interact.IsPressed());
             playerInput.Buttons.Set(PlayerButtons.Attack, playerActions.Attack.IsPressed());
+            playerInput.Buttons.Set(PlayerButtons.Ability1, playerActions.Ability1.IsPressed());
             playerInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
             playerInput.CameraYaw = _mainCamera.transform.rotation.eulerAngles.y;
             input.Set(playerInput);

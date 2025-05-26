@@ -15,7 +15,7 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
 
     private void Awake()
     {
-        _runner = FindObjectOfType<NetworkRunner>();
+        _runner = FindFirstObjectByType<NetworkRunner>();
         if (_runner == null)
         {
             Debug.LogError("NetworkRunnerがありません");
@@ -29,7 +29,7 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
     {
         if (_runner == null)
         {
-            _runner = FindObjectOfType<NetworkRunner>();
+            _runner = FindFirstObjectByType<NetworkRunner>();
             if (_runner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
@@ -68,7 +68,7 @@ public class PhotonSpawner : MonoBehaviour, ISpawner
     {
         if (_runner == null)
         {
-            _runner = FindObjectOfType<NetworkRunner>();
+            _runner = FindFirstObjectByType<NetworkRunner>();
             if (_runner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
