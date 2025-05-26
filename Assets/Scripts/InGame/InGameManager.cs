@@ -33,7 +33,7 @@ public class InGameManager : NetworkBehaviour
         var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(killed);
         killedData.IsOgre = false;
         PlayerDatabase.Instance.PlayerDataDic.Set(killed, killedData);
-        OnPlayerDeath?.Invoke();
+        OnOgreChanged?.Invoke();
         //　IsOgreの切り替え、キルログを出すためのイベントInvoke、PlayerDataBase更新等
     }
 
