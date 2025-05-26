@@ -90,6 +90,7 @@ namespace September.Common
         public async UniTaskVoid StartGame()
         {
             if (!_networkRunner.IsServer) return;
+            _networkRunner.SessionInfo.IsOpen = false;
             await _networkRunner.LoadScene(_gameSceneName);
             PlayerDatabase.Instance.ChooseOgre();
             var container = CharacterDataContainer.Instance;
@@ -99,13 +100,8 @@ namespace September.Common
                     inputAuthority: pair.Key);
             }
         }
-        
-        public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-        {
-        }
-        void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player)
-        {
-        }
+        public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
+        void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
         void INetworkRunnerCallbacks.OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         void INetworkRunnerCallbacks.OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input) { }
