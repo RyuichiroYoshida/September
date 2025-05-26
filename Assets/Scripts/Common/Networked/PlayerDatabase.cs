@@ -50,17 +50,7 @@ namespace September.Common
         {
             return PlayerDataDic.Get(attackerPlayerRef).IsOgre && !PlayerDataDic.Get(victimPlayerRef).IsOgre;
         }
-        public void PlayerKilled(PlayerRef killerPlayerRef, PlayerRef victimPlayerRef)
-        {
-            if (!Runner.IsServer) return;
-            var killerData = PlayerDataDic.Get(killerPlayerRef);
-            killerData.IsOgre = false;
-            PlayerDataDic.Set(killerPlayerRef, killerData);
-            
-            var victimData = PlayerDataDic.Get(victimPlayerRef);
-            victimData.IsOgre = true;
-            PlayerDataDic.Set(victimPlayerRef, victimData);
-        }
+       
         /// <summary>
         /// 鬼を抽選するメソッド
         /// </summary>
