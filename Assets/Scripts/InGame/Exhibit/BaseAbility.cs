@@ -22,7 +22,7 @@ namespace September.InGame
         public override void FixedUpdateNetwork()
         {
             // 入力でアビリティを使用
-            if (!GetInput<Common.PlayerInput>(out var input))
+            if (!GetInput<PlayerInput>(out var input))
                 return;
 
             var pressed = input.Buttons.GetPressed(ButtonsPrevious);
