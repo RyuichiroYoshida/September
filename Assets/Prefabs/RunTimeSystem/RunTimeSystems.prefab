@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3786701965843191928}
+  - component: {fileID: 1702776075066064504}
   m_Layer: 0
   m_Name: RunTimeSystems
   m_TagString: Untagged
@@ -33,6 +34,18 @@ Transform:
   - {fileID: 5250573276458565326}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1702776075066064504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5209492667959224886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43a57a903a4630b48a747049de905cba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1365029384055625269
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -87,7 +100,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7007072612738674990, guid: 52643197c4870fc49ac21aa68653aed4, type: 3}
       propertyPath: SortKey
-      value: 2895546836
+      value: 1386520585
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

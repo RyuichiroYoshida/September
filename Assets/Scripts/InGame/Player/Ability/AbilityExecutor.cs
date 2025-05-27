@@ -3,25 +3,17 @@ using System.Linq;
 using Fusion;
 using InGame.Common;
 using September.Common;
-using September.InGame.Common;
 using UnityEngine;
 
 namespace InGame.Player.Ability
 {
-    /// <summary>
-    /// 実行しているアビリティの情報を保持するクラス
-    /// </summary>
     public class AbilityRuntimeInfo
     {
         public AbilityBase Instance;
         public bool RunLocal;
         public bool IsAuthorityInstance;
     }
-    
-    /// <summary>
-    /// アビリティを実行するクラス
-    /// アビリティの更新処理はサーバーで行い、RPCでクライアントとアビリティの実行状態を同期します。
-    /// </summary>
+
     public class AbilityExecutor : NetworkBehaviour
     {
         [SerializeReference, SubclassSelector] private List<AbilityBase> _abilityReferences = new();
@@ -52,8 +44,7 @@ namespace InGame.Player.Ability
         public void RequestAbilityExecution(AbilityContext context)
         {
             if (!_isInitialized) Initialize();
-            
-            // まずアビリティ参照を取得してRunLocalを確認
+
             var abilityRef = _abilityReferences.Find(x => x.AbilityName == context.AbilityName);
             if (abilityRef == null)
             {
@@ -61,106 +52,109 @@ namespace InGame.Player.Ability
                 return;
             }
 
-            // RunLocalの場合は完全にローカルで処理
             if (abilityRef.RunLocal)
             {
-                ExecuteLocalAbility(context);
-                return;
-            }
-
-            // サーバー処理のアビリティ
-            if (Runner.IsServer)
-            {
                 if (context.ActionType == AbilityActionType.発動)
-                    TryExecuteAbilityInternal(context, true);
-                else if (context.ActionType == AbilityActionType.停止)
-                    StopAbilityInternal(context);
+                    TryExecuteAbilityUnified(context, isAuthority: false);
+                else
+                    StopAbilityUnified(context, isLocal: true);
             }
             else
             {
-                RPC_ExecuteAbilityRequest(context);
+                if (Runner.IsServer)
+                {
+                    if (context.ActionType == AbilityActionType.発動)
+                        TryExecuteAbilityUnified(context, isAuthority: true);
+                    else
+                        StopAbilityUnified(context, isLocal: false);
+                }
+                else
+                {
+                    RPC_ExecuteAbilityRequest(context);
+                }
             }
         }
 
-        /// <summary>
-        /// ローカル専用アビリティの実行
-        /// サーバーには送信せず、クライアント上でのみ実行
-        /// </summary>
-        private void ExecuteLocalAbility(AbilityContext context)
-        {
-            if (context.ActionType == AbilityActionType.発動)
-                TryExecuteLocalAbilityInternal(context);
-            else if (context.ActionType == AbilityActionType.停止)
-                StopLocalAbilityInternal(context);
-        }
-
-        private void TryExecuteLocalAbilityInternal(AbilityContext context)
+        private void TryExecuteAbilityUnified(AbilityContext context, bool isAuthority)
         {
             var abilityRef = _abilityReferences.Find(x => x.AbilityName == context.AbilityName);
-            if (abilityRef is not { RunLocal: true }) return;
+            if (abilityRef == null) return;
 
             var abilityInstance = abilityRef.Clone(abilityRef);
             var activeAbilityInfo = _playerActiveAbilityInfo
                 .Where(x => x.Key == context.SourcePlayer)
                 .SelectMany(x => x.Value)
+                .Where(x => x.RunLocal == abilityRef.RunLocal)
                 .ToList();
+
             var initialized = abilityInstance.TryInitializeWithTrigger(context, activeAbilityInfo, _spawner);
+            if (!initialized) return;
 
-            if (initialized)
+            abilityInstance.InjectTimeProvider(new PhotonTimeProvider(Runner));
+
+            var runtime = new AbilityRuntimeInfo
             {
-                abilityInstance.InjectTimeProvider(new PhotonTimeProvider(Runner));
-                var runtime = new AbilityRuntimeInfo
-                {
-                    Instance = abilityInstance,
-                    RunLocal = true,
-                    IsAuthorityInstance = false // ローカル実行なのでfalse
-                };
-                
-                if (!_playerActiveAbilityInfo.ContainsKey(context.SourcePlayer))
-                {
-                    _playerActiveAbilityInfo[context.SourcePlayer] = new List<AbilityRuntimeInfo>();
-                }
-                _playerActiveAbilityInfo[context.SourcePlayer].Add(runtime);
+                Instance = abilityInstance,
+                RunLocal = abilityInstance.RunLocal,
+                IsAuthorityInstance = isAuthority
+            };
 
-                // ローカル処理の終了処理
-                abilityInstance.OnEndAbilityEvent += () =>
+            if (!_playerActiveAbilityInfo.ContainsKey(context.SourcePlayer))
+            {
+                _playerActiveAbilityInfo[context.SourcePlayer] = new();
+            }
+
+            _playerActiveAbilityInfo[context.SourcePlayer].Add(runtime);
+
+            abilityInstance.OnEndAbilityEvent += () =>
+            {
+                _pendingRemovals.Add((context.SourcePlayer, runtime));
+                if (!runtime.RunLocal && Runner.IsServer && runtime.IsAuthorityInstance)
                 {
-                    _pendingRemovals.Add((context.SourcePlayer, runtime));
-                };
+                    RPC_RemoveAbilityInstance(context);
+                }
+            };
+
+            if (!runtime.RunLocal && Runner.IsServer && isAuthority)
+            {
+                RPC_SyncAbilityState(context);
             }
         }
 
-        private void StopLocalAbilityInternal(AbilityContext context)
+        private void StopAbilityUnified(AbilityContext context, bool isLocal)
         {
             if (!_playerActiveAbilityInfo.TryGetValue(context.SourcePlayer, out var abilityList)) return;
 
-            if (context.AbilityName == AbilityName.全てのアビリティ)
+            var targetAbilities = abilityList
+                .Where(x => x.RunLocal == isLocal &&
+                            (context.AbilityName == AbilityName.全てのアビリティ || x.Instance.AbilityName == context.AbilityName))
+                .ToList();
+
+            foreach (var runtime in targetAbilities)
             {
-                // ローカル実行のアビリティのみ停止
-                var localAbilities = abilityList.Where(x => x.RunLocal).ToList();
-                foreach (var runtime in localAbilities)
+                runtime.Instance.ForceEnd();
+
+                if (!isLocal && HasStateAuthority)
                 {
-                    runtime.Instance.ForceEnd();
+                    RPC_RemoveAbilityInstance(new AbilityContext
+                    {
+                        AbilityName = runtime.Instance.AbilityName,
+                        SourcePlayer = context.SourcePlayer
+                    });
                 }
-            }
-            else
-            {
-                var target = abilityList.FirstOrDefault(x => x.Instance.AbilityName == context.AbilityName && x.RunLocal);
-                target?.Instance.ForceEnd();
             }
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void RPC_ExecuteAbilityRequest(AbilityContext context)
         {
-            // サーバー処理のアビリティのみ受け付け
             var abilityRef = _abilityReferences.Find(x => x.AbilityName == context.AbilityName);
-            if (abilityRef == null || abilityRef.RunLocal) return; // RunLocalは除外
+            if (abilityRef == null || abilityRef.RunLocal) return;
 
             if (context.ActionType == AbilityActionType.発動)
-                TryExecuteAbilityInternal(context, true);
-            else if (context.ActionType == AbilityActionType.停止)
-                StopAbilityInternal(context);
+                TryExecuteAbilityUnified(context, isAuthority: true);
+            else
+                StopAbilityUnified(context, isLocal: false);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -168,11 +162,10 @@ namespace InGame.Player.Ability
         {
             if (!HasStateAuthority)
             {
-                // サーバー処理のアビリティのみ同期
                 var abilityRef = _abilityReferences.Find(x => x.AbilityName == context.AbilityName);
                 if (abilityRef is { RunLocal: false })
                 {
-                    TryExecuteAbilityInternal(context, false);
+                    TryExecuteAbilityUnified(context, isAuthority: false);
                 }
             }
         }
@@ -181,7 +174,6 @@ namespace InGame.Player.Ability
         private void RPC_RemoveAbilityInstance(AbilityContext context)
         {
             if (!_playerActiveAbilityInfo.TryGetValue(context.SourcePlayer, out var list)) return;
-            // サーバー処理のアビリティのみ削除対象
             var targetRuntime = list.FirstOrDefault(x => x.Instance.AbilityName == context.AbilityName && !x.RunLocal);
             if (targetRuntime != null)
             {
@@ -189,115 +181,21 @@ namespace InGame.Player.Ability
             }
         }
 
-        private void TryExecuteAbilityInternal(AbilityContext context, bool isAuthority)
-        {
-            var abilityRef = _abilityReferences.Find(x => x.AbilityName == context.AbilityName);
-            if (abilityRef == null)
-            {
-                Debug.LogWarning("Abilityの参照が見つかりませんでした");
-                return;
-            }
-
-            // RunLocalのアビリティはサーバーでは実行しない
-            if (abilityRef.RunLocal) return;
-
-            var abilityInstance = abilityRef.Clone(abilityRef);
-            var activeAbilityInfo = _playerActiveAbilityInfo
-                .Where(x => x.Key == context.SourcePlayer)
-                .SelectMany(x => x.Value)
-                .Where(x => !x.RunLocal) // ローカル実行のものは除外
-                .ToList();
-            var initialized = abilityInstance.TryInitializeWithTrigger(context, activeAbilityInfo, _spawner);
-
-            if (initialized)
-            {
-                abilityInstance.InjectTimeProvider(new PhotonTimeProvider(Runner));
-                var runtime = new AbilityRuntimeInfo
-                {
-                    Instance = abilityInstance,
-                    RunLocal = abilityInstance.RunLocal,
-                    IsAuthorityInstance = isAuthority
-                };
-                if (!_playerActiveAbilityInfo.ContainsKey(context.SourcePlayer))
-                {
-                    _playerActiveAbilityInfo[context.SourcePlayer] = new List<AbilityRuntimeInfo>();
-                }
-                _playerActiveAbilityInfo[context.SourcePlayer].Add(runtime);
-
-                if (Runner.IsServer && isAuthority)
-                {
-                    abilityInstance.OnEndAbilityEvent += () =>
-                    {
-                        _pendingRemovals.Add((context.SourcePlayer, runtime));
-                        RPC_RemoveAbilityInstance(context);
-                    };
-                    RPC_SyncAbilityState(context);
-                }
-            }
-        }
-
-        private void StopAbilityInternal(AbilityContext context)
-        {
-            if (!_playerActiveAbilityInfo.TryGetValue(context.SourcePlayer, out var abilityList)) return;
-
-            if (context.AbilityName == AbilityName.全てのアビリティ)
-            {
-                // サーバー処理のアビリティのみ停止
-                var serverAbilities = abilityList.Where(x => !x.RunLocal).ToList();
-                foreach (var runtime in serverAbilities)
-                {
-                    runtime.Instance.ForceEnd();
-                }
-
-                if (HasStateAuthority)
-                {
-                    foreach (var runtime in serverAbilities)
-                    {
-                        var removalContext = new AbilityContext
-                        {
-                            AbilityName = runtime.Instance.AbilityName,
-                            SourcePlayer = context.SourcePlayer
-                        };
-                        RPC_RemoveAbilityInstance(removalContext);
-                    }
-                }
-            }
-            else
-            {
-                var target = abilityList.FirstOrDefault(x => x.Instance.AbilityName == context.AbilityName && !x.RunLocal);
-                if (target == null) return;
-                target.Instance.ForceEnd();
-
-                if (HasStateAuthority)
-                {
-                    RPC_RemoveAbilityInstance(context);
-                }
-            }
-        }
-
         public override void FixedUpdateNetwork()
         {
             if (!_isInitialized) Initialize();
-            
+
             foreach (var activeAbility in _playerActiveAbilityInfo)
             {
                 foreach (var runtimeAbility in activeAbility.Value)
                 {
-                    // Tick処理の分岐
-                    if (runtimeAbility.RunLocal)
+                    if (runtimeAbility.RunLocal || runtimeAbility.IsAuthorityInstance)
                     {
-                        // ローカル実行アビリティは常に実行
-                        runtimeAbility.Instance.Tick(Runner.DeltaTime);
-                    }
-                    else if (runtimeAbility.IsAuthorityInstance)
-                    {
-                        // サーバー処理アビリティは権威インスタンスのみ実行
                         runtimeAbility.Instance.Tick(Runner.DeltaTime);
                     }
                 }
             }
 
-            // 削除処理
             foreach (var (player, info) in _pendingRemovals)
             {
                 if (_playerActiveAbilityInfo.TryGetValue(player, out var list))

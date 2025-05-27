@@ -1653,10 +1653,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: RunTimeSystems
       objectReference: {fileID: 0}
-    - target: {fileID: 8345048701885163291, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
-      propertyPath: SortKey
-      value: 1386520585
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -23,6 +23,11 @@ namespace September.Common
 
             _services[type] = instance;
         }
+        
+        public void Register(System.Type type, object instance)
+        {
+            _services[type] = instance;
+        }
 
         public T Get<T>()
         {

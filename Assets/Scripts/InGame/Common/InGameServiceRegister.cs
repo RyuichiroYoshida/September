@@ -1,22 +1,24 @@
+using System.Linq;
 using September.Common;
 using UnityEngine;
 
 namespace September.InGame.Common
 {
     /// <summary>
-    /// Awake時に子の IRegisterableService を見つけて ServiceLocator に登録
+    /// IRegisterableService を見つけて ServiceLocator に登録
     /// </summary>
+    [DefaultExecutionOrder(-1000)]
     public class InGameServiceRegister : MonoBehaviour
     {
         private void Awake()
         {
-            var services = GetComponentsInChildren<IRegisterableService>(includeInactive: true);
-            foreach (var service in services)
+            var childServices = GetComponentsInChildren<IRegisterableService>(includeInactive: true);
+            foreach (var service in childServices)
             {
                 service.Register(StaticServiceLocator.Instance);
             }
-
-            Debug.Log($"ServiceRegistrar: {services.Length} 件のサービスを登録しました。");
+            
+            Debug.Log($"ServiceRegistrar: {childServices.Length} 件のサービスを登録しました。");
         }
     }
     

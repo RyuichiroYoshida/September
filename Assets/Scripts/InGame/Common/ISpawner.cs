@@ -11,6 +11,4 @@ namespace InGame.Common
         ///　識別子を元にキャッシュしたオブジェクトを破棄
         void Despawn(int id);
     }
-
-
 }
