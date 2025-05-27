@@ -3,7 +3,7 @@ using Fusion;
 using September.Common;
 using UnityEngine;
 
-namespace InGame.Player.Ability
+namespace InGame.Player.Ability.Mock
 {
     public class AbilityManager : NetworkBehaviour
     {

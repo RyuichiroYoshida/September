@@ -3512,7 +3512,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _runnerPrefab: {fileID: 1984411336199981634, guid: dad36d526af0c934d9791064cf679c8b, type: 3}
   _playerDatabasePrefab: {fileID: 2990249678136896890, guid: 11e6db7057da0a549b78e336e09594b3, type: 3}
-  _titleSceneName: TitleMock
+  _titleSceneName: Title
   _lobbySceneName: Lobby
   _gameSceneName: InGameMock
 --- !u!1 &2019171792
