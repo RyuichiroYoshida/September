@@ -1072,8 +1072,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4361696cc8aa4fb7ba29e425958be46a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _button: {fileID: 1127998429}
-  _canvas: {fileID: 1127998432}
 --- !u!1 &1421005734
 GameObject:
   m_ObjectHideFlags: 0
@@ -1609,6 +1607,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1702776075066064504, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
+      propertyPath: _abilityExecutorPrefab
+      value: 
+      objectReference: {fileID: 7007072612738674990, guid: 52643197c4870fc49ac21aa68653aed4, type: 3}
     - target: {fileID: 3786701965843191928, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1654,12 +1656,10 @@ PrefabInstance:
       value: RunTimeSystems
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1179678654977405235, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1179678654977405235, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
 --- !u!1001 &7845149201887256586
 PrefabInstance:

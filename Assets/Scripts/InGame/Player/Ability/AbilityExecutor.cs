@@ -3,18 +3,12 @@ using System.Linq;
 using Fusion;
 using InGame.Common;
 using September.Common;
+using September.InGame.Common;
 using UnityEngine;
 
 namespace InGame.Player.Ability
 {
-    public class AbilityRuntimeInfo
-    {
-        public AbilityBase Instance;
-        public bool RunLocal;
-        public bool IsAuthorityInstance;
-    }
-
-    public class AbilityExecutor : NetworkBehaviour
+    public class AbilityExecutor : NetworkBehaviour, IAbilityExecutor, IRegisterableService
     {
         [SerializeReference, SubclassSelector] private List<AbilityBase> _abilityReferences = new();
         [SerializeField] private bool _isInitialized = false;
@@ -22,18 +16,7 @@ namespace InGame.Player.Ability
         private readonly Dictionary<PlayerRef, List<AbilityRuntimeInfo>> _playerActiveAbilityInfo = new();
         private readonly List<(PlayerRef player, AbilityRuntimeInfo info)> _pendingRemovals = new();
 
-        public static AbilityExecutor Instance { get; private set; }
         public Dictionary<PlayerRef, List<AbilityRuntimeInfo>> PlayerActiveAbilityInfo => _playerActiveAbilityInfo;
-
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-        }
 
         private void Initialize()
         {
@@ -89,8 +72,6 @@ namespace InGame.Player.Ability
 
             var initialized = abilityInstance.TryInitializeWithTrigger(context, activeAbilityInfo, _spawner);
             if (!initialized) return;
-
-            abilityInstance.InjectTimeProvider(new PhotonTimeProvider(Runner));
 
             var runtime = new AbilityRuntimeInfo
             {
@@ -193,6 +174,7 @@ namespace InGame.Player.Ability
                     {
                         runtimeAbility.Instance.Tick(Runner.DeltaTime);
                     }
+                    runtimeAbility.Instance.TickTime(Runner.DeltaTime);
                 }
             }
 
@@ -206,11 +188,16 @@ namespace InGame.Player.Ability
             _pendingRemovals.Clear();
         }
 
-        public float? GetCooldown(PlayerRef player, AbilityName ability)
+        public void Register(ServiceLocator locator)
         {
-            if (!_playerActiveAbilityInfo.TryGetValue(player, out var list)) return null;
-            var runtime = list.Find(x => x.Instance.AbilityName == ability);
-            return runtime?.Instance.CurrentCooldown;
+            locator.Register<IAbilityExecutor>(this);
         }
+    }
+    
+    public class AbilityRuntimeInfo
+    {
+        public AbilityBase Instance;
+        public bool RunLocal;
+        public bool IsAuthorityInstance;
     }
 }
