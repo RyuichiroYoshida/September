@@ -14,14 +14,14 @@ namespace InGame.Player
         {
             PlayerData playerData = GetComponentInParent<PlayerData>();
 
-            if (!playerData.IsLocalPlayer)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
+            // if (!playerData.IsLocalPlayer)
+            // {
+            //     gameObject.SetActive(false);
+            //     return;
+            // }
             
-            playerData.Health.Subscribe(health => _healthText.text = health.ToString());
-            playerData.StaminaSubject.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
+            //playerData.Health.Subscribe(health => _healthText.text = health.ToString());
+            //playerData.StaminaSubject.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
         }
     }
 }

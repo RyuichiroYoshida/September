@@ -1634,6 +1634,7 @@ GameObject:
   - component: {fileID: 68490784944412950}
   - component: {fileID: 2128412454770137790}
   - component: {fileID: 8420033376395972730}
+  - component: {fileID: 1864888244515738886}
   m_Layer: 6
   m_Name: OkabePlayer
   m_TagString: Okabe
@@ -1773,6 +1774,7 @@ MonoBehaviour:
   - {fileID: 68490784944412950}
   - {fileID: 2128412454770137790}
   - {fileID: 8420033376395972730}
+  - {fileID: 1864888244515738886}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4686791789015215292
 MonoBehaviour:
@@ -1865,6 +1867,31 @@ MonoBehaviour:
   _exhibitLayer:
     serializedVersion: 2
     m_Bits: 8
+--- !u!114 &1864888244515738886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6597962615836278416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f596036fa7ea144d88f91d88833f57a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _abilityActionContexts:
+  - Condition:
+      rid: 9108457159744553104
+    AbilityName: 1
+    ActionType: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 9108457159744553104
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+      data:
+        Button: 4
+        TriggerType: 0
 --- !u!1 &6783755428985214527
 GameObject:
   m_ObjectHideFlags: 0

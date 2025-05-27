@@ -2309,7 +2309,7 @@ GameObject:
   - component: {fileID: 8355274600117350697}
   - component: {fileID: 5358505061852357365}
   - component: {fileID: -3905644752378878134}
-  - component: {fileID: -6901572262234536162}
+  - component: {fileID: 958249503331897705}
   m_Layer: 6
   m_Name: PlayerBase
   m_TagString: Player
@@ -2430,7 +2430,7 @@ MonoBehaviour:
   - {fileID: -4668177863944640257}
   - {fileID: 3242880713039265549}
   - {fileID: 5358505061852357365}
-  - {fileID: -6901572262234536162}
+  - {fileID: 958249503331897705}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-189776657306787398
 MonoBehaviour:
@@ -2549,7 +2549,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a97fa1f5e591252438ae6f1ea8b0742b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-6901572262234536162
+--- !u!114 &958249503331897705
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2558,19 +2558,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 8360875997416129576}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b02981bbfa7f214c9d99ac846c751ec, type: 3}
+  m_Script: {fileID: 11500000, guid: 4f596036fa7ea144d88f91d88833f57a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _abilities:
-  - rid: 1540697657372835924
+  _abilityActionContexts:
+  - Condition:
+      rid: 9108457159744553068
+    AbilityName: 1
+    ActionType: 0
   references:
     version: 2
     RefIds:
-    - rid: 1540697657372835924
-      type: {class: AbilityB, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+    - rid: 9108457159744553068
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Assembly-CSharp}
       data:
-        _abilityInputType: 0
-        _cooldown: 0
+        Button: 4
+        TriggerType: 0
 --- !u!1 &8516414556098384525
 GameObject:
   m_ObjectHideFlags: 0
