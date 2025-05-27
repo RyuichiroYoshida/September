@@ -5,150 +5,148 @@ using NaughtyAttributes;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UniRx;
 
 namespace September.InGame.UI
 {
-    public struct GameTimer
-    {
-        public int Time;
-        public float Duration;
-        public float AfterReadyDelay;
-        public float GameTime;
-    }
-    
     /// <summary>UIの管理</summary>
     public class InGameStatusView : MonoBehaviour
     {
-        #region インゲーム開始時に生成
-
-        [SerializeField,Label("インゲーム開始時から存在するCanvas")] private GameObject _uiMainCanvasPrefab;
+        [Header("UI Prefabs")]
+        [SerializeField, Label("インゲーム開始時から存在させたいCanvas")] private GameObject _uiMainCanvasPrefab;
         [SerializeField, Label("オプションUI")] private GameObject _optionUIPrefab;
-        [SerializeField, Label("気絶バー")] private UIAnimation _hpBar; 
-        [SerializeField,Label("キルログUI")] private UIAnimation _killLogTextPrefab;
+        [SerializeField, Label("気絶バー")] private UIAnimation _hpBar;
+        [SerializeField, Label("キルログUI")] private UIAnimation _killLogTextPrefab;
         [SerializeField, Label("鬼UI")] private GameObject _ogreUIPrefab;
+        [SerializeField, Label("TimerUI")] private TextMeshProUGUI _timerUIPrefab;
 
-        #endregion
-
-        #region 途中から生成するUI
-        
-        [SerializeField,Label("TimerUI")] private TextMeshPro _timerUIPrefab;
-
-        #endregion
-
-        #region AnimationName
-
+        [Header("Animation Settings")]
         [SerializeField, Label("再生したいHPAnimationの名前")] private string _hpAnimationName;
-        [SerializeField,Label("再生したいKillTextの名前")] private string _killAnimationName;
+        [SerializeField, Label("再生したいKillTextの名前")] private string _killAnimationName;
 
-        #endregion
-
-        [SerializeField,Label("経過時間を表示する場所")] private GameObject _timerTransformPosition;
+        [Header("Timer Settings")]
+        [SerializeField,Label("TimerData")]private GameTimerData _timerData;
+        [SerializeField, Label("経過時間を表示する場所")] private Transform _timerTransformPosition;
 
         private Slider _hpBarSlider;
         private TextMeshPro _killLogText;
         private GameObject _optionUI;
         private GameObject _killLogUI;
-        private GameTimer _timer;
+        private GameObject _ogreUiInstance;
 
         private CancellationTokenSource _cts;
-        
-        private void Start()
+
+        private void Awake()
         {
             _cts = new CancellationTokenSource();
-            Initialize();
+            Bind();
         }
 
-        private void Initialize()
+        private void Bind()
         {
-            _hpBarSlider = _hpBar.gameObject.GetComponent<Slider>();
-            _killLogText = _killLogTextPrefab.gameObject.GetComponent<TextMeshPro>();
+            UIController ui = UIController.I;
+            ui.OnChangeSliderValue.Subscribe(ChangeHp).AddTo(_cts.Token);
+            ui.OnClickOptionButton.Subscribe(ShowOptionUI).AddTo(_cts.Token);
+            ui.OnStartTimer.Subscribe(_ => ShowGameStartTime().Forget()).AddTo(_cts.Token);
+            ui.OnNoticeKillLog.Subscribe(ShowKillLog).AddTo(_cts.Token);
+            ui.OnShowOgreUI.Subscribe(ShowOgreLamp).AddTo(_cts.Token);
+            ui.OnChangeStaminaValue.Subscribe(ChangeStamina).AddTo(_cts.Token);
+            ui.OnGameStart.Subscribe(_ => SetupUI()).AddTo(_cts.Token);
+        }
+
+        private void SetupUI()
+        {
+            GameObject canvas = Instantiate(_uiMainCanvasPrefab);
+            _optionUI = Instantiate(_optionUIPrefab, canvas.transform);
+            _optionUI.SetActive(false);
             
-            if(_hpBarSlider == null)
-                Debug.LogError($"{nameof(_hpBarSlider)} is null");
+            _killLogUI = Instantiate(_killLogTextPrefab.gameObject, canvas.transform);
+            _killLogUI.SetActive(true);
+            _killLogText = _killLogUI.GetComponent<TextMeshPro>();
+            
+            _ogreUiInstance = Instantiate(_ogreUIPrefab, canvas.transform);
+            _ogreUiInstance.SetActive(false);
+            
+            _hpBarSlider = _hpBar.gameObject.GetComponent<Slider>();
+            
+            Debug.Log("UI作成が完了しました");
         }
-        
-        // インゲーム開始時に必要なUIを生成
-        public void CreateStartGameUI()
-        {
-            if (_uiMainCanvasPrefab != null && _optionUI != null && _killLogUI != null)
-            {
-                GameObject canvas = Instantiate(_uiMainCanvasPrefab);
-                _optionUI = Instantiate(_optionUIPrefab, canvas.transform);
-                _optionUI.SetActive(false);
-                _killLogUI = Instantiate(_killLogTextPrefab.gameObject, canvas.transform);
-                _killLogUI.SetActive(false);
-                _ogreUIPrefab = Instantiate(_optionUIPrefab, canvas.transform);
-                _ogreUIPrefab.SetActive(false);
-                
-            }
-            else
-                Debug.LogError("UIPrefab is null");
-        }
-        
-        public void ChangeHp(int value)
+
+        private void ChangeHp(int value)
         {
             // Hp変更アニメーションを再生
-            if(_hpBarSlider != null) 
-                _hpBar.Play(_hpAnimationName);
+            if (_hpBarSlider == null)
+                return;
             
             _hpBarSlider.value = value;
+            _hpBar.Play(_hpAnimationName);
         }
 
-        public void ChangeStamina(float value)
+        private void ChangeStamina(int value)
         {
-            
+            // ToDo : 実装予定
         }
 
         // キルのログを直接引数に入れる
-        public void ShowKillLog(string killText)
+        private void ShowKillLog(string killText)
         {
+            if(_killLogText == null)
+                return;
+            
             _killLogText.text = killText;
             
-            if(_killAnimationName != null) 
+            if (_killAnimationName != null)
                 _killLogTextPrefab.Play(_killAnimationName);
         }
-        
+
         // ToDo : タイマークラスを作成してアニメーションなどを柔軟に行えるようにする
-        public async UniTask ShowGameStartTime()
+        private async UniTask ShowGameStartTime()
         {
-            TextMeshPro timer = Instantiate(_timerUIPrefab);
+            TextMeshProUGUI timer = Instantiate(_timerUIPrefab,_timerTransformPosition);
             timer.gameObject.SetActive(true);
-            
+
             // カウントダウン
-            for (int i = _timer.Time; i >= 1; i--)
+            for (int i = _timerData.Time; i >= 1; i--)
             {
                 timer.text = i.ToString();
-                await UniTask.Delay(TimeSpan.FromSeconds(_timer.Duration),cancellationToken: _cts.Token);
+                await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
             }
 
             // Ready Goの表示とGameTimeの表示を開始する
             timer.text = "Ready";
-            await UniTask.Delay(TimeSpan.FromSeconds(_timer.AfterReadyDelay),cancellationToken: _cts.Token);
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.AfterReadyDelay), cancellationToken: _cts.Token);
 
             timer.text = "Go!";
-            await UniTask.Delay(TimeSpan.FromSeconds(_timer.Duration),cancellationToken: _cts.Token);
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
 
-            for (float remaining = _timer.GameTime; remaining >= 0; remaining--)
+            for (float remaining = _timerData.GameTime; remaining >= 0; remaining--)
             {
-                TimeSpan timeSpan = TimeSpan.FromSeconds(remaining);
-                timer.text = timeSpan.ToString(@"mm\:ss");
-                await UniTask.Delay(TimeSpan.FromSeconds(1),cancellationToken: _cts.Token);
+                timer.text = TimeSpan.FromSeconds(remaining).ToString(@"mm\:ss");
+                await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: _cts.Token);
             }
 
             timer.text = "Time Up!";
-            await UniTask.Delay(TimeSpan.FromSeconds(_timer.Duration),cancellationToken: _cts.Token);
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
             Destroy(timer.gameObject);
         }
 
         // 鬼の時にUIを表示する
-        public void ShowOgreLamp(bool isShow)
+        private void ShowOgreLamp(bool isShow)
         {
-            _ogreUIPrefab.gameObject.SetActive(isShow);
+            if(_ogreUiInstance != null) 
+                _ogreUiInstance.gameObject.SetActive(isShow);
         }
-        
-        public void ShowOptionUI(bool isShow)
+
+        private void ShowOptionUI(bool isShow)
         {
-            _optionUI.SetActive(isShow);
+            if(_optionUI != null) 
+                _optionUI.SetActive(isShow);
+        }
+
+        private void OnDestroy()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
         }
     }
 }
