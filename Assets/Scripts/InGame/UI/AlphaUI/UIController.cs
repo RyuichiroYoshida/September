@@ -1,46 +1,60 @@
 using System;
-using UnityEngine;
 using UniRx;
 
 namespace September.InGame.UI
 {
     // 各UIのイベントを所持するクラス
     // 登録も自身で行う
-    public class UIController : MonoBehaviour
+    public class UIController : SingletonMonoBehaviour<UIController>
     {
-        [SerializeField] private UIView _uiView;
         #region イベント
 
-        private readonly Subject<Unit> _onClickShowOptionButton = new();
-        private readonly Subject<Unit> _onClickCloseOptionButton = new();
-        private readonly Subject<int> _sliderValueChanged = new();
+        private readonly Subject<bool> _onClickOptionButton = new();
+        private readonly ReactiveProperty<int> _onChangeSliderValue = new();
+        private readonly Subject<Unit> _onStartTimer = new();
+        private readonly Subject<string> _onNoticeKillLog = new();
+        private readonly ReactiveProperty<bool> _onShowOgreUI = new();
+        private readonly ReactiveProperty<int> _onChangeStaminaValue = new();
+        private readonly Subject<Unit> _onGameStart = new();
 
         #endregion
         
         # region 外部公開プロパティ
         
-        public IObservable<Unit> OnClickShowOptionButton => _onClickShowOptionButton;
-        public IObservable<Unit> OnClickCloseOptionButton => _onClickCloseOptionButton;
-        public IObservable<int> OnSliderValueChanged => _sliderValueChanged;
+        public IObservable<bool> OnClickOptionButton => _onClickOptionButton;
+        public IReadOnlyReactiveProperty<int> OnChangeSliderValue => _onChangeSliderValue;
+        public IObservable<Unit> OnStartTimer => _onStartTimer;
+        public IObservable<string> OnNoticeKillLog => _onNoticeKillLog;
+        public IObservable<bool> OnShowOgreUI => _onShowOgreUI;
+        public IReadOnlyReactiveProperty<int> OnChangeStaminaValue => _onChangeStaminaValue;
+        
+        public IObservable<Unit> OnGameStart => _onGameStart;
         
         #endregion
 
-        private void Start()
+        public void SetUpStartUI()
         {
-            Initialize();
+            _onGameStart.OnNext(Unit.Default);
+        }
+        
+        public void StartTimer()
+        {
+            _onStartTimer.OnNext(Unit.Default);
         }
 
-        private void Initialize()
+        public void ShowOgreLamp(bool isShow)
         {
-            OnSliderValueChanged.Subscribe(hp => _uiView.ChangeHp(hp));
-            OnClickShowOptionButton.Subscribe(_ => _uiView.ShowOptionUI());
-            OnClickCloseOptionButton.Subscribe(_ => _uiView.CloseOptionUI());
+            _onShowOgreUI.Value = isShow;
         }
 
-        // UIを動的に生成する
-        private void GameStart()
+        public void ChangeSliderValue(int value)
         {
-            _uiView.CreateMainUI();
+            _onChangeSliderValue.Value = value;
+        }
+
+        public void ChangeStaminaValue(int value)
+        {
+            _onChangeStaminaValue.Value = value;
         }
     }
 }
