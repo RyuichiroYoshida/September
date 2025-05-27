@@ -2185,6 +2185,7 @@ GameObject:
   - component: {fileID: 8852059270115418881}
   - component: {fileID: -6747390543024902661}
   - component: {fileID: 2265485443593992954}
+  - component: {fileID: -1051450264441112034}
   m_Layer: 6
   m_Name: HaruClasher
   m_TagString: Player
@@ -2324,6 +2325,7 @@ MonoBehaviour:
   - {fileID: 8852059270115418881}
   - {fileID: -6747390543024902661}
   - {fileID: 2265485443593992954}
+  - {fileID: -1051450264441112034}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &3160669095986965893
 MonoBehaviour:
@@ -2428,6 +2430,31 @@ MonoBehaviour:
   _hammerView: {fileID: 2515736465677415225}
   _HasCannonBall:
     _value: 0
+--- !u!114 &-1051450264441112034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6141308324267349752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f596036fa7ea144d88f91d88833f57a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _abilityActionContexts:
+  - Condition:
+      rid: 9108457159744553091
+    AbilityName: 1
+    ActionType: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 9108457159744553091
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+      data:
+        Button: 4
+        TriggerType: 0
 --- !u!1 &6265171665049360442
 GameObject:
   m_ObjectHideFlags: 0

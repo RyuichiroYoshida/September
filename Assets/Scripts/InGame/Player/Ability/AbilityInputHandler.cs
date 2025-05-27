@@ -7,6 +7,54 @@ using UnityEngine;
 
 namespace InGame.Player.Ability
 {
+    public enum AbilityTriggerType
+    {
+        タップ,
+        ホールド,
+        リリース,
+    }
+
+    public enum AbilityActionType
+    {
+        発動,
+        停止,
+    }
+
+    /// <summary>
+    /// 実行するアビリティのEnum
+    /// 後でAbilityBaseを継承したクラスに合わせて自動生成するようにする
+    /// </summary>
+    public enum AbilityName
+    {
+        None,
+        クリエイトフロア,
+        チャージショット,
+        クリエイトシールド,
+        全てのアビリティ,
+    }
+    
+    /// <summary>
+    /// アビリティ実行依頼時に必要な入力情報を保持する構造体
+    /// </summary>
+    [Serializable]
+    public struct AbilityContext : INetworkStruct
+    {
+        public AbilityActionType ActionType;
+        public PlayerRef SourcePlayer;
+        public AbilityName AbilityName;
+    }
+    
+    /// <summary>
+    /// 判定に使う情報を詰め込んだクラス
+    /// </summary>
+    public class TriggerEventContext
+    {
+        public NetworkButtons CurrentButtons;
+        public NetworkButtons PreviousButtons;
+        public GameObject Owner; // 発動者 or 被対象者
+        public object EventPayload; // ぶつかったコライダーなどイベント用
+    }
+    
     /// <summary>
     /// アビリティの入力を受け取り実行を依頼するクラス
     /// ここでどのボタンでどのアビリティが実行されるか設定します
@@ -60,19 +108,8 @@ namespace InGame.Player.Ability
             }
         }
     }
-    
-    /// <summary>
-    /// 判定に使う情報を詰め込んだクラス
-    /// </summary>
-    public class TriggerEventContext
-    {
-        public NetworkButtons CurrentButtons;
-        public NetworkButtons PreviousButtons;
-        public GameObject Owner; // 発動者 or 被対象者
-        public object EventPayload; // ぶつかったコライダーなどイベント用
-    }
-    
-    #region 条件の処理
+   
+    #region 条件設定用のクラス群
     /// <summary>
     /// 入力トリガーとアビリティを紐付けたデータ
     /// </summary>
@@ -120,6 +157,9 @@ namespace InGame.Player.Ability
         }
     }
     
+    /// <summary>
+    /// ぶつかった時の入力依頼情報を設定するクラス
+    /// </summary>
     [Serializable]
     public class OnCollisionCondition : IActionCondition
     {
@@ -136,42 +176,4 @@ namespace InGame.Player.Ability
         }
     }
     #endregion
-    
-    /// <summary>
-    /// アビリティ実行時に必要な入力情報を保持する構造体
-    /// </summary>
-    [Serializable]
-    public struct AbilityContext : INetworkStruct
-    {
-        public AbilityActionType ActionType;
-        public PlayerRef SourcePlayer;
-        public AbilityName AbilityName;
-    }
-
-
-    public enum AbilityTriggerType
-    {
-        タップ,
-        ホールド,
-        リリース,
-    }
-
-    public enum AbilityActionType
-    {
-        発動,
-        停止,
-    }
-
-    /// <summary>
-    /// 実行するアビリティのEnum
-    /// 後でAbilityBaseを継承したクラスに合わせて自動生成するようにする
-    /// </summary>
-    public enum AbilityName
-    {
-        None,
-        クリエイトフロア,
-        チャージショット,
-        クリエイトシールド,
-        全てのアビリティ,
-    }
 }
