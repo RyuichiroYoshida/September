@@ -16,15 +16,8 @@ public class InGameManager : NetworkBehaviour,IRegisterableService
     public Action OnOgreChanged;
     
     private NetworkRunner _networkRunner;
-
-    public override void Spawned()
-    {
-       
-    }
     
-    
-    
-    public async void InGameInitialized()
+    public async void InGameMInitialized()
     {
         _networkRunner = FindFirstObjectByType<NetworkRunner>();
         if (_networkRunner == null)
