@@ -8,8 +8,8 @@ namespace September.Common
     public class PlayerDatabase : NetworkBehaviour
     {
         [Networked, OnChangedRender(nameof(OnChangedPlayerData)), Capacity(10)]
-        public NetworkDictionary<PlayerRef, PlayerData> PlayerDataDic => default;
-        public Action<PlayerRef, PlayerData> ChangedDataAction;
+        public NetworkDictionary<PlayerRef, SessionPlayerData> PlayerDataDic => default;
+        public Action<PlayerRef, SessionPlayerData> ChangedDataAction;
         public static PlayerDatabase Instance;
         public override void Spawned()
         {
@@ -25,7 +25,7 @@ namespace September.Common
         }
         
         [Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
-        public void Rpc_SetPlayerData(PlayerRef playerRef, PlayerData data)
+        public void Rpc_SetPlayerData(PlayerRef playerRef, SessionPlayerData data)
         {
             PlayerDataDic.Set(playerRef, data);
         }
