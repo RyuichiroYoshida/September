@@ -9,8 +9,8 @@ public class EffectDatabase : ScriptableObject
     public struct EffectData
     {
         [HideInInspector] public string Guid;
+        public string EffectName;
         public GameObject Prefab;
-        public EffectType EffectType;
     }
     
     [SerializeField] private List<EffectData> _effects;

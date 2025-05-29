@@ -25,13 +25,10 @@ public class EffectDatabaseEditor : Editor
             var entry = _effects.GetArrayElementAtIndex(i);
             var guidProp = entry.FindPropertyRelative("Guid");
             var prefabProp = entry.FindPropertyRelative("Prefab");
-            var effectTypeProp = entry.FindPropertyRelative("EffectType");
 
             EditorGUILayout.BeginVertical("box");
 
             EditorGUILayout.PropertyField(prefabProp);
-            
-            EditorGUILayout.PropertyField(effectTypeProp);
 
             string guid = "";
             if (prefabProp.objectReferenceValue != null)
