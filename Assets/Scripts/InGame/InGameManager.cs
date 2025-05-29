@@ -54,7 +54,6 @@ public class InGameManager : NetworkBehaviour,IRegisterableService
         killedData.IsOgre = false;
         PlayerDatabase.Instance.PlayerDataDic.Set(killed, killedData);
         OnOgreChanged?.Invoke();
-        //　IsOgreの切り替え、キルログを出すためのイベントInvoke、PlayerDataBase更新等
     }
 
     void HideCursor()
