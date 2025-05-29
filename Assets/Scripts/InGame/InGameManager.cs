@@ -2,9 +2,10 @@ using System;
 using Fusion;
 using InGame.Player;
 using September.Common;
+using September.InGame.Common;
 using UnityEngine;
 
-public class InGameManager : NetworkBehaviour
+public class InGameManager : NetworkBehaviour,IRegisterableService
 {
     [Networked] private TickTimer _tickTimer {get; set; }
     
@@ -13,12 +14,38 @@ public class InGameManager : NetworkBehaviour
     private int _gameTime = 1200;
 
     public Action OnOgreChanged;
+    
+    private NetworkRunner _networkRunner;
 
     public override void Spawned()
     {
+       
+    }
+    
+    
+    
+    public async void InGameInitialized()
+    {
+        _networkRunner = FindFirstObjectByType<NetworkRunner>();
+        if (_networkRunner == null)
+        {
+            Debug.LogError("NetworkRunnerがありません");
+        }
+        PlayerDatabase.Instance.ChooseOgre();
+        var container = CharacterDataContainer.Instance;
+        foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
+        {
+            var player = await _networkRunner.SpawnAsync(container.GetCharacterData(pair.Value.CharacterType).Prefab,
+                inputAuthority: pair.Key);
+            var playerBase = player.GetComponent<PlayerHealth>();
+            //PlayerHealthのOnDeathに登録
+
+        }
         StartTimer();
         HideCursor();
     }
+    
+    
     
     /// <summary>
     /// 各Playerの気絶時に呼ばれるメソッド
@@ -60,5 +87,10 @@ public class InGameManager : NetworkBehaviour
             GameEnded();
             _tickTimer = TickTimer.None;
         }
+    }
+    
+    public void Register(ServiceLocator locator)
+    {
+        locator.Register<InGameManager>(this);
     }
 }
