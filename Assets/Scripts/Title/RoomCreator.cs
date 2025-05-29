@@ -14,7 +14,7 @@ namespace September.Title
         {
             if (_roomName.text == "" || _userName.text == "") return;
             PlayerNetworkSettings.NickName = _userName.text;
-            GameLauncher.Instance.CreateLobby(_roomName.text, (int)_maxPlayers.value);
+            NetworkManager.Instance.CreateLobby(_roomName.text, (int)_maxPlayers.value);
         }
     }
 }
