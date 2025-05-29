@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Fusion;
 using InGame.Player;
 using September.Common;
@@ -30,9 +32,8 @@ public class InGameManager : NetworkBehaviour,IRegisterableService
         {
             var player = await _networkRunner.SpawnAsync(container.GetCharacterData(pair.Value.CharacterType).Prefab,
                 inputAuthority: pair.Key);
-            var playerBase = player.GetComponent<PlayerHealth>();
+            var playerHealth = player.GetComponent<PlayerHealth>();
             //PlayerHealthのOnDeathに登録
-
         }
         StartTimer();
         HideCursor();
@@ -69,7 +70,18 @@ public class InGameManager : NetworkBehaviour,IRegisterableService
 
     private void GameEnded()
     {
-        
+       
+    }
+
+    public IEnumerable<(PlayerRef,int score)> GetScore()
+    {
+        List<(PlayerRef,int score)> _scores = new List<(PlayerRef,int)>();
+        foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
+        {
+            _scores.Add((pair.Key,pair.Value.Score));
+        }
+        var ordered = _scores.OrderByDescending(x => x.score);
+        return ordered;
     }
 
     public override void FixedUpdateNetwork()
