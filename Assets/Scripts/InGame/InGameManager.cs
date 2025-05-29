@@ -70,17 +70,21 @@ public class InGameManager : NetworkBehaviour,IRegisterableService
 
     private void GameEnded()
     {
-       
+        GetScore();
     }
 
     public IEnumerable<(PlayerRef,int score)> GetScore()
     {
-        List<(PlayerRef,int score)> _scores = new List<(PlayerRef,int)>();
+        List<(PlayerRef player,int score)> _scores = new List<(PlayerRef,int)>();
         foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
         {
             _scores.Add((pair.Key,pair.Value.Score));
         }
-        var ordered = _scores.OrderByDescending(x => x.score);
+        var ordered = _scores.OrderByDescending(x => x.score).ToList();
+        for (int i = 0; i < ordered.Count(); i++)
+        {
+            Debug.Log($"{i + 1} 位は{ordered[i].player}でスコアは{ordered[i].score}点");
+        }
         return ordered;
     }
 
