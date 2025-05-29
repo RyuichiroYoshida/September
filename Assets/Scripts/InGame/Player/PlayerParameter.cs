@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace InGame.Player
 {
-    [CreateAssetMenu(fileName = "PlayerStatus", menuName = "Scriptable Objects/PlayerStatus")]
-    public class PlayerStatus : ScriptableObject
+    [CreateAssetMenu(fileName = "PlayerParameter", menuName = "Scriptable Objects/PlayerParameter")]
+    public class PlayerParameter : ScriptableObject
     {
         [SerializeField] string _characterName;
         [SerializeField] int _health;
