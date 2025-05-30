@@ -94,14 +94,14 @@ namespace InGame.Player
             float targetPitch = endRotation.eulerAngles.x,
                 startPitch = _cameraPitch,
                 targetYaw = endRotation.eulerAngles.y,
-                startYaw = ToAngle(_cameraYaw - targetYaw + 180);
+                startYaw = _cameraYaw;
 
             // 移動Tweenの発火
             _cameraTweener =　DOTween.To(
                 () => 0f,
                 n =>
                 {
-                    _cameraPivot.rotation = Quaternion.Euler(math.lerp(startPitch, targetPitch, n), ToAngle(math.lerp(startYaw, 180, n) + targetYaw + 180), 0);
+                    _cameraPivot.rotation = Quaternion.Euler(math.lerp(startPitch, targetPitch, n), Mathf.LerpAngle(startYaw, targetYaw, n), 0);
                 },
                 1f,
                 _motionDuration

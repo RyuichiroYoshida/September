@@ -1,13 +1,19 @@
+using System;
 using Fusion;
+using InGame.Health;
 using UniRx;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace InGame.Player
 {
     public class PlayerHealth : NetworkBehaviour, IDamageable
     {
+        public bool IsAlive => Health > 0;
         public readonly BehaviorSubject<int> OnHealthChanged = new(0);
+        
+        // event
+        public event Action<HitData> OnHitTaken;
+        public event Action<HitData> OnDeath;
 
         [Networked, OnChangedRender(nameof(OnChangeHealth))] private int Health { get; set; }
         void OnChangeHealth() => OnHealthChanged.OnNext(Health);
@@ -19,24 +25,45 @@ namespace InGame.Player
             {
                 Health = health;
                 MaxHealth = health;
-                
+            
                 OnHealthChanged.OnNext(Health);
             }
         }
 
-        // ダメージを受ける
-        public void TakeDamage(int damage)
+        public void TakeHit(ref HitData hitData)
         {
+            ApplyHit(ref hitData);
+
+            hitData.IsLastHit = !IsAlive;
+
             if (HasStateAuthority)
             {
-                Health = math.max(Health - damage, 0);
-                if (Health <= 0) Dead();
+                // イベントの発火はStateAuthorityなのか？
+                OnHitTaken?.Invoke(hitData);
+                if (!IsAlive) OnDeath?.Invoke(hitData);
+                hitData.Executor?.HitExecution(hitData);
             }
         }
 
-        public void Dead()
+        void ApplyHit(ref HitData hitData)
         {
-            
+            if (!IsAlive)
+            {
+                hitData.Amount = 0;
+                return;
+            }
+
+            if (hitData.HitActionType == HitActionType.Damage)
+            {
+                TakeDamage(hitData.Amount);
+            }
+        }
+
+        int TakeDamage(int damage)
+        {
+            int previousHealth = Health;
+            Health  = Mathf.Clamp(Health - damage, 0, MaxHealth);
+            return previousHealth - Health;
         }
     }
 }
