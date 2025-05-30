@@ -54,7 +54,7 @@ namespace InGame.Player.Ability
                 if (action.Condition == null || !action.Condition.Evaluate(triggerCtx)) continue;
                 var abilityCtx = new AbilityContext
                 {
-                    SourcePlayer = Object.InputAuthority.RawEncoded,
+                    SourcePlayer = Runner.LocalPlayer.RawEncoded,
                     AbilityName = action.AbilityName,
                     ActionType = action.ActionType
                 };

@@ -1,5 +1,3 @@
-// --- AbilityExecutor (Photon Fusion 2 対応版：クールダウン開始をアビリティ内部で制御) ---
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,8 +104,6 @@ namespace InGame.Player.Ability
                 }
             }
 
-            _abilityStateDirty = false;
-
             foreach (var kvp in _playerActiveAbilityInfo)
             {
                 int beforeCount = kvp.Value.Count;
@@ -118,11 +114,11 @@ namespace InGame.Player.Ability
                 }
             }
 
-            if (Runner.IsServer && (_abilityStateDirty))
+            if (Runner.IsServer && _abilityStateDirty)
             {
                 SendAbilityStateSnapshot();
-                _abilityStateDirty = false;
             }
+            _abilityStateDirty = false;
         }
 
         private void SendAbilityStateSnapshot()
@@ -209,17 +205,23 @@ namespace InGame.Player.Ability
             
         }
 
+        public void ApplyAbilityState(AbilitySharedState abilitySharedState)
+        {
+            if (!_isInitialized) Initialize();
+            RPC_SyncAbilityState(abilitySharedState);
+        }
+        
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        public void RPC_SyncAbilitySharedState(INetworkStruct context)
+        private void RPC_SyncAbilityState(AbilitySharedState abilityStates)
         {
             if (Runner.IsServer) return;
-        
-            if (!(context is IAbilitySharedState sharedState)) return;
-            var playerId = sharedState.OwnerPlayerId;
-            if (!_playerActiveAbilityInfo.TryGetValue(playerId, out var activeAbilities)) return;
-            var abilityInfo = activeAbilities.FirstOrDefault(x => x.Instance.AbilityName == sharedState.AbilityName);
-        
-            abilityInfo?.Instance.ApplySharedState(sharedState);
+            var playerId = abilityStates.OwnerPlayerId;
+            if (_playerActiveAbilityInfo.TryGetValue(playerId, out var list))
+            {
+                //該当アビリティを摘出
+                list.FirstOrDefault(x => x.Instance.AbilityName == abilityStates.AbilityName)?.Instance
+                    .ApplySharedState(abilityStates);
+            }
         }
 
         public void Register(ServiceLocator locator)

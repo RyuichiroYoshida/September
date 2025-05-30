@@ -162,18 +162,22 @@ namespace InGame.Player.Ability
             Phase = AbilityPhase.Ended;
         }
 
-        public abstract void ApplySharedState(IAbilitySharedState sharedState);
+        public abstract void ApplySharedState(AbilitySharedState sharedState);
     }
 
-    public interface IAbilitySharedState : Fusion.INetworkStruct
+    /// <summary>
+    /// 全アビリティで共有する構造体
+    /// </summary>
+    public struct AbilitySharedState : INetworkStruct
     {
-        AbilityName AbilityName { get; set; }
-        int OwnerPlayerId { get; set; }
+        public AbilityName AbilityName { get; set; }
+        public int OwnerPlayerId { get; set; }
+        public int IsFloorActive { get; set; }
     }
 
     public interface ISharedAbilityStateReceiver
     {
-        void ApplySharedState(IAbilitySharedState sharedState);
+        void ApplySharedState(AbilitySharedState sharedState);
     }
 
     [Serializable]

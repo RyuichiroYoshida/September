@@ -3,8 +3,10 @@ using System.Linq;
 using Fusion;
 using InGame.Common;
 using NaughtyAttributes;
+using September.Common;
 using September.InGame;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace InGame.Player.Ability
 {
@@ -36,13 +38,23 @@ namespace InGame.Player.Ability
         public override void InitAbility(AbilityContext context, ISpawner spawner)
         {
             base.InitAbility(context, spawner);
-            var players = GameObject.FindObjectsByType<PlayerController>(FindObjectsSortMode.None).FirstOrDefault(
+            var players = Object.FindObjectsByType<PlayerController>(FindObjectsSortMode.None).FirstOrDefault(
                 player =>
                 {
                     var networkObject = player.GetComponent<NetworkObject>();
                     return networkObject != null && networkObject.InputAuthority.RawEncoded == Context.SourcePlayer;
                 });
             _sourcePlayer = players;
+            
+            var sharedState = new AbilitySharedState
+            {
+                AbilityName = AbilityName,
+                OwnerPlayerId = OwnerPlayerId,
+                IsFloorActive = 1,
+            };
+            
+            StartCooldown(_cooldown);
+            StaticServiceLocator.Instance.Get<IAbilityExecutor>().ApplyAbilityState(sharedState);
 
             if (_sourcePlayer == null)
             {
@@ -83,12 +95,9 @@ namespace InGame.Player.Ability
             CleanupSpawnedObject();
         }
 
-        public override void ApplySharedState(IAbilitySharedState sharedState)
+        public override void ApplySharedState(AbilitySharedState sharedState)
         {
-            if (sharedState is GenerateFloorSharedState { IsFloorActive: true })
-            {
-                StartCooldown(_cooldown);
-            }
+            if (sharedState.IsFloorActive == 1) StartCooldown(_cooldown);
         }
 
         private bool ValidateComponents()
@@ -142,12 +151,5 @@ namespace InGame.Player.Ability
                 _spawnedObjectId = INVALID_SPAWN_ID;
             }
         }
-    }
-    
-    public class GenerateFloorSharedState : IAbilitySharedState
-    {
-        public AbilityName AbilityName { get; set; } = AbilityName.クリエイトフロア;
-        public int OwnerPlayerId { get; set; } = -1;
-        public bool IsFloorActive { get; set; } = false;
     }
 }
