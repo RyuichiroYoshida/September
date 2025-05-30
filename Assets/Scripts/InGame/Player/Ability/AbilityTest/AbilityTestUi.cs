@@ -13,9 +13,12 @@ public class AbilityTestUi : MonoBehaviour
     private void Update()
     {
         _stringBuilder.Clear();
-        var abilityExecutor = StaticServiceLocator.Instance.Get<IAbilityExecutor>();
-        if (abilityExecutor == null) return;
-        var info = abilityExecutor.PlayerActiveAbilityInfo;
+        if (!StaticServiceLocator.Instance.TryGet<IAbilityExecutor>(out var executor)) return;
+        var info = executor.PlayerActiveAbilityInfo;
+        if (info == null || info.Count == 0)
+        {
+            return;
+        }
         _stringBuilder.AppendLine("Players Ability Info");
         foreach (var playerRef in info.Keys)
         {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Fusion;
@@ -25,12 +26,13 @@ namespace September.InGame.Common
             {
                 Debug.LogError("NetworkRunnerがありません");
             }
+            StaticServiceLocator.Instance.Register<ISpawner>(this);
         }
 
         /// <summary>
         /// ホスト専用：オブジェクト生成
         /// </summary>
-        public int Spawn(string prefabGuid, Vector3 position, Quaternion rotation, Transform setTransform = null, IPlayerRef playerRef = default)
+        public int Spawn(string prefabGuid, Vector3 position, Quaternion rotation, Transform setTransform = null, int playerRef = default, Action onSpawned = null)
         {
             if (_runner == null)
             {
@@ -47,7 +49,7 @@ namespace September.InGame.Common
                 Debug.LogError("Spawn() はホスト専用です。クライアントでは呼び出さないでください");
                 return -1;
             }
-            var castPlayerRef = playerRef?.As<PlayerRef>();
+            var castPlayerRef = PlayerRef.FromEncoded(playerRef);
             var prefab = _database.GetPrefab(prefabGuid);
             if (prefab == null)
             {
@@ -65,7 +67,7 @@ namespace September.InGame.Common
             return id;
         }
 
-        public async UniTask<int> SpawnAsync(string prefabGuid, Vector3 position, Quaternion rotation, Transform setTransform = null, IPlayerRef inputAuthority = null)
+        public async UniTask<int> SpawnAsync(string prefabGuid, Vector3 position, Quaternion rotation, Transform setTransform = null, int inputAuthority = default, Action onSpawned = null)
         {
             if (_runner == null)
             {
@@ -90,9 +92,7 @@ namespace September.InGame.Common
                 return -1;
             }
 
-            var castPlayerRef = inputAuthority?.As<PlayerRef>() ?? default;
-
-            NetworkObject obj = await _runner.SpawnAsync(prefab, position, rotation, castPlayerRef, onBeforeSpawned: (_, spawnedObj) =>
+            NetworkObject obj = await _runner.SpawnAsync(prefab, position, rotation, PlayerRef.FromEncoded(inputAuthority), onBeforeSpawned: (_, spawnedObj) =>
             {
                 if (setTransform != null)
                 {

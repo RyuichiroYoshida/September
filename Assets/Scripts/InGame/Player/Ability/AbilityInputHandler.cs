@@ -54,7 +54,7 @@ namespace InGame.Player.Ability
                 if (action.Condition == null || !action.Condition.Evaluate(triggerCtx)) continue;
                 var abilityCtx = new AbilityContext
                 {
-                    SourcePlayer = Object.InputAuthority,
+                    SourcePlayer = Object.InputAuthority.RawEncoded,
                     AbilityName = action.AbilityName,
                     ActionType = action.ActionType
                 };
@@ -166,7 +166,7 @@ namespace InGame.Player.Ability
     public struct AbilityContext : INetworkStruct, IEquatable<AbilityContext>
     {
         public AbilityActionType ActionType;
-        public PlayerRef SourcePlayer;
+        public int SourcePlayer;
         public AbilityName AbilityName;
 
         public bool Equals(AbilityContext other)

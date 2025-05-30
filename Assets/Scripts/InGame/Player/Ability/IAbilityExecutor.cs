@@ -6,7 +6,7 @@ namespace InGame.Player.Ability
 {
     public interface IAbilityExecutor
     {
-        public Dictionary<PlayerRef, List<AbilityRuntimeInfo>> PlayerActiveAbilityInfo { get; }
+        public Dictionary<int, List<AbilityRuntimeInfo>> PlayerActiveAbilityInfo { get; }
         void RequestAbilityExecution(AbilityContext context);
     }
 }
