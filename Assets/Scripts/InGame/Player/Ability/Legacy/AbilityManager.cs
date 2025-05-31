@@ -14,11 +14,11 @@ namespace InGame.Player.Ability.Mock
 
         private void Awake()
         {
-            PlayerData playerData = GetComponentInParent<PlayerData>();
+            PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
             
             foreach (var ability in _abilities)
             {
-                ability.InitAbility(playerData);
+                ability.InitAbility(playerStatus);
             }
         }
 
@@ -46,13 +46,13 @@ namespace InGame.Player.Ability.Mock
         [SerializeField] AbilityInputType _abilityInputType;
         [SerializeField] private float _cooldown;
         
-        PlayerData _ownerPlayerData;
+        PlayerStatus _ownerPlayerStatus;
         float _cooldownTimer;
 
         // Ability初期化
-        public void InitAbility(PlayerData ownerPlayerData)
+        public void InitAbility(PlayerStatus ownerPlayerStatus)
         {
-            _ownerPlayerData = ownerPlayerData;
+            _ownerPlayerStatus = ownerPlayerStatus;
         }
         // Abilityの発動
         public abstract void ActivateAbility();

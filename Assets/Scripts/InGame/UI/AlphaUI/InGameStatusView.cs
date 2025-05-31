@@ -13,9 +13,8 @@ namespace September.InGame.UI
     public class InGameStatusView : MonoBehaviour
     {
         [Header("UI Prefabs")]
-        [SerializeField, Label("インゲーム開始時から存在させたいCanvas")] private GameObject _uiMainCanvasPrefab;
         [SerializeField, Label("オプションUI")] private GameObject _optionUIPrefab;
-        [SerializeField, Label("気絶バー")] private UIAnimation _hpBar;
+        [SerializeField, Label("気絶バー")] private UIAnimation _hpBarPrefab;
         [SerializeField, Label("キルログUI")] private UIAnimation _killLogTextPrefab;
         [SerializeField, Label("鬼UI")] private GameObject _ogreUIPrefab;
         [SerializeField, Label("TimerUI")] private TextMeshProUGUI _timerUIPrefab;
@@ -26,7 +25,6 @@ namespace September.InGame.UI
 
         [Header("Timer Settings")]
         [SerializeField,Label("TimerData")]private GameTimerData _timerData;
-        [SerializeField, Label("経過時間を表示する場所")] private Transform _timerTransformPosition;
 
         private Slider _hpBarSlider;
         private TextMeshPro _killLogText;
@@ -56,18 +54,18 @@ namespace September.InGame.UI
 
         private void SetupUI()
         {
-            GameObject canvas = Instantiate(_uiMainCanvasPrefab);
-            _optionUI = Instantiate(_optionUIPrefab, canvas.transform);
+            _optionUI = Instantiate(_optionUIPrefab, transform);
             _optionUI.SetActive(false);
             
-            _killLogUI = Instantiate(_killLogTextPrefab.gameObject, canvas.transform);
-            _killLogUI.SetActive(true);
+            _killLogUI = Instantiate(_killLogTextPrefab.gameObject,transform);
+            _killLogUI.SetActive(false);
             _killLogText = _killLogUI.GetComponent<TextMeshPro>();
             
-            _ogreUiInstance = Instantiate(_ogreUIPrefab, canvas.transform);
+            _ogreUiInstance = Instantiate(_ogreUIPrefab, transform);
             _ogreUiInstance.SetActive(false);
             
-            _hpBarSlider = _hpBar.gameObject.GetComponent<Slider>();
+            _hpBarSlider = Instantiate(_hpBarPrefab.gameObject,transform).GetComponent<Slider>();
+            _hpBarSlider.gameObject.SetActive(true);
             
             Debug.Log("UI作成が完了しました");
         }
@@ -79,7 +77,7 @@ namespace September.InGame.UI
                 return;
             
             _hpBarSlider.value = value;
-            _hpBar.Play(_hpAnimationName);
+            _hpBarPrefab.Play(_hpAnimationName);
         }
 
         private void ChangeStamina(int value)
@@ -102,7 +100,7 @@ namespace September.InGame.UI
         // ToDo : タイマークラスを作成してアニメーションなどを柔軟に行えるようにする
         private async UniTask ShowGameStartTime()
         {
-            TextMeshProUGUI timer = Instantiate(_timerUIPrefab,_timerTransformPosition);
+            TextMeshProUGUI timer = Instantiate(_timerUIPrefab,transform);
             timer.gameObject.SetActive(true);
 
             // カウントダウン
