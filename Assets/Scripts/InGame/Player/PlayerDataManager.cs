@@ -7,24 +7,24 @@ namespace InGame.Player
 {
     public class PlayerDataManager : MonoBehaviour
     {
-        private readonly Dictionary<int, PlayerData> _playerData = new();
+        private readonly Dictionary<int, PlayerStatus> _playerData = new();
 
         // GameLauncherでDataを登録する必要がある
-        public void RegisterPlayer(int playerId, PlayerData data)
+        public void RegisterPlayer(int playerId, PlayerStatus status)
         {
-            if (!_playerData.TryAdd(playerId, data))
+            if (!_playerData.TryAdd(playerId, status))
                 return;
 
-            if (!data.ISLocalPlayer)
+            if (!status.ISLocalPlayer)
                 return;
 
             // Health監視
-            data.CurrentHealth.DistinctUntilChanged().Subscribe(UIController.I.ChangeSliderValue).AddTo(this);
+            status.CurrentHealth.DistinctUntilChanged().Subscribe(UIController.I.ChangeSliderValue).AddTo(this);
             // Stamina 監視
-            data.CurrentStamina.Subscribe(UIController.I.ChangeStaminaValue).AddTo(this);
+            status.CurrentStamina.Subscribe(UIController.I.ChangeStaminaValue).AddTo(this);
         }
 
-        public PlayerData GetPlayerData(int playerId)
+        public PlayerStatus GetPlayerData(int playerId)
         {
             return _playerData.GetValueOrDefault(playerId);
         }

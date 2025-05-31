@@ -12,7 +12,7 @@ namespace InGame.Player
         
         private void Start()
         {
-            PlayerData playerData = GetComponentInParent<PlayerData>();
+            PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
 
             // if (!playerData.IsLocalPlayer)
             // {
