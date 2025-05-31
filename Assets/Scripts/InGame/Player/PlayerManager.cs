@@ -9,7 +9,7 @@ namespace InGame.Player
     /// </summary>
     public class PlayerManager : NetworkBehaviour
     {
-        [SerializeField] PlayerStatus _playerStatus;
+        [SerializeField] PlayerParameter _playerParameter;
         
         PlayerMovement _playerMovement;
         PlayerCameraController _playerCameraController;
@@ -42,7 +42,7 @@ namespace InGame.Player
             if (TryGetComponent(out PlayerMovement movement))
             {
                 _playerMovement = movement;
-                movement.Init(_playerStatus.Stamina, _playerStatus.StaminaConsumption, _playerStatus.StaminaRegen);
+                movement.Init(_playerParameter.Stamina, _playerParameter.StaminaConsumption, _playerParameter.StaminaRegen);
             }
 
             if (TryGetComponent(out PlayerCameraController cameraController))
@@ -54,7 +54,7 @@ namespace InGame.Player
             if (TryGetComponent(out PlayerHealth health))
             {
                 _playerHealth = health;
-                health.Init(_playerStatus.Health);
+                health.Init(_playerParameter.Health);
             }
         }
 
@@ -78,6 +78,7 @@ namespace InGame.Player
             if (GetInput<PlayerInput>(out var input))
             {
                 _playerMovement.Move(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), input.CameraYaw, Runner.DeltaTime);
+                if (input.Buttons.IsSet(PlayerButtons.Jump)) _playerMovement.TestJump();
             }
         }
     }
