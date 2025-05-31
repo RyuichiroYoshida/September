@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using InGame.Health;
 using InGame.Player;
 using September.Common;
 using UnityEngine;
@@ -19,7 +20,12 @@ namespace September.InGame.Common
 
         private NetworkRunner _networkRunner;
 
-        public async void InGameMInitialized()
+        public override void Spawned()
+        {
+            Initialize();
+        }
+
+        public async void Initialize()
         {
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
@@ -31,10 +37,11 @@ namespace September.InGame.Common
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                var player = await _networkRunner.SpawnAsync(
-                    container.GetCharacterData(pair.Value.CharacterType).Prefab,
-                    inputAuthority: pair.Key);
-                var playerHealth = player.GetComponent<PlayerHealth>();
+                // var player = await _networkRunner.SpawnAsync(
+                //     container.GetCharacterData(pair.Value.CharacterType).Prefab,
+                //     inputAuthority: pair.Key);
+                //var playerHealth = player.GetComponent<PlayerHealth>();
+                //playerHealth.OnDeath += RPC_OnPlayerKilled;
                 //PlayerHealthのOnDeathに登録
             }
 
@@ -46,16 +53,18 @@ namespace September.InGame.Common
         /// <summary>
         /// 各Playerの気絶時に呼ばれるメソッド
         /// </summary>
-        public void RPC_OnPlayerKilled(PlayerRef killer, PlayerRef killed)
+        public void RPC_OnPlayerKilled(HitData data)
         {
             if (!Runner.IsServer) return; // サーバー側でのみ実行可能
-            var killerData = PlayerDatabase.Instance.PlayerDataDic.Get(killer); //DataBaseから該当Playerの情報取得
+            
+            var killerData = PlayerDatabase.Instance.PlayerDataDic.Get(data.ExecutorRef); //DataBaseから該当Playerの情報取得
             killerData.IsOgre = false;
-            PlayerDatabase.Instance.PlayerDataDic.Set(killer, killerData); //DataBase更新 
+            PlayerDatabase.Instance.PlayerDataDic.Set(data.ExecutorRef, killerData); //DataBase更新 
 
-            var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(killed);
+            var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(data.TargetRef);
             killedData.IsOgre = false;
-            PlayerDatabase.Instance.PlayerDataDic.Set(killed, killedData);
+            PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
+            
             OnOgreChanged?.Invoke();
         }
 
