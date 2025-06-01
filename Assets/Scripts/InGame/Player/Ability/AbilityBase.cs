@@ -162,7 +162,10 @@ namespace InGame.Player.Ability
             Phase = AbilityPhase.Ended;
         }
 
-        public abstract void ApplySharedState(AbilitySharedState sharedState);
+        public virtual void ApplySharedState(AbilitySharedState sharedState)
+        {
+            if (sharedState.IsFloorActive == 1) StartCooldown(_cooldown);
+        }
     }
 
     /// <summary>

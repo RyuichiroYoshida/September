@@ -94,12 +94,7 @@ namespace InGame.Player.Ability
         {
             CleanupSpawnedObject();
         }
-
-        public override void ApplySharedState(AbilitySharedState sharedState)
-        {
-            if (sharedState.IsFloorActive == 1) StartCooldown(_cooldown);
-        }
-
+        
         private bool ValidateComponents()
         {
             if (_spawner == null)
