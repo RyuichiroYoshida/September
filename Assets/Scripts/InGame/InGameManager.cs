@@ -5,6 +5,7 @@ using Fusion;
 using InGame.Health;
 using InGame.Player;
 using September.Common;
+using September.InGame.UI;
 using UnityEngine;
 
 
@@ -19,32 +20,39 @@ namespace September.InGame.Common
         public Action OnOgreChanged;
 
         private NetworkRunner _networkRunner;
+        
+        public NetworkDictionary<PlayerRef,NetworkObject> PlayerDataDic => default;
 
         public override void Spawned()
-        {
-            Initialize();
-        }
-
-        public async void Initialize()
         {
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
             }
+            if (!_networkRunner.IsServer) return;
+            UIController.I.SetUpStartUI();
+            Initialize();
+        }
 
+        public async void Initialize()
+        {
+            if(!HasInputAuthority) return;
             PlayerDatabase.Instance.ChooseOgre();
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                // var player = await _networkRunner.SpawnAsync(
-                //     container.GetCharacterData(pair.Value.CharacterType).Prefab,
-                //     inputAuthority: pair.Key);
-                //var playerHealth = player.GetComponent<PlayerHealth>();
-                //playerHealth.OnDeath += RPC_OnPlayerKilled;
+                 var player = await _networkRunner.SpawnAsync(
+                     container.GetCharacterData(pair.Value.CharacterType).Prefab,
+                     inputAuthority: pair.Key);
+                 if (!PlayerDataDic.ContainsKey(pair.Key))
+                 {
+                     PlayerDataDic.Add(pair.Key, player);
+                 }
+                 var playerHealth = player.GetComponent<PlayerHealth>();
+                playerHealth.OnDeath += RPC_OnPlayerKilled;
                 //PlayerHealthのOnDeathに登録
             }
-
             StartTimer();
             HideCursor();
         }
@@ -77,6 +85,7 @@ namespace September.InGame.Common
         private void StartTimer()
         {
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _gameTime);
+            UIController.I.StartTimer();
         }
 
         private void GameEnded()
