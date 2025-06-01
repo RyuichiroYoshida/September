@@ -21,7 +21,8 @@ namespace September.InGame.Common
 
         private NetworkRunner _networkRunner;
         
-        public NetworkDictionary<PlayerRef,NetworkObject> PlayerDataDic => default;
+        private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
+        public IReadOnlyDictionary<PlayerRef, NetworkObject> PlayerDataDic => _playerDataDic;
 
         public override void Spawned()
         {
@@ -31,13 +32,12 @@ namespace September.InGame.Common
                 Debug.LogError("NetworkRunnerがありません");
             }
             if (!_networkRunner.IsServer) return;
-            UIController.I.SetUpStartUI();
             Initialize();
+            UIController.I.SetUpStartUI();
         }
 
-        public async void Initialize()
+        private async void Initialize()
         {
-            if(!HasInputAuthority) return;
             PlayerDatabase.Instance.ChooseOgre();
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
@@ -47,7 +47,7 @@ namespace September.InGame.Common
                      inputAuthority: pair.Key);
                  if (!PlayerDataDic.ContainsKey(pair.Key))
                  {
-                     PlayerDataDic.Add(pair.Key, player);
+                     _playerDataDic.Add(pair.Key, player);
                  }
                  var playerHealth = player.GetComponent<PlayerHealth>();
                 playerHealth.OnDeath += RPC_OnPlayerKilled;
