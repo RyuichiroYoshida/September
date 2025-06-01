@@ -2568,14 +2568,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilityActionContexts:
   - Condition:
-      rid: -2
+      rid: 7643012117068513393
     AbilityName: 1
     ActionType: 0
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
+    - rid: 7643012117068513393
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        Button: 4
+        TriggerType: 0
 --- !u!1 &8516414556098384525
 GameObject:
   m_ObjectHideFlags: 0
