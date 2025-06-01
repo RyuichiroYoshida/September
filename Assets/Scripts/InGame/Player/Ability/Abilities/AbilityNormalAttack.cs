@@ -13,10 +13,10 @@ namespace InGame.Player.Ability
     {
         [SerializeField] private float _attackRadius = 1.0f;
         [SerializeField, Label("攻撃力")] private int _attackDamage = 10;
-        [SerializeField] private float _attackDuration = 1.0f; // 維持時間
+        [SerializeField] private float _attackDuration = 1.0f;
         [SerializeField] private LayerMask _hitMask;
+
         private readonly Collider[] _hitBuffer = new Collider[10];
-        private IHitExecutor _hitExecutor;
         private static InGameManager _inGameManager;
 
         private float _remainingTime;
@@ -62,26 +62,35 @@ namespace InGame.Player.Ability
             _remainingTime -= deltaTime;
             if (_remainingTime <= 0f)
             {
+                ApplyCachedHits();
                 ForceEnd();
                 return;
             }
 
-            int hitCount = Physics.OverlapSphereNonAlloc(_attackOrigin, _attackRadius, _hitBuffer, _hitMask);
-
-            for (var i = 0; i < hitCount; i++)
+            var hitCount = Physics.OverlapSphereNonAlloc(
+                _attackOrigin,
+                _attackRadius,
+                _hitBuffer
+                // _hitMask,
+                // QueryTriggerInteraction.Collide // ← Trigger 対象も拾いたい場合
+            );
+            
+            for (int i = 0; i < hitCount; i++)
             {
-                var hit = _hitBuffer[i];
-                var target = hit.GetComponent<PlayerHealth>();
+                var collider = _hitBuffer[i];
+                var target = collider.GetComponent<PlayerHealth>();
 
-                if (target == null || target.HasInputAuthority || _alreadyHit.Contains(target))
+                if (!target || target.HasInputAuthority || _alreadyHit.Contains(target))
                     continue;
 
-                if (!StaticServiceLocator.Instance.TryGet<IHitExecutor>(out var executor))
-                {
-                    Debug.LogError("IHitExecutorが見つかりません。");
-                    continue;
-                }
+                _alreadyHit.Add(target); // キャッシュだけ
+            }
+        }
 
+        private void ApplyCachedHits()
+        {
+            foreach (var target in _alreadyHit)
+            {
                 var hitData = new HitData
                 {
                     HitActionType = HitActionType.Damage,
@@ -89,12 +98,12 @@ namespace InGame.Player.Ability
                     ExecutorRef = PlayerRef.FromEncoded(Context.SourcePlayer),
                     TargetRef = target.Object.InputAuthority,
                     Target = target,
-                    Executor = executor,
                 };
 
                 target.TakeHit(ref hitData);
-                _alreadyHit.Add(target);
             }
+
+            _alreadyHit.Clear();
         }
     }
 }

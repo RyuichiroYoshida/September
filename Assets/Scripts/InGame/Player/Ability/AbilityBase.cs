@@ -155,7 +155,6 @@ namespace InGame.Player.Ability
 
         private void ExecuteEndAbility()
         {
-            Debug.Log($"[{AbilityName}] Ended ability execution.");
             OnEndAbility();
             OnEndAbilityEvent?.Invoke();
             Phase = AbilityPhase.Ended;
