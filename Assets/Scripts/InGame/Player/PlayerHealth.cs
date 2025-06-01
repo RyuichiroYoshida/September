@@ -61,8 +61,9 @@ namespace InGame.Player
 
         int TakeDamage(int damage)
         {
-            int previousHealth = Health;
+            var previousHealth = Health;
             Health  = Mathf.Clamp(Health - damage, 0, MaxHealth);
+            Debug.Log($"ダメージを食らった: {previousHealth} -> {Health}");
             return previousHealth - Health;
         }
     }
