@@ -19,9 +19,7 @@ namespace September.InGame.Common
 
         [Header("Timer Settings")]
         [SerializeField,Label("TimerData")]private GameTimerData _timerData;
-
-        public Action OnOgreChanged;
-
+        
         private NetworkRunner _networkRunner;
         
         private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
@@ -77,8 +75,6 @@ namespace September.InGame.Common
             var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(data.TargetRef);
             killedData.IsOgre = false;
             PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
-            
-            OnOgreChanged?.Invoke();
         }
 
         void HideCursor()
