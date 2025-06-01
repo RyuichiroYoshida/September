@@ -22,7 +22,7 @@ namespace InGame.Player.Ability
         private const int INVALID_SPAWN_ID = -1;
 
         private int _spawnedObjectId = INVALID_SPAWN_ID;
-        private PlayerController _sourcePlayer;
+        private PlayerManager _sourcePlayer;
 
         public override string DisplayName => "床生成";
         public override bool RunLocal => false;
@@ -38,7 +38,7 @@ namespace InGame.Player.Ability
         public override void InitAbility(AbilityContext context, ISpawner spawner)
         {
             base.InitAbility(context, spawner);
-            var players = Object.FindObjectsByType<PlayerController>(FindObjectsSortMode.None).FirstOrDefault(
+            var players = Object.FindObjectsByType<PlayerManager>(FindObjectsSortMode.None).FirstOrDefault(
                 player =>
                 {
                     var networkObject = player.GetComponent<NetworkObject>();
