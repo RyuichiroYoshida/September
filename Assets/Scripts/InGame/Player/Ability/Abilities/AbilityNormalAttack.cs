@@ -36,6 +36,7 @@ namespace InGame.Player.Ability
 
             if (!_inGameManager)
             {
+                Debug.Log("IngameManager取得");
                 if (!StaticServiceLocator.Instance.TryGet(out _inGameManager))
                 {
                     Debug.LogError("InGameManagerが見つかりません。通常攻撃を実行できません。");
