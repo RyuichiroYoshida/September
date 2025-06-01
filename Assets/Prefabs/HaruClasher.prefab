@@ -2181,11 +2181,8 @@ GameObject:
   - component: {fileID: 8282507870501304620}
   - component: {fileID: 6317836332611420631}
   - component: {fileID: 3160669095986965893}
-  - component: {fileID: 586499658947343475}
-  - component: {fileID: 8852059270115418881}
-  - component: {fileID: -6747390543024902661}
-  - component: {fileID: 2265485443593992954}
   - component: {fileID: -1051450264441112034}
+  - component: {fileID: 5031071015482550204}
   m_Layer: 6
   m_Name: HaruClasher
   m_TagString: Player
@@ -2321,11 +2318,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 8282507870501304620}
   - {fileID: 3160669095986965893}
-  - {fileID: 586499658947343475}
-  - {fileID: 8852059270115418881}
-  - {fileID: -6747390543024902661}
-  - {fileID: 2265485443593992954}
   - {fileID: -1051450264441112034}
+  - {fileID: 5031071015482550204}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &3160669095986965893
 MonoBehaviour:
@@ -2350,86 +2344,6 @@ MonoBehaviour:
     Position: 0.01
     Rotation: 0.01
     Scale: 0.01
---- !u!114 &586499658947343475
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6141308324267349752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41583d3c905d4a9fa83155b2585876d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _headTransform: {fileID: 1889335428872684253}
---- !u!114 &8852059270115418881
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6141308324267349752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a86bb25bfd8e44ce8704d4c586bcbfbf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _playerData: {fileID: 11400000, guid: 633bb843b2c0557468217e95b517591b, type: 2}
-  _playerNameDisplay: {fileID: 5357335809009213577}
-  _rigidbody: {fileID: 8871024937122154888}
-  _animator: {fileID: 6258892395558186060}
-  _playerCameraController: {fileID: 586499658947343475}
-  _modules:
-  - {fileID: -6747390543024902661}
-  - {fileID: 2265485443593992954}
-  _NickName:
-    _length: 0
-    _data:
-      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  _IsOgre:
-    _value: 0
-  _CurrentHp: 0
---- !u!114 &-6747390543024902661
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6141308324267349752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5819a774e7904c4ba0305f9efb7a71c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &2265485443593992954
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6141308324267349752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b5e973daf25450e86568267fca9374d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interactRadius: 5
-  _exhibitLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  _playerLayerMask:
-    serializedVersion: 2
-    m_Bits: 64
-  _meleeRadius: 0.75
-  _meleeOffset: {x: 0, y: 1, z: 1}
-  _throwPower: 10
-  _throwOffset: {x: 0, y: 1, z: 1}
-  _projectilePrefab: {fileID: 6969250124127857843, guid: 04d4bfd4d96712d408c4cbe8f09779fd, type: 3}
-  _cannonBallView: {fileID: 5763227876301666810}
-  _hammerView: {fileID: 2515736465677415225}
-  _HasCannonBall:
-    _value: 0
 --- !u!114 &-1051450264441112034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2444,17 +2358,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilityActionContexts:
   - Condition:
-      rid: 9108457159744553091
+      rid: 7643012116579614818
     AbilityName: 1
     ActionType: 0
   references:
     version: 2
     RefIds:
-    - rid: 9108457159744553091
-      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+    - rid: 7643012116579614818
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
       data:
         Button: 4
         TriggerType: 0
+--- !u!114 &5031071015482550204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6141308324267349752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25316d68ec1ac2469a2f1c72dcdce62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerNameDisplay: {fileID: 5357335809009213577}
+  _rigidbody: {fileID: 8871024937122154888}
+  _animator: {fileID: 6258892395558186060}
+  _modules: []
+  _NickName:
+    _length: 0
+    _data:
+      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  _IsOgre:
+    _value: 0
 --- !u!1 &6265171665049360442
 GameObject:
   m_ObjectHideFlags: 0

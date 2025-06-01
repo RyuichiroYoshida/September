@@ -16,8 +16,8 @@ MonoBehaviour:
   - Type: 0
     DisplayName: "\u30AA\u30AB\u30D9\u30FB\u30E9\u30A4\u30C8"
     Prefab:
-      RawGuidValue: 24e821b0a9085ea459ab16dd7683af03
+      RawGuidValue: 1d232b17925a618409af4cee2aad9b7f
   - Type: 1
     DisplayName: "\u30CF\u30EB\u30AF\u30FB\u30B6\u30FB\u30D6\u30C3\u30C1\u30E3\u30FC"
     Prefab:
-      RawGuidValue: aacdc9d9fa3896047866f34635ce8870
+      RawGuidValue: 1d232b17925a618409af4cee2aad9b7f
