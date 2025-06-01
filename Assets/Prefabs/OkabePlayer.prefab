@@ -1630,11 +1630,8 @@ GameObject:
   - component: {fileID: 6767704039685649095}
   - component: {fileID: 6299669587755630265}
   - component: {fileID: 4686791789015215292}
-  - component: {fileID: 6118872059863910100}
-  - component: {fileID: 68490784944412950}
-  - component: {fileID: 2128412454770137790}
-  - component: {fileID: 8420033376395972730}
   - component: {fileID: 1864888244515738886}
+  - component: {fileID: 4010276708735551098}
   m_Layer: 6
   m_Name: OkabePlayer
   m_TagString: Okabe
@@ -1770,11 +1767,8 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 6767704039685649095}
   - {fileID: 4686791789015215292}
-  - {fileID: 6118872059863910100}
-  - {fileID: 68490784944412950}
-  - {fileID: 2128412454770137790}
-  - {fileID: 8420033376395972730}
   - {fileID: 1864888244515738886}
+  - {fileID: 4010276708735551098}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4686791789015215292
 MonoBehaviour:
@@ -1799,74 +1793,6 @@ MonoBehaviour:
     Position: 0.01
     Rotation: 0.01
     Scale: 0.01
---- !u!114 &6118872059863910100
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6597962615836278416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41583d3c905d4a9fa83155b2585876d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _headTransform: {fileID: 8181085431481677564}
---- !u!114 &68490784944412950
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6597962615836278416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a86bb25bfd8e44ce8704d4c586bcbfbf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _playerData: {fileID: 11400000, guid: 419c84826f869ee4d88dcf435d4879f5, type: 2}
-  _playerNameDisplay: {fileID: 8718723758764671153}
-  _rigidbody: {fileID: 4369613460588748783}
-  _animator: {fileID: 6478696004103428323}
-  _playerCameraController: {fileID: 6118872059863910100}
-  _modules:
-  - {fileID: 2128412454770137790}
-  - {fileID: 8420033376395972730}
-  _NickName:
-    _length: 0
-    _data:
-      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  _IsOgre:
-    _value: 0
-  _CurrentHp: 0
---- !u!114 &2128412454770137790
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6597962615836278416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5819a774e7904c4ba0305f9efb7a71c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &8420033376395972730
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6597962615836278416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8a9268f60384272b55bb3e69e3cc2e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interactRadius: 5
-  _exhibitLayer:
-    serializedVersion: 2
-    m_Bits: 8
 --- !u!114 &1864888244515738886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1881,17 +1807,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilityActionContexts:
   - Condition:
-      rid: 9108457159744553104
+      rid: 7643012116579614819
     AbilityName: 1
     ActionType: 0
   references:
     version: 2
     RefIds:
-    - rid: 9108457159744553104
-      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+    - rid: 7643012116579614819
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
       data:
         Button: 4
         TriggerType: 0
+--- !u!114 &4010276708735551098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6597962615836278416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25316d68ec1ac2469a2f1c72dcdce62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerNameDisplay: {fileID: 8718723758764671153}
+  _rigidbody: {fileID: 4369613460588748783}
+  _animator: {fileID: 6478696004103428323}
+  _modules: []
+  _NickName:
+    _length: 0
+    _data:
+      Data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  _IsOgre:
+    _value: 0
 --- !u!1 &6783755428985214527
 GameObject:
   m_ObjectHideFlags: 0
