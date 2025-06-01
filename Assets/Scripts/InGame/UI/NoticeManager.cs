@@ -1,7 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Fusion;
-using UnityEngine;
 using UnityEngine.UI;
 
 public class NoticeManager : NetworkBehaviour

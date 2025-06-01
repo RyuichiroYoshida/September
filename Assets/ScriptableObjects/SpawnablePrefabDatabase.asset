@@ -15,3 +15,5 @@ MonoBehaviour:
   _entries:
   - Guid: faf9ec27ccd233e428d9e66595732aef
     Prefab: {fileID: 7045929907601370250, guid: faf9ec27ccd233e428d9e66595732aef, type: 3}
+  - Guid: 52643197c4870fc49ac21aa68653aed4
+    Prefab: {fileID: 193234231845119750, guid: 52643197c4870fc49ac21aa68653aed4, type: 3}

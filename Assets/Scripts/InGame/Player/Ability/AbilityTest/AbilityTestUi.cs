@@ -1,8 +1,7 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text;
+using Fusion;
 using InGame.Player.Ability;
+using September.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,12 +13,16 @@ public class AbilityTestUi : MonoBehaviour
     private void Update()
     {
         _stringBuilder.Clear();
-        var info = AbilityExecutor.Instance.PlayerActiveAbilityInfo;
-        if (info == null) return;
+        if (!StaticServiceLocator.Instance.TryGet<IAbilityExecutor>(out var executor)) return;
+        var info = executor.PlayerActiveAbilityInfo;
+        if (info == null || info.Count == 0)
+        {
+            return;
+        }
         _stringBuilder.AppendLine("Players Ability Info");
         foreach (var playerRef in info.Keys)
         {
-            _stringBuilder.AppendLine($"Player {playerRef.PlayerId}");
+            _stringBuilder.AppendLine($"Player {playerRef}");
             foreach (var ability in info[playerRef])
             {
                 var abilityName = ability.Instance.AbilityName.ToString();
