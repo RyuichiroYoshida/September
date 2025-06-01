@@ -21,9 +21,5 @@ namespace September.InGame.Common
             Debug.Log($"ServiceRegistrar: {childServices.Length} 件のサービスを登録しました。");
         }
     }
-    
-    public interface IRegisterableService
-    {
-        void Register(ServiceLocator locator);
-    }
+
 }
