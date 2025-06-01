@@ -54,7 +54,7 @@ MonoBehaviour:
       type: {class: AbilityGenerateFloor, ns: InGame.Player.Ability, asm: Scripts}
       data:
         _abilityName: 1
-        _cooldown: 0
+        _cooldown: 1
 --- !u!114 &-427035151656462817
 MonoBehaviour:
   m_ObjectHideFlags: 0
