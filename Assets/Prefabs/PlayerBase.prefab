@@ -2511,6 +2511,7 @@ MonoBehaviour:
   _maxDashSpeed: 13
   _dashCooldown: 3
   _rotationSpeed: 720
+  _jumpPower: 10
   _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
@@ -2573,28 +2574,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilityActionContexts:
   - Condition:
-      rid: -2
+      rid: 7643012117068513393
     AbilityName: 1
+    ActionType: 0
+  - Condition:
+      rid: 7643012117068513402
+    AbilityName: 3
     ActionType: 0
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
---- !u!114 &-5038975712834534643
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8360875997416129576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea4abb05f97218046a95a83d8a6ed36d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _maxRange: 300
-  _pullPower: 50
+    - rid: 7643012117068513393
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        Button: 4
+        TriggerType: 0
+    - rid: 7643012117068513402
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        Button: 3
+        TriggerType: 0
 --- !u!1 &8516414556098384525
 GameObject:
   m_ObjectHideFlags: 0

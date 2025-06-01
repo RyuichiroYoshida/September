@@ -8,6 +8,7 @@ namespace September.InGame.UI
         public int Time;
         public float Duration;
         public float AfterReadyDelay;
+        [Header("ゲーム時間(秒数)")]
         public float GameTime;
     }
 }

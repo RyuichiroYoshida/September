@@ -86,13 +86,6 @@ namespace September.Common
             if (!_networkRunner.IsServer) return;
             _networkRunner.SessionInfo.IsOpen = false;
             await _networkRunner.LoadScene(_gameSceneName);
-            PlayerDatabase.Instance.ChooseOgre();
-            var container = CharacterDataContainer.Instance;
-            foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
-            {
-                await _networkRunner.SpawnAsync(container.GetCharacterData(pair.Value.CharacterType).Prefab,
-                    inputAuthority: pair.Key);
-            }
         }
     }
 }
