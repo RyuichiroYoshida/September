@@ -8,10 +8,20 @@ using Random = UnityEngine.Random;
 
 namespace September.Common
 {
+    [DefaultExecutionOrder(-10)]
     public class TestSharedLauncher : MonoBehaviour, INetworkRunnerCallbacks
     {
         [SerializeField] NetworkRunner _networkRunner;
         [SerializeField] NetworkPrefabRef _playerAvatarPrefab;
+
+        private void Awake()
+        {
+            if (FindFirstObjectByType<NetworkRunner>())
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+        }
 
         private void Start()
         {
@@ -45,6 +55,7 @@ namespace September.Common
             
             // 自身のAvatarのスポーン
             runner.Spawn(_playerAvatarPrefab, spawnPosition, Quaternion.identity, player);
+            Debug.Log($"Spawn PlayerRef:{player}");
         }
 
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) {}
