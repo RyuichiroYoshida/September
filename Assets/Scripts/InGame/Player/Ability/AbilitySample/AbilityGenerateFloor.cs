@@ -83,7 +83,6 @@ namespace InGame.Player.Ability
 
         protected override void OnUpdate(float deltaTime)
         {
-            Debug.Log($"isCooldown: {IsCooldown}, CurrentCooldown: {CurrentCooldown}");
             if (!IsCooldown)
             {
                 ForceEnd();
@@ -129,7 +128,6 @@ namespace InGame.Player.Ability
 
         private void CleanupSpawnedObject()
         {
-            Debug.Log("Cleaning up spawned object...");
             if (_spawnedObjectId == INVALID_SPAWN_ID || _spawner == null)
                 return;
 

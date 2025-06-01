@@ -53,6 +53,7 @@ namespace September.InGame.Common
                 playerHealth.OnDeath += RPC_OnPlayerKilled;
                 //PlayerHealthのOnDeathに登録
             }
+            Register(StaticServiceLocator.Instance);
             StartTimer();
             HideCursor();
         }

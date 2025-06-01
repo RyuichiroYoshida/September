@@ -69,6 +69,7 @@ namespace InGame.Player.Ability
                 _playerActiveAbilityInfo[context.SourcePlayer] = new();
 
             _playerActiveAbilityInfo[context.SourcePlayer].Add(runtime);
+            Debug.Log($"Ability {abilityInstance.AbilityName} is running: {abilityInstance.AfterCooldown}");
 
             _abilityStateDirty = true;
         }
@@ -95,6 +96,7 @@ namespace InGame.Player.Ability
             {
                 foreach (var runtime in activeAbility.Value)
                 {
+                    Debug.Log($"Ability {runtime.Instance.AbilityName} is running: {runtime.Instance.AfterCooldown}");
                     if (runtime.RunLocal || runtime.IsAuthorityInstance)
                     {
                         runtime.Instance.Tick(Runner.DeltaTime);
