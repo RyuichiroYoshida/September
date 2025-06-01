@@ -69,8 +69,6 @@ namespace InGame.Player.Ability
                 _playerActiveAbilityInfo[context.SourcePlayer] = new();
 
             _playerActiveAbilityInfo[context.SourcePlayer].Add(runtime);
-            Debug.Log($"Ability {abilityInstance.AbilityName} is running: {abilityInstance.AfterCooldown}");
-
             _abilityStateDirty = true;
         }
 

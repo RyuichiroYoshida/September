@@ -65,7 +65,7 @@ MonoBehaviour:
         _attackDamage: 10
         _hitMask:
           serializedVersion: 2
-          m_Bits: 64
+          m_Bits: 4294967295
 --- !u!114 &-427035151656462817
 MonoBehaviour:
   m_ObjectHideFlags: 0

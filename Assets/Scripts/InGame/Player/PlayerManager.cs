@@ -17,7 +17,7 @@ namespace InGame.Player
         GameInput _gameInput;
         
         public bool IsLocalPlayer => HasInputAuthority;
-
+        
         private void Start()
         {
             if (HasInputAuthority)
