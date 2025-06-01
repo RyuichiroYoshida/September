@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilityReferences:
   - rid: 7643012116579614805
+  - rid: 7643012117068513408
   references:
     version: 2
     RefIds:
@@ -55,6 +56,16 @@ MonoBehaviour:
       data:
         _abilityName: 1
         _cooldown: 1
+    - rid: 7643012117068513408
+      type: {class: AbilityNormalAttack, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        _abilityName: 3
+        _cooldown: 0
+        _attackRadius: 1
+        _attackDamage: 10
+        _hitMask:
+          serializedVersion: 2
+          m_Bits: 4294967295
 --- !u!114 &-427035151656462817
 MonoBehaviour:
   m_ObjectHideFlags: 0

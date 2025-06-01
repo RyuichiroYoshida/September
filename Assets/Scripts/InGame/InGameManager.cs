@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
 using InGame.Player;
@@ -24,7 +25,7 @@ namespace September.InGame.Common
         private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
         public IReadOnlyDictionary<PlayerRef, NetworkObject> PlayerDataDic => _playerDataDic;
 
-        public override void Spawned()
+        private void Start()
         {
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
@@ -32,11 +33,11 @@ namespace September.InGame.Common
                 Debug.LogError("NetworkRunnerがありません");
             }
             if (!_networkRunner.IsServer) return;
-            Initialize();
+            Initialize().Forget();
             UIController.I.SetUpStartUI();
         }
 
-        private async void Initialize()
+        private async UniTask Initialize()
         {
             PlayerDatabase.Instance.ChooseOgre();
             var container = CharacterDataContainer.Instance;
@@ -45,6 +46,7 @@ namespace September.InGame.Common
                  var player = await _networkRunner.SpawnAsync(
                      container.GetCharacterData(pair.Value.CharacterType).Prefab,
                      inputAuthority: pair.Key);
+                 Debug.Log($"Player {pair.Key} spawned");
                  if (!PlayerDataDic.ContainsKey(pair.Key))
                  {
                      _playerDataDic.Add(pair.Key, player);
@@ -53,6 +55,7 @@ namespace September.InGame.Common
                 playerHealth.OnDeath += RPC_OnPlayerKilled;
                 //PlayerHealthのOnDeathに登録
             }
+            Register(StaticServiceLocator.Instance);
             StartTimer();
             HideCursor();
         }

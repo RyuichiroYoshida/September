@@ -2326,7 +2326,7 @@ Transform:
   m_GameObject: {fileID: 8360875997416129576}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.1370832, y: -4.7845416, z: -13.002548}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2500,11 +2500,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gravity: 9.81
   _moveSpeed: 5
+  _acceleration: 0
+  _groundSlopeThreshold: 45
   _dashSpeed: 10
   _dashCooldown: 3
-  _groundSlopeThreshold: 45
-  _jumpPower: 10
   _rotationSpeed: 720
+  _jumpPower: 10
   _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
@@ -2567,16 +2568,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _abilityActionContexts:
   - Condition:
-      rid: 9108457159744553068
+      rid: 7643012117068513393
     AbilityName: 1
+    ActionType: 0
+  - Condition:
+      rid: 7643012117068513402
+    AbilityName: 3
     ActionType: 0
   references:
     version: 2
     RefIds:
-    - rid: 9108457159744553068
-      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Assembly-CSharp}
+    - rid: 7643012117068513393
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
       data:
         Button: 4
+        TriggerType: 0
+    - rid: 7643012117068513402
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        Button: 3
         TriggerType: 0
 --- !u!1 &8516414556098384525
 GameObject:

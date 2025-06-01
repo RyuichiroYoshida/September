@@ -69,7 +69,6 @@ namespace InGame.Player.Ability
                 _playerActiveAbilityInfo[context.SourcePlayer] = new();
 
             _playerActiveAbilityInfo[context.SourcePlayer].Add(runtime);
-
             _abilityStateDirty = true;
         }
 
@@ -107,7 +106,7 @@ namespace InGame.Player.Ability
             foreach (var kvp in _playerActiveAbilityInfo)
             {
                 int beforeCount = kvp.Value.Count;
-                kvp.Value.RemoveAll(runtime => runtime.Instance.AfterCooldown && runtime.Instance.Phase == AbilityBase.AbilityPhase.Ended);
+                kvp.Value.RemoveAll(runtime => runtime.Instance.Phase == AbilityBase.AbilityPhase.Ended);
                 if (kvp.Value.Count != beforeCount)
                 {
                     _abilityStateDirty = true;
