@@ -28,7 +28,7 @@ public class AbilityTestUi : MonoBehaviour
                 var abilityName = ability.Instance.AbilityName.ToString();
                 var time = ability.Instance.CurrentCooldown;
                 var maxTime = ability.Instance.Cooldown;
-                _stringBuilder.AppendLine($"Ability: {abilityName} Cooldown: {time:F1}/{maxTime:F1}");
+                _stringBuilder.AppendLine($"Ability: {abilityName} Cooldown: {time:F1}/{maxTime:F1} Phase: {ability.Instance.Phase}");
             }
         }
         _playersAbilityText.text = _stringBuilder.ToString();

@@ -84,8 +84,8 @@ namespace InGame.Player.Ability
                 case AbilityPhase.None:
                     break;
                 case AbilityPhase.Started:
-                    OnStart();
                     Phase = AbilityPhase.Active;
+                    OnStart();
                     break;
                 case AbilityPhase.Active:
                     OnUpdate(deltaTime);

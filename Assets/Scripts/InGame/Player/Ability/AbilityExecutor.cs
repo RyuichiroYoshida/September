@@ -96,7 +96,6 @@ namespace InGame.Player.Ability
             {
                 foreach (var runtime in activeAbility.Value)
                 {
-                    Debug.Log($"Ability {runtime.Instance.AbilityName} is running: {runtime.Instance.AfterCooldown}");
                     if (runtime.RunLocal || runtime.IsAuthorityInstance)
                     {
                         runtime.Instance.Tick(Runner.DeltaTime);
@@ -109,7 +108,7 @@ namespace InGame.Player.Ability
             foreach (var kvp in _playerActiveAbilityInfo)
             {
                 int beforeCount = kvp.Value.Count;
-                kvp.Value.RemoveAll(runtime => runtime.Instance.AfterCooldown && runtime.Instance.Phase == AbilityBase.AbilityPhase.Ended);
+                kvp.Value.RemoveAll(runtime => runtime.Instance.Phase == AbilityBase.AbilityPhase.Ended);
                 if (kvp.Value.Count != beforeCount)
                 {
                     _abilityStateDirty = true;

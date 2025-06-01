@@ -36,7 +36,6 @@ namespace InGame.Player.Ability
 
             if (!_inGameManager)
             {
-                Debug.Log("IngameManager取得");
                 if (!StaticServiceLocator.Instance.TryGet(out _inGameManager))
                 {
                     Debug.LogError("InGameManagerが見つかりません。通常攻撃を実行できません。");
@@ -45,7 +44,7 @@ namespace InGame.Player.Ability
                 }
             }
 
-            if (!_inGameManager.PlayerDataDic.TryGet(PlayerRef.FromEncoded(Context.SourcePlayer), out var playerData))
+            if (!_inGameManager.PlayerDataDic.TryGetValue(PlayerRef.FromEncoded(Context.SourcePlayer), out var playerData))
             {
                 Debug.LogError("PlayerDataが見つかりません。通常攻撃を実行できません。");
                 ForceEnd();
@@ -87,6 +86,8 @@ namespace InGame.Player.Ability
 
                 target.TakeHit(ref hitData);
             }
+            
+            ForceEnd();
         }
     }
 }
