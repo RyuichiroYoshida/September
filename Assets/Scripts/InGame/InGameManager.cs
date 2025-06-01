@@ -25,6 +25,9 @@ namespace September.InGame.Common
         private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
         public IReadOnlyDictionary<PlayerRef, NetworkObject> PlayerDataDic => _playerDataDic;
 
+        [Header("他Playerを気絶させたときに得られるスコア")] [SerializeField]
+        private int _addScore;
+
         private void Start()
         {
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
@@ -75,6 +78,10 @@ namespace September.InGame.Common
             var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(data.TargetRef);
             killedData.IsOgre = false;
             PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
+            
+            killerData.Score += _addScore;
+            
+            Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
         }
 
         void HideCursor()
