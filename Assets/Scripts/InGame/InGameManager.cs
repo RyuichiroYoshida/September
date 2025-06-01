@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
 using InGame.Player;
+using NaughtyAttributes;
 using September.Common;
 using September.InGame.UI;
 using UnityEngine;
@@ -16,7 +17,8 @@ namespace September.InGame.Common
     {
         [Networked] private TickTimer _tickTimer { get; set; }
 
-        [Header("ゲーム時間（秒）")] [SerializeField] private int _gameTime = 1200;
+        [Header("Timer Settings")]
+        [SerializeField,Label("TimerData")]private GameTimerData _timerData;
 
         public Action OnOgreChanged;
 
@@ -87,7 +89,7 @@ namespace September.InGame.Common
 
         private void StartTimer()
         {
-            _tickTimer = TickTimer.CreateFromSeconds(Runner, _gameTime);
+            _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
             UIController.I.StartTimer();
         }
 
