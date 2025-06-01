@@ -2571,6 +2571,10 @@ MonoBehaviour:
       rid: 7643012117068513393
     AbilityName: 1
     ActionType: 0
+  - Condition:
+      rid: 7643012117068513402
+    AbilityName: 3
+    ActionType: 0
   references:
     version: 2
     RefIds:
@@ -2578,6 +2582,11 @@ MonoBehaviour:
       type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
       data:
         Button: 4
+        TriggerType: 0
+    - rid: 7643012117068513402
+      type: {class: ButtonActionConditionBase, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        Button: 3
         TriggerType: 0
 --- !u!1 &8516414556098384525
 GameObject:
