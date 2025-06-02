@@ -80,9 +80,7 @@ namespace InGame.Player.Ability
                 var collider = _hitBuffer[i];
                 var target = collider.GetComponent<PlayerHealth>();
 
-                if (!target || target.HasInputAuthority || _alreadyHit.Contains(target))
-                    continue;
-
+                if (!target || OwnerPlayerId == target.Object.InputAuthority.RawEncoded) continue;
                 _alreadyHit.Add(target); // キャッシュだけ
             }
         }
@@ -99,6 +97,7 @@ namespace InGame.Player.Ability
                     TargetRef = target.Object.InputAuthority,
                     Target = target,
                 };
+                Debug.Log($"ApplyCachedHits: {hitData.ExecutorRef} -> {hitData.TargetRef}");
 
                 target.TakeHit(ref hitData);
             }
