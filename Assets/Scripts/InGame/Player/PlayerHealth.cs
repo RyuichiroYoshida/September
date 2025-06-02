@@ -10,6 +10,7 @@ namespace InGame.Player
     {
         public bool IsAlive => Health > 0;
         public readonly BehaviorSubject<int> OnHealthChanged = new(0);
+        public PlayerRef OwnerPlayerRef => Object.InputAuthority;
         
         // event
         public event Action<HitData> OnHitTaken;
@@ -18,6 +19,8 @@ namespace InGame.Player
         [Networked, OnChangedRender(nameof(OnChangeHealth))] private int Health { get; set; }
         void OnChangeHealth() => OnHealthChanged.OnNext(Health);
         [Networked, HideInInspector] public int MaxHealth { get; private set; }
+        /// <summary> 無敵 </summary> 無敵の set が　public なのどうなん
+        [Networked, HideInInspector] public NetworkBool IsInvincible { get; set; }
 
         public void Init(int health)
         {
@@ -27,6 +30,8 @@ namespace InGame.Player
                 MaxHealth = health;
             
                 OnHealthChanged.OnNext(Health);
+
+                OnDeath += Death;
             }
         }
 
@@ -43,6 +48,8 @@ namespace InGame.Player
                 if (!IsAlive) OnDeath?.Invoke(hitData);
                 hitData.Executor?.HitExecution(hitData);
             }
+            
+            Debug.Log(hitData + $"\nHealth:     {Health}");
         }
 
         void ApplyHit(ref HitData hitData)
@@ -55,16 +62,29 @@ namespace InGame.Player
 
             if (hitData.HitActionType == HitActionType.Damage)
             {
-                TakeDamage(hitData.Amount);
+                hitData.Amount = TakeDamage(hitData.Amount);
             }
         }
 
         int TakeDamage(int damage)
         {
-            var previousHealth = Health;
+            if (IsInvincible) return 0;
+            
+            int previousHealth = Health;
             Health  = Mathf.Clamp(Health - damage, 0, MaxHealth);
-            Debug.Log($"ダメージを食らった: {previousHealth} -> {Health}");
             return previousHealth - Health;
+        }
+
+        /// <summary> 死んだとき </summary>
+        void Death(HitData lastHitData)
+        {
+            Health = MaxHealth;
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            OnHitTaken = null;
+            OnDeath = null;
         }
     }
 }
