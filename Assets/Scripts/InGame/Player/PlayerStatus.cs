@@ -24,7 +24,7 @@ namespace InGame.Player
         #region Events 
         
         public ReactiveProperty<int> CurrentHealth { get; private set; } = new();
-        public ReactiveProperty<int> CurrentStamina { get; private set; } = new();
+        public ReactiveProperty<float> CurrentStamina { get; private set; } = new();
         
         #endregion
 

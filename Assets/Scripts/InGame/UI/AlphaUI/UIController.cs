@@ -1,7 +1,7 @@
 using System;
 using UniRx;
 
-namespace September.InGame.UI
+namespace September.InGame.UI 
 {
     // 各UIのイベントを所持するクラス
     // 登録も自身で行う
@@ -14,7 +14,7 @@ namespace September.InGame.UI
         private readonly Subject<Unit> _onStartTimer = new();
         private readonly Subject<string> _onNoticeKillLog = new();
         private readonly ReactiveProperty<bool> _onShowOgreUI = new();
-        private readonly ReactiveProperty<int> _onChangeStaminaValue = new();
+        private readonly ReactiveProperty<float> _onChangeStaminaValue = new();
         private readonly Subject<Unit> _onGameStart = new();
 
         #endregion
@@ -26,7 +26,7 @@ namespace September.InGame.UI
         public IObservable<Unit> OnStartTimer => _onStartTimer;
         public IObservable<string> OnNoticeKillLog => _onNoticeKillLog;
         public IObservable<bool> OnShowOgreUI => _onShowOgreUI;
-        public IReadOnlyReactiveProperty<int> OnChangeStaminaValue => _onChangeStaminaValue;
+        public IReadOnlyReactiveProperty<float> OnChangeStaminaValue => _onChangeStaminaValue;
         
         public IObservable<Unit> OnGameStart => _onGameStart;
         
@@ -35,6 +35,11 @@ namespace September.InGame.UI
         public void SetUpStartUI()
         {
             _onGameStart.OnNext(Unit.Default);
+        }
+
+        public void ShowNoticeKillLog(string text)
+        {
+            _onNoticeKillLog.OnNext(text);
         }
         
         public void StartTimer()
@@ -52,7 +57,7 @@ namespace September.InGame.UI
             _onChangeSliderValue.Value = value;
         }
 
-        public void ChangeStaminaValue(int value)
+        public void ChangeStaminaValue(float value)
         {
             _onChangeStaminaValue.Value = value;
         }
