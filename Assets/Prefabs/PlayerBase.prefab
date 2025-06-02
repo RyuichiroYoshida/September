@@ -2310,7 +2310,6 @@ GameObject:
   - component: {fileID: 5358505061852357365}
   - component: {fileID: -3905644752378878134}
   - component: {fileID: 958249503331897705}
-  - component: {fileID: -5038975712834534643}
   m_Layer: 6
   m_Name: PlayerBase
   m_TagString: Player
@@ -2487,6 +2486,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _playerParameter: {fileID: 11400000, guid: 5ca879c9eaa06b04ebbd2aa1af5da9cd, type: 2}
+  _stunTime: 3
+  _IsStun:
+    _value: 0
 --- !u!114 &3242880713039265549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2511,7 +2513,6 @@ MonoBehaviour:
   _maxDashSpeed: 13
   _dashCooldown: 3
   _rotationSpeed: 720
-  _jumpPower: 10
   _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
@@ -2548,6 +2549,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _MaxHealth: 0
+  _IsInvincible:
+    _value: 0
 --- !u!114 &-3905644752378878134
 MonoBehaviour:
   m_ObjectHideFlags: 0

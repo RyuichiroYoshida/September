@@ -12,6 +12,15 @@ namespace InGame.Health
         public IHitExecutor Executor;
         public PlayerRef TargetRef;
         public IDamageable Target;
+
+        public override string ToString()
+        {
+            return $"ActionType: {HitActionType}\n" +
+                   $"Amount:     {Amount}\n" +
+                   $"IsLastHit:  {IsLastHit}\n" +
+                   $"Executor:   {ExecutorRef}\n" +
+                   $"Target:     {TargetRef}";
+        }
     }
 
     public enum HitActionType
@@ -22,7 +31,8 @@ namespace InGame.Health
     
     public interface IDamageable
     {
-        public bool IsAlive { get; }
+        bool IsAlive { get; }
+        PlayerRef OwnerPlayerRef { get; }
         void TakeHit(ref HitData hitData);
     }
 

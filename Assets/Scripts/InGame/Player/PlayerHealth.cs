@@ -10,6 +10,7 @@ namespace InGame.Player
     {
         public bool IsAlive => Health > 0;
         public readonly BehaviorSubject<int> OnHealthChanged = new(0);
+        public PlayerRef OwnerPlayerRef => Object.InputAuthority;
         
         // event
         public event Action<HitData> OnHitTaken;
@@ -47,6 +48,8 @@ namespace InGame.Player
                 if (!IsAlive) OnDeath?.Invoke(hitData);
                 hitData.Executor?.HitExecution(hitData);
             }
+            
+            Debug.Log(hitData + $"\nHealth:     {Health}");
         }
 
         void ApplyHit(ref HitData hitData)
@@ -69,7 +72,6 @@ namespace InGame.Player
             
             int previousHealth = Health;
             Health  = Mathf.Clamp(Health - damage, 0, MaxHealth);
-            Debug.Log($"ダメージを食らった: {previousHealth} -> {Health}");
             return previousHealth - Health;
         }
 
