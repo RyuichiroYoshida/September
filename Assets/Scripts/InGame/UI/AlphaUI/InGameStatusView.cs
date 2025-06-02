@@ -18,6 +18,7 @@ namespace September.InGame.UI
         [SerializeField, Label("キルログUI")] private UIAnimation _killLogTextPrefab;
         [SerializeField, Label("鬼UI")] private GameObject _ogreUIPrefab;
         [SerializeField, Label("TimerUI")] private TextMeshProUGUI _timerUIPrefab;
+        [SerializeField, Label("スタミナUI")] private UIAnimation _staminaBarPrefab;
 
         [Header("Animation Settings")]
         [SerializeField, Label("再生したいHPAnimationの名前")] private string _hpAnimationName;
@@ -27,6 +28,7 @@ namespace September.InGame.UI
         [SerializeField,Label("TimerData")]private GameTimerData _timerData;
 
         private Slider _hpBarSlider;
+        private Slider _staminaBarSlider;
         private TextMeshPro _killLogText;
         private GameObject _optionUI;
         private GameObject _killLogUI;
@@ -67,7 +69,8 @@ namespace September.InGame.UI
             _hpBarSlider = Instantiate(_hpBarPrefab.gameObject,transform).GetComponent<Slider>();
             _hpBarSlider.gameObject.SetActive(true);
             
-            Debug.Log("UI作成が完了しました");
+            _staminaBarSlider = Instantiate(_staminaBarPrefab.gameObject,transform).GetComponent<Slider>();
+            _staminaBarSlider.gameObject.SetActive(true);
         }
 
         private void ChangeHp(int value)
@@ -80,9 +83,10 @@ namespace September.InGame.UI
             _hpBarPrefab.Play(_hpAnimationName);
         }
 
-        private void ChangeStamina(int value)
+        private void ChangeStamina(float value)
         {
             // ToDo : 実装予定
+            _staminaBarSlider.value = value;
         }
 
         // キルのログを直接引数に入れる
