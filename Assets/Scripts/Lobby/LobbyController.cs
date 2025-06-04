@@ -32,13 +32,13 @@ namespace September.Lobby
 
             if (Runner.IsServer)
             {
-                _startButton.onClick.AddListener(() => GameLauncher.Instance.StartGame().Forget());
+                _startButton.onClick.AddListener(() => NetworkManager.Instance.StartGame().Forget());
             }
             else
             {
                 _startButton.gameObject.SetActive(false);
             }
-            _quitButton.onClick.AddListener(() => GameLauncher.Instance.QuitLobby().Forget());
+            _quitButton.onClick.AddListener(() => NetworkManager.Instance.QuitLobby().Forget());
             PlayerDatabase.Instance.ChangedDataAction += ChangeLobbyPlayerUI;
         }
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -51,7 +51,7 @@ namespace September.Lobby
         {
             if (Runner.LocalPlayer != playerRef) return;
             
-            var playerData = new PlayerData
+            var playerData = new SessionPlayerData
             {
                 NickName = PlayerNetworkSettings.NickName,
                 CharacterType = CharacterType.OkabeWright
@@ -91,11 +91,11 @@ namespace September.Lobby
             if (HasStateAuthority) PlayerDatabase.Instance.PlayerDataDic.Remove(player);
         }
         
-        void ChangeLobbyPlayerUI(PlayerRef playerRef, PlayerData playerData)
+        void ChangeLobbyPlayerUI(PlayerRef playerRef, SessionPlayerData sessionPlayerData)
         {
             if (!_lobbyPlayerUIDic.TryGetValue(playerRef, out var value)) return;
-            value.NameText.text = playerData.NickName.Value;
-            if (value.JobText) value.JobText.text = CharacterDataContainer.Instance.GetCharacterData(playerData.CharacterType).DisplayName;
+            value.NameText.text = sessionPlayerData.NickName.Value;
+            if (value.JobText) value.JobText.text = CharacterDataContainer.Instance.GetCharacterData(sessionPlayerData.CharacterType).DisplayName;
         }
         
         #region 使わない

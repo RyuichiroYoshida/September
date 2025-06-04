@@ -54,6 +54,15 @@ namespace September.Common
             playerInput.Buttons.Set(PlayerButtons.Attack, playerActions.Attack.IsPressed());
             playerInput.Buttons.Set(PlayerButtons.Ability1, playerActions.Ability1.IsPressed());
             playerInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+                if (_mainCamera == null)
+                {
+                    Debug.LogError("Main Cameraが見つかりません。カメラをシーンに配置してください。");
+                    return;
+                }
+            }
             playerInput.CameraYaw = _mainCamera.transform.rotation.eulerAngles.y;
             input.Set(playerInput);
         }

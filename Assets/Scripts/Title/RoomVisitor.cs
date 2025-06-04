@@ -12,7 +12,7 @@ namespace September.Title
         {
             if (_userName.text == "" || _roomName.text == "") return;
             PlayerNetworkSettings.NickName = _userName.text;
-            GameLauncher.Instance.JoinLobby(_roomName.text);
+            NetworkManager.Instance.JoinLobby(_roomName.text);
         }
     }
 }

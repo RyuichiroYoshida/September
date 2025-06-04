@@ -1,25 +1,38 @@
+using UniRx;
 using UnityEngine;
 
 namespace InGame.Player
 {
-    [CreateAssetMenu(fileName = "PlayerStatus", menuName = "Scriptable Objects/PlayerStatus")]
-    public class PlayerStatus : ScriptableObject
+    // いろんなPlayerのデータの中継
+    [RequireComponent(typeof(PlayerManager))]
+    [RequireComponent(typeof(PlayerHealth))]
+    [RequireComponent(typeof(PlayerMovement))]
+    public class PlayerStatus : MonoBehaviour
     {
-        [SerializeField] string _characterName;
-        [SerializeField] int _health;
-        [SerializeField] float _speed;
-        [SerializeField] float _stamina;
-        [SerializeField] private float _staminaConsumption;
-        [SerializeField] float _staminaRegen;
-        [SerializeField] int _attackDamage;
-        [SerializeField] int _attackDamageOgre;
+        PlayerManager _playerManager;
+        PlayerHealth _health;
+        PlayerMovement _movement;
+        public int MaxHealth { get; private set; }
         
-        public int Health => _health;
-        public float Speed => _speed;
-        public float Stamina => _stamina;
-        public float StaminaConsumption => _staminaConsumption;
-        public float StaminaRegen => _staminaRegen;
-        public int AttackDamage => _attackDamage;
-        public int AttackDamageOgre => _attackDamageOgre;
+        public float MaxStamina { get; private set; }
+        public int AttackDamage { get; private set; }
+        public int AttackDamageOgre { get; private set; }
+        
+        public bool ISLocalPlayer => _playerManager && _playerManager.IsLocalPlayer;
+        
+        
+        #region Events 
+        
+        public ReactiveProperty<int> CurrentHealth { get; private set; } = new();
+        public ReactiveProperty<float> CurrentStamina { get; private set; } = new();
+        
+        #endregion
+
+        public void Initialize(PlayerManager playerManager, PlayerHealth health, PlayerMovement movement)
+        {
+            _playerManager = playerManager;
+            MaxHealth = health.MaxHealth;
+            MaxStamina = movement.MaxStamina;
+        }
     }
 }
