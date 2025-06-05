@@ -23,11 +23,12 @@ public class EffectDatabaseEditor : Editor
         for (int i = 0; i < _effects.arraySize; i++)
         {
             var entry = _effects.GetArrayElementAtIndex(i);
+            var effectType = entry.FindPropertyRelative("EffectType");
             var guidProp = entry.FindPropertyRelative("Guid");
             var prefabProp = entry.FindPropertyRelative("Prefab");
 
             EditorGUILayout.BeginVertical("box");
-
+            effectType.enumValueIndex = EditorGUILayout.Popup(effectType.enumValueIndex, effectType.enumDisplayNames);
             EditorGUILayout.PropertyField(prefabProp);
 
             string guid = "";
@@ -44,11 +45,6 @@ public class EffectDatabaseEditor : Editor
             }
 
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Copy GUID"))
-            {
-                EditorGUIUtility.systemCopyBuffer = guid;
-                Debug.Log($"Copied GUID: {guid}");
-            }
 
             GUI.backgroundColor = Color.red;
             if (GUILayout.Button("Delete Effect"))

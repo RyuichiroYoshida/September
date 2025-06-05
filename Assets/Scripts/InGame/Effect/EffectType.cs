@@ -2,6 +2,8 @@ using UnityEngine;
 
 public enum EffectType
 {
-    PlayOneShot,
-    Loop
+    None,
+    Warp,
+    Test1,
+    Test2,
 }
