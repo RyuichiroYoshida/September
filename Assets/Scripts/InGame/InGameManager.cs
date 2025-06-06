@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -27,9 +26,18 @@ namespace September.InGame.Common
 
         [Header("他Playerを気絶させたときに得られるスコア")] [SerializeField]
         private int _addScore;
+        
+        private UIController _uiController;
+
+        public override void Spawned()
+        {
+            if(HasStateAuthority) 
+                RPC_SetUpUI();
+        }
 
         private void Start()
         {
+            _uiController = UIController.I;
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
             {
@@ -37,7 +45,13 @@ namespace September.InGame.Common
             }
             if (!_networkRunner.IsServer) return;
             Initialize().Forget();
-            UIController.I.SetUpStartUI();
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SetUpUI()
+        {
+            _uiController.SetUpStartUI();
+            _uiController.StartTimer();
         }
 
         private async UniTask Initialize()
@@ -67,7 +81,7 @@ namespace September.InGame.Common
         /// <summary>
         /// 各Playerの気絶時に呼ばれるメソッド
         /// </summary>
-        public void RPC_OnPlayerKilled(HitData data)
+        private void RPC_OnPlayerKilled(HitData data)
         {
             if (!Runner.IsServer) return; // サーバー側でのみ実行可能
             
@@ -82,6 +96,7 @@ namespace September.InGame.Common
             killerData.Score += _addScore;
             
             Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
+            SetOgreUI(data);
         }
 
         void HideCursor()
@@ -93,12 +108,22 @@ namespace September.InGame.Common
         private void StartTimer()
         {
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
-            UIController.I.StartTimer();
         }
 
         private void GameEnded()
         {
             GetScore();
+        }
+
+        // 鬼変更時のUI更新通知
+        private void SetOgreUI(HitData data)
+        {
+            _uiController.ShowNoticeKillLog($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
+            
+            if (data.ExecutorRef == Runner.LocalPlayer)
+                _uiController.ShowOgreLamp(false);
+            else if(data.TargetRef == Runner.LocalPlayer)
+                _uiController.ShowOgreLamp(true);
         }
 
         public IEnumerable<(PlayerRef, int score)> GetScore()
