@@ -1,3 +1,4 @@
+using System;
 using UniRx;
 using UnityEngine;
 
@@ -10,10 +11,8 @@ namespace InGame.Player
     public class PlayerStatus : MonoBehaviour
     {
         PlayerManager _playerManager;
-        PlayerHealth _health;
-        PlayerMovement _movement;
-        public int MaxHealth { get; private set; }
         
+        public int MaxHealth { get; private set; }
         public float MaxStamina { get; private set; }
         public int AttackDamage { get; private set; }
         public int AttackDamageOgre { get; private set; }
@@ -21,18 +20,27 @@ namespace InGame.Player
         public bool ISLocalPlayer => _playerManager && _playerManager.IsLocalPlayer;
         
         
-        #region Events 
-        
-        public ReactiveProperty<int> CurrentHealth { get; private set; } = new();
-        public ReactiveProperty<float> CurrentStamina { get; private set; } = new();
+        #region Events
+
+        private readonly ReactiveProperty<int> _currentHealth = new(0);
+        private readonly ReactiveProperty<float> _currentStamina = new(0);
+        public ReadOnlyReactiveProperty<int> CurrentHealth => _currentHealth.ToReadOnlyReactiveProperty();
+        public ReadOnlyReactiveProperty<float> CurrentStamina => _currentStamina.ToReadOnlyReactiveProperty();
         
         #endregion
 
-        public void Initialize(PlayerManager playerManager, PlayerHealth health, PlayerMovement movement)
+        private void Start()
         {
-            _playerManager = playerManager;
-            MaxHealth = health.MaxHealth;
-            MaxStamina = movement.MaxStamina;
+            _playerManager = GetComponent<PlayerManager>();
+            AttackDamage = _playerManager.PlayerParameter.AttackDamage;
+            
+            var health = GetComponent<PlayerHealth>();
+            MaxHealth = _playerManager.PlayerParameter.Health;
+            health.OnHealthChanged.Subscribe(hp => _currentHealth.Value = hp).AddTo(this);
+            
+            var movement = GetComponent<PlayerMovement>();
+            MaxStamina = _playerManager.PlayerParameter.Stamina;
+            movement.OnStaminaChanged.Subscribe(stamina => _currentStamina.Value = stamina).AddTo(this);
         }
     }
 }
