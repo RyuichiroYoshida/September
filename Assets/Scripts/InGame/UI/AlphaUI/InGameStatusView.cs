@@ -14,16 +14,16 @@ namespace September.InGame.UI
     {
         [Header("UI Prefabs")]
         [SerializeField, Label("オプションUI")] private GameObject _optionUIPrefab;
-        [SerializeField, Label("気絶バー")] private UIAnimation _hpBarPrefab;
-        [SerializeField, Label("キルログUI")] private UIAnimation _killLogTextPrefab;
+        [SerializeField, Label("気絶バー")] private GameObject _hpBarPrefab;
+        [SerializeField, Label("キルログUI")] private GameObject _killLogTextPrefab;
         [SerializeField, Label("鬼UI")] private GameObject _ogreUIPrefab;
         [SerializeField, Label("TimerUI")] private TextMeshProUGUI _timerUIPrefab;
-        [SerializeField, Label("スタミナUI")] private UIAnimation _staminaBarPrefab;
+        [SerializeField, Label("スタミナUI")] private GameObject _staminaBarPrefab;
 
-        [Header("Animation Settings")]
-        [SerializeField, Label("再生したいHPAnimationの名前")] private string _hpAnimationName;
-        [SerializeField, Label("再生したいKillTextの名前")] private string _killAnimationName;
-
+        [Header("Canvas Prefabs")] 
+        [SerializeField, Label("MainCanvas")] private Canvas _mainCanvas;
+        [SerializeField, Label("OptionCanvas")] private Canvas _optionCanvas;
+        
         [Header("Timer Settings")]
         [SerializeField,Label("TimerData")]private GameTimerData _timerData;
 
@@ -45,31 +45,31 @@ namespace September.InGame.UI
         private void Bind()
         {
             UIController ui = UIController.I;
+            ui.OnGameStart.Subscribe(_ => SetupUI()).AddTo(_cts.Token);
             ui.OnChangeSliderValue.Subscribe(ChangeHp).AddTo(_cts.Token);
             ui.OnClickOptionButton.Subscribe(ShowOptionUI).AddTo(_cts.Token);
             ui.OnStartTimer.Subscribe(_ => ShowGameStartTime().Forget()).AddTo(_cts.Token);
             ui.OnNoticeKillLog.Subscribe(ShowKillLog).AddTo(_cts.Token);
             ui.OnShowOgreUI.Subscribe(ShowOgreLamp).AddTo(_cts.Token);
-            ui.OnChangeStaminaValue.Subscribe(ChangeStamina).AddTo(_cts.Token);
-            ui.OnGameStart.Subscribe(_ => SetupUI()).AddTo(_cts.Token);
+            ui.OnChangeStaminaValue.Skip(1).Subscribe(ChangeStamina).AddTo(_cts.Token);
         }
 
         private void SetupUI()
         {
-            _optionUI = Instantiate(_optionUIPrefab, transform);
-            _optionUI.SetActive(false);
+            _optionUI = Instantiate(_optionUIPrefab, _optionCanvas.transform);
+            _optionUI.SetActive(true);
             
-            _killLogUI = Instantiate(_killLogTextPrefab.gameObject,transform);
+            _killLogUI = Instantiate(_killLogTextPrefab.gameObject, _mainCanvas.transform);
             _killLogUI.SetActive(false);
             _killLogText = _killLogUI.GetComponent<TextMeshPro>();
             
-            _ogreUiInstance = Instantiate(_ogreUIPrefab, transform);
+            _ogreUiInstance = Instantiate(_ogreUIPrefab, _mainCanvas.transform);
             _ogreUiInstance.SetActive(false);
             
-            _hpBarSlider = Instantiate(_hpBarPrefab.gameObject,transform).GetComponent<Slider>();
+            _hpBarSlider = Instantiate(_hpBarPrefab.gameObject,_mainCanvas.transform).GetComponent<Slider>();
             _hpBarSlider.gameObject.SetActive(true);
             
-            _staminaBarSlider = Instantiate(_staminaBarPrefab.gameObject,transform).GetComponent<Slider>();
+            _staminaBarSlider = Instantiate(_staminaBarPrefab.gameObject,_mainCanvas.transform).GetComponent<Slider>();
             _staminaBarSlider.gameObject.SetActive(true);
         }
 
@@ -80,12 +80,10 @@ namespace September.InGame.UI
                 return;
             
             _hpBarSlider.value = value;
-            _hpBarPrefab.Play(_hpAnimationName);
         }
 
         private void ChangeStamina(float value)
         {
-            // ToDo : 実装予定
             _staminaBarSlider.value = value;
         }
 
@@ -96,9 +94,6 @@ namespace September.InGame.UI
                 return;
             
             _killLogText.text = killText;
-            
-            if (_killAnimationName != null)
-                _killLogTextPrefab.Play(_killAnimationName);
         }
 
         // ToDo : タイマークラスを作成してアニメーションなどを柔軟に行えるようにする
@@ -108,7 +103,7 @@ namespace September.InGame.UI
             timer.gameObject.SetActive(true);
 
             // カウントダウン
-            for (int i = _timerData.Time; i >= 1; i--)
+            for (int i = _timerData.PreStartTime; i >= 1; i--)
             {
                 timer.text = i.ToString();
                 await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);

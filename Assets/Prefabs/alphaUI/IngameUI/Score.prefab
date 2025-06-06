@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 8517259084546475590}
   - component: {fileID: 4812084732721271325}
   - component: {fileID: 783057041107013192}
-  - component: {fileID: 2252273335301353045}
   - component: {fileID: 4817671553135244870}
   m_Layer: 5
   m_Name: Score
@@ -78,20 +77,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2252273335301353045
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1317583685286312340}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70a68ae3a3b041bc906c244acecd54f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _uiType: 4
-  _dataBase: {fileID: 11400000, guid: 532134cc553a67141a68bfa35b089b76, type: 2}
 --- !u!95 &4817671553135244870
 Animator:
   serializedVersion: 7

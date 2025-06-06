@@ -25,7 +25,6 @@ namespace CRISound
         {
             if (_isPlay && !_isPlaying)
             {
-                Debug.Log("Play");
                 await Play(gameObject.transform.position,_cueSheetName, _cueName);
             }
         }

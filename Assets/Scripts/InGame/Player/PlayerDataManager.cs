@@ -21,7 +21,7 @@ namespace InGame.Player
             // Health監視
             status.CurrentHealth.DistinctUntilChanged().Subscribe(UIController.I.ChangeSliderValue).AddTo(this);
             // Stamina 監視
-            status.CurrentStamina.Subscribe(UIController.I.ChangeStaminaValue).AddTo(this);
+            status.CurrentStamina.DistinctUntilChanged().Subscribe(UIController.I.ChangeStaminaValue).AddTo(this);
         }
 
         public PlayerStatus GetPlayerData(int playerId)
