@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52e0d0cb91cf4eb6bee422d511654a13, type: 3}
   m_Name: September_UI_GameTimerData
   m_EditorClassIdentifier: 
-  Time: 60
+  PreStartTime: 10
   Duration: 1
   AfterReadyDelay: 1
   GameTime: 60

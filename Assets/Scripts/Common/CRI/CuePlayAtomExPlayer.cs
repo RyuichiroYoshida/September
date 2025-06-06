@@ -8,6 +8,12 @@ using UnityEngine;
 
 namespace CRISound
 {
+    public enum SoundType
+    {
+        BGM,
+        SE,
+        Voice
+    }
     public class CuePlayAtomExPlayer
     {
         static CuePlayAtomExPlayer _instance = new();
@@ -53,6 +59,11 @@ namespace CRISound
             {
                 player.Dispose();
             }
+        }
+
+        public SoundPlayer Player(SoundType soundType)
+        {
+            return _soundPlayer[(int)soundType];
         }
         
         private async void LoadCueSheet()
