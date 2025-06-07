@@ -120,9 +120,6 @@ namespace September.InGame.UI
             Sequence seq = DOTween.Sequence();
             seq.Append(rect.DOAnchorPosY(moveDistance, duration).SetEase(Ease.OutCubic));
             seq.Join(canvasGroup.DOFade(0f, fadeDuration).SetDelay(duration - fadeDuration));
-            
-            Debug.Log("キルログを発行");
-
             // DoTweenが完了するまで待機
             await seq.AsyncWaitForCompletion();
 
