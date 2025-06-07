@@ -50,20 +50,7 @@ namespace September.Common
         {
             ChangedDataAction?.Invoke(PlayerDataDic);
         }
-        
-        /// <summary>
-        /// 鬼を抽選するメソッド
-        /// </summary>
-        public void ChooseOgre()
-        {
-            if (PlayerDataDic.Count <= 0 || !Runner.IsServer) return;
-            
-            var index = Random.Range(0, PlayerDataDic.Count);
-            var ogreKey = PlayerDataDic.ToArray()[index].Key;
-            var data = PlayerDataDic.Get(ogreKey);
-            data.IsOgre = true;
-            PlayerDataDic.Set(ogreKey, data);
-        }
+    
     }
 }
 
