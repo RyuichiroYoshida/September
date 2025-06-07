@@ -29,34 +29,35 @@ namespace September.InGame.Common
         
         private UIController _uiController;
 
+
         public override void Spawned()
         {
-            if(HasStateAuthority) 
-                RPC_SetUpUI();
-        }
-
-        private void Start()
-        {
-            _uiController = UIController.I;
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
             }
-            if (!_networkRunner.IsServer) return;
-            Initialize().Forget();
+            _uiController = UIController.I;
+            if (_networkRunner == Runner.IsServer)
+            {
+                Initialize();
+            }
+            if (HasStateAuthority)
+            {
+                RPC_SetUpUI();
+            }
+            ChooseOgre();
         }
-
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetUpUI()
         {
+            Debug.Log("SetUpUI");
             _uiController.SetUpStartUI();
             _uiController.StartTimer();
         }
 
         private async UniTask Initialize()
         {
-            PlayerDatabase.Instance.ChooseOgre();
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
@@ -152,6 +153,32 @@ namespace September.InGame.Common
                 _tickTimer = TickTimer.None;
             }
         }
+        
+           
+        /// <summary>
+        /// 鬼を抽選するメソッド
+        /// </summary>
+        public void ChooseOgre()
+        {
+            var dic = PlayerDatabase.Instance.PlayerDataDic;
+            if (dic.Count <= 0 || !Runner.IsServer) return;
+            
+            var index = Random.Range(0, dic.Count);
+            var ogreKey = dic.ToArray()[index].Key;
+            var data = dic.Get(ogreKey);
+            data.IsOgre = true;
+            dic.Set(ogreKey, data);
+            RPC_SetOgreLamp(ogreKey);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        void RPC_SetOgreLamp(PlayerRef ogreRef)
+        {
+            if(ogreRef == Runner.LocalPlayer)
+                _uiController.ShowOgreLamp(true);
+        }
+        
+        
 
         public void Register(ServiceLocator locator)
         {
