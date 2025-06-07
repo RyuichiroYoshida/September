@@ -96,7 +96,7 @@ namespace September.InGame.Common
             killerData.Score += _addScore;
             
             Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
-            SetOgreUI(data);
+            RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
         }
 
         void HideCursor()
@@ -116,19 +116,20 @@ namespace September.InGame.Common
         }
 
         // 鬼変更時のUI更新通知
-        private void SetOgreUI(HitData data)
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SetOgreUI(PlayerRef executor, PlayerRef targetRef)
         {
-            _uiController.ShowNoticeKillLog($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
+            _uiController.ShowNoticeKillLog($"鬼が{executor}から{targetRef}に変更された");
             
-            if (data.ExecutorRef == Runner.LocalPlayer)
+            if (executor == Runner.LocalPlayer)
                 _uiController.ShowOgreLamp(false);
-            else if(data.TargetRef == Runner.LocalPlayer)
+            else if(targetRef == Runner.LocalPlayer)
                 _uiController.ShowOgreLamp(true);
         }
 
         public IEnumerable<(PlayerRef, int score)> GetScore()
         {
-            List<(PlayerRef player, int score)> _scores = new List<(PlayerRef, int)>();
+            List<(PlayerRef player, int score)> _scores = new();
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
                 _scores.Add((pair.Key, pair.Value.Score));
