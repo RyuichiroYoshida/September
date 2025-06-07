@@ -12,13 +12,11 @@ namespace InGame.Player
         [SerializeField] TMP_Text _speedText;
         [SerializeField] TMP_Text _isGroundText;
 
-        private Rigidbody _rb;
         PlayerMovement _playerMovement;
         
         private void Start()
         {
             PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
-            _rb = playerStatus.GetComponent<Rigidbody>();
             _playerMovement = playerStatus.GetComponent<PlayerMovement>();
 
             if (!playerStatus.ISLocalPlayer)
@@ -28,14 +26,14 @@ namespace InGame.Player
             }
 
             playerStatus.CurrentHealth.Subscribe(health => _healthText.text = health.ToString());
-            //playerStatus.CurrentStamina.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
+            playerStatus.CurrentStamina.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
         }
 
         private void FixedUpdate()
         {
-            Vector3 xzVelo = _rb.linearVelocity;
+            Vector3 xzVelo = _playerMovement.MoveVelocity;
             xzVelo.y = 0;
-            _speedText.text = $"velo:{_rb.linearVelocity}\nmag:{xzVelo.magnitude:F2}";
+            _speedText.text = $"velo:{_playerMovement.MoveVelocity}\nmag:{xzVelo.magnitude:F2}";
             _isGroundText.text = $"IsGround:{_playerMovement.IsGround}";
         }
     }
