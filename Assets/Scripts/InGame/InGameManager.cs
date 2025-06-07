@@ -69,7 +69,7 @@ namespace September.InGame.Common
                      _playerDataDic.Add(pair.Key, player);
                  }
                  var playerHealth = player.GetComponent<PlayerHealth>();
-                playerHealth.OnDeath += RPC_OnPlayerKilled;
+                playerHealth.OnDeath += OnPlayerKilled;
                 //PlayerHealthのOnDeathに登録
             }
             Register(StaticServiceLocator.Instance);
@@ -81,7 +81,7 @@ namespace September.InGame.Common
         /// <summary>
         /// 各Playerの気絶時に呼ばれるメソッド
         /// </summary>
-        private void RPC_OnPlayerKilled(HitData data)
+        private void OnPlayerKilled(HitData data)
         {
             if (!Runner.IsServer) return; // サーバー側でのみ実行可能
             
@@ -129,13 +129,13 @@ namespace September.InGame.Common
 
         public IEnumerable<(PlayerRef, int score)> GetScore()
         {
-            List<(PlayerRef player, int score)> _scores = new();
+            List<(PlayerRef player, int score)> scores = new();
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                _scores.Add((pair.Key, pair.Value.Score));
+                scores.Add((pair.Key, pair.Value.Score));
             }
 
-            var ordered = _scores.OrderByDescending(x => x.score).ToList();
+            var ordered = scores.OrderByDescending(x => x.score).ToList();
             for (int i = 0; i < ordered.Count(); i++)
             {
                 Debug.Log($"{i + 1} 位は{ordered[i].player}でスコアは{ordered[i].score}点");
