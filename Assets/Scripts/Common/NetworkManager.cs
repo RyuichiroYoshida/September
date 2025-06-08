@@ -11,6 +11,7 @@ namespace September.Common
         public static NetworkManager Instance;
         [SerializeField] NetworkRunner _runnerPrefab;
         [SerializeField] PlayerDatabase _playerDatabasePrefab;
+        [SerializeField] LoadingIcon _loadingIcon;
         [SerializeField, Scene] string _titleSceneName;
         [SerializeField, Scene] string _lobbySceneName;
         [SerializeField, Scene] string _gameSceneName;
@@ -32,7 +33,9 @@ namespace September.Common
         public void CreateLobby(string gameName, int playerCount)
         {
             if (!_currentTask.Status.IsCompleted()) return;
+            _loadingIcon.StartAnimation();
             _currentTask = CreateLobbyAsync(gameName, playerCount).Preserve();
+            _currentTask.GetAwaiter().OnCompleted(()=>_loadingIcon.StopAnimation());
         }
         async UniTask CreateLobbyAsync(string gameName, int playerCount)
         {
@@ -54,14 +57,16 @@ namespace September.Common
         public void JoinLobby(string gameName)
         {
             if (!_currentTask.Status.IsCompleted()) return;
+            _loadingIcon.StartAnimation();
             _currentTask = JoinLobbyAsync(gameName).Preserve();
+            _currentTask.GetAwaiter().OnCompleted(()=>_loadingIcon.StopAnimation());
         }
         async UniTask JoinLobbyAsync(string gameName)
         {
             var result = await _networkRunner.StartGame(new StartGameArgs
             {
                 GameMode = GameMode.Client,
-                SessionName = gameName
+                SessionName = gameName,
             });
             if (!result.Ok)
             {

@@ -26,7 +26,7 @@ namespace September.InGame.UI
             }
             else
             {
-                _userNameTextInstance.text = PlayerNetworkSettings.NickName;
+                _userNameTextInstance.text = PlayerDatabase.Instance.PlayerDataDic.Get(Object.InputAuthority).DisplayNickName;
                 _userNameTextInstance.gameObject.SetActive(true);
             }
         }

@@ -71,19 +71,16 @@ namespace Common
             if (_runner.LocalPlayer != playerRef) return;
 
             await UniTask.WaitUntil(() => (bool)PlayerDatabase.Instance);
-
-            PlayerNetworkSettings.NickName = $"dev:{playerRef}";
             
-            var playerData = new SessionPlayerData
+            var playerData = new SessionPlayerData($"dev:{playerRef}", 0)
             {
-                NickName = PlayerNetworkSettings.NickName,
                 CharacterType = _characterType
             };
             
             PlayerDatabase.Instance.Rpc_SetPlayerData(playerRef, playerData);
         }
 
-        void CheckStartInGame(PlayerRef playerRef, SessionPlayerData sessionPlayerData)
+        void CheckStartInGame(NetworkDictionary<PlayerRef, SessionPlayerData> dictionary)
         {
             if (PlayerDatabase.Instance.PlayerDataDic.Count == _playerCount)
             {

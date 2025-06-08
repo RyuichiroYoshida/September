@@ -1,15 +1,16 @@
 using System;
 using System.Linq;
 using Fusion;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace September.Common
 {
     public class PlayerDatabase : NetworkBehaviour
     {
-        [Networked, OnChangedRender(nameof(OnChangedPlayerData)), Capacity(10)]
+        [Networked, OnChangedRender(nameof(OnChangedPlayerData)), Capacity(4), HideInInspector]
         public NetworkDictionary<PlayerRef, SessionPlayerData> PlayerDataDic => default;
-        public Action<PlayerRef, SessionPlayerData> ChangedDataAction;
+        public Action<NetworkDictionary<PlayerRef, SessionPlayerData>> ChangedDataAction;
         public static PlayerDatabase Instance;
         public override void Spawned()
         {
@@ -22,6 +23,13 @@ namespace September.Common
             {
                 Runner.Despawn(Object);
             }
+        }
+        public void AddPlayerData(PlayerRef playerRef)
+        {
+            if (playerRef != Runner.LocalPlayer) return;
+            var localNickName = NickNameProvider.GetNickName();
+            var nickNameOrder = PlayerDataDic.Count(kv => kv.Value.PureNickName == localNickName);
+            Rpc_SetPlayerData(playerRef, new SessionPlayerData(localNickName, nickNameOrder));
         }
         
         [Rpc(RpcSources.All, RpcTargets.StateAuthority, Channel = RpcChannel.Reliable)]
@@ -40,15 +48,7 @@ namespace September.Common
 
         void OnChangedPlayerData()
         {
-            foreach (var kv in PlayerDataDic)
-            {
-                ChangedDataAction?.Invoke(kv.Key, kv.Value);
-            }
-        }
-
-        public bool CanAttack(PlayerRef attackerPlayerRef, PlayerRef victimPlayerRef)
-        {
-            return PlayerDataDic.Get(attackerPlayerRef).IsOgre && !PlayerDataDic.Get(victimPlayerRef).IsOgre;
+            ChangedDataAction?.Invoke(PlayerDataDic);
         }
     
     }
