@@ -31,10 +31,6 @@ namespace InGame.Player
             {
                 _gameInput = new GameInput();
                 _gameInput.Enable();
-                
-                // カーソルを消す todo:ゲームロジックがやるべき
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
             }
         }
 
@@ -82,20 +78,20 @@ namespace InGame.Player
 
         public override void FixedUpdateNetwork()
         {
-            // プレイヤーの入力の管理
-            if (GetInput<PlayerInput>(out var input) && !IsStun)
-            {
-                // player movement に入力を与えて更新する
-                _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
-                    input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
-            }
-
             if (HasStateAuthority)
             {
                 if (_stunTickTimer.Expired(Runner) && IsStun)
                 {
                     Restart();
                 }
+            }
+            
+            // プレイヤーの入力の管理
+            if (GetInput<PlayerInput>(out var input) && !IsStun)
+            {
+                // player movement に入力を与えて更新する
+                _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
+                    input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
             }
         }
 
