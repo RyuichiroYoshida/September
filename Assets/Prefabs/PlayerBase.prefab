@@ -2444,11 +2444,44 @@ MonoBehaviour:
   _friction: 30
   _airFriction: 0.2
   _groundSlopeThreshold: 45
-  _jumpPower: 10
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 31
   _dashAcceleration: 100
   _maxDashSpeed: 13
   _dashCooldown: 3
   _rotationSpeed: 720
+  _maxLedgeHeight: 1.5
+  _minLedgeHeight: 0.5
+  _maxLedgeDepth: 0.3
+  _reachDistance: 2
+  _timeToVault: 0.5
+  _vaultCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 3.1011324
+      outSlope: 3.1011324
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.042589433
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _gizmoDisplayDuration: 1
+  _visibleBit: 0
   _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
