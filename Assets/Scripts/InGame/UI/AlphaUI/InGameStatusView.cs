@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using NaughtyAttributes;
 using TMPro;
 using UnityEngine;
@@ -25,11 +26,13 @@ namespace September.InGame.UI
         [SerializeField, Label("OptionCanvas")] private Canvas _optionCanvas;
         
         [Header("Timer Settings")]
-        [SerializeField,Label("TimerData")]private GameTimerData _timerData;
+        [SerializeField,Label("TimerData")] private GameTimerData _timerData;
+
+        [Header("UI Positions")] [SerializeField, Label("鬼ランプの表示Position")] private Vector2 _ogreUIPosition;
 
         private Slider _hpBarSlider;
         private Slider _staminaBarSlider;
-        private TextMeshPro _killLogText;
+        private TextMeshProUGUI _killLogText;
         private GameObject _optionUI;
         private GameObject _killLogUI;
         private GameObject _ogreUiInstance;
@@ -49,7 +52,7 @@ namespace September.InGame.UI
             ui.OnChangeSliderValue.Subscribe(ChangeHp).AddTo(_cts.Token);
             ui.OnClickOptionButton.Subscribe(ShowOptionUI).AddTo(_cts.Token);
             ui.OnStartTimer.Subscribe(_ => ShowGameStartTime().Forget()).AddTo(_cts.Token);
-            ui.OnNoticeKillLog.Subscribe(ShowKillLog).AddTo(_cts.Token);
+            ui.OnNoticeKillLog.Subscribe(killText => ShowKillLog(killText).Forget()).AddTo(_cts.Token);
             ui.OnShowOgreUI.Subscribe(ShowOgreLamp).AddTo(_cts.Token);
             ui.OnChangeStaminaValue.Skip(1).Subscribe(ChangeStamina).AddTo(_cts.Token);
         }
@@ -61,9 +64,13 @@ namespace September.InGame.UI
             
             _killLogUI = Instantiate(_killLogTextPrefab.gameObject, _mainCanvas.transform);
             _killLogUI.SetActive(false);
-            _killLogText = _killLogUI.GetComponent<TextMeshPro>();
+            _killLogText = _killLogUI.GetComponent<TextMeshProUGUI>();
+            if(_killLogText == null)
+                Debug.LogWarning("_killLogText is null");
             
             _ogreUiInstance = Instantiate(_ogreUIPrefab, _mainCanvas.transform);
+            RectTransform rectTransform = _ogreUiInstance.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = _ogreUIPosition;
             _ogreUiInstance.SetActive(false);
             
             _hpBarSlider = Instantiate(_hpBarPrefab.gameObject,_mainCanvas.transform).GetComponent<Slider>();
@@ -75,11 +82,11 @@ namespace September.InGame.UI
 
         private void ChangeHp(int value)
         {
-            // Hp変更アニメーションを再生
             if (_hpBarSlider == null)
                 return;
-            
-            _hpBarSlider.value = value;
+
+            DOTween.To(() => _hpBarSlider.value, x => _hpBarSlider.value = x, value, 0.3f)
+                .SetEase(Ease.OutQuad);
         }
 
         private void ChangeStamina(float value)
@@ -88,12 +95,36 @@ namespace September.InGame.UI
         }
 
         // キルのログを直接引数に入れる
-        private void ShowKillLog(string killText)
+        private async UniTask ShowKillLog(string killText)
         {
             if(_killLogText == null)
                 return;
             
             _killLogText.text = killText;
+            _killLogUI.SetActive(true);
+            
+            RectTransform rect = _killLogText.GetComponent<RectTransform>();
+            CanvasGroup canvasGroup = _killLogText.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+                canvasGroup = _killLogText.gameObject.AddComponent<CanvasGroup>();
+
+            // 初期状態（下側、完全表示）
+            rect.anchoredPosition = new Vector2(0, 0);
+            canvasGroup.alpha = 1f;
+
+            float moveDistance = 100f;
+            float duration = 2f;
+            float fadeDuration = 0.5f;
+
+            // DoTweenアニメーションを開始
+            Sequence seq = DOTween.Sequence();
+            seq.Append(rect.DOAnchorPosY(moveDistance, duration).SetEase(Ease.OutCubic));
+            seq.Join(canvasGroup.DOFade(0f, fadeDuration).SetDelay(duration - fadeDuration));
+            // DoTweenが完了するまで待機
+            await seq.AsyncWaitForCompletion();
+
+            // 完了後に削除 or 非表示
+            _killLogText.gameObject.SetActive(false); 
         }
 
         // ToDo : タイマークラスを作成してアニメーションなどを柔軟に行えるようにする

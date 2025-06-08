@@ -29,34 +29,35 @@ namespace September.InGame.Common
         
         private UIController _uiController;
 
+
         public override void Spawned()
         {
-            if(HasStateAuthority) 
-                RPC_SetUpUI();
-        }
-
-        private void Start()
-        {
-            _uiController = UIController.I;
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
             }
-            if (!_networkRunner.IsServer) return;
-            Initialize().Forget();
+            _uiController = UIController.I;
+            if (_networkRunner == Runner.IsServer)
+            {
+                Initialize();
+            }
+            if (HasStateAuthority)
+            {
+                RPC_SetUpUI();
+            }
+            ChooseOgre();
         }
-
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetUpUI()
         {
+            Debug.Log("SetUpUI");
             _uiController.SetUpStartUI();
             _uiController.StartTimer();
         }
 
         private async UniTask Initialize()
         {
-            PlayerDatabase.Instance.ChooseOgre();
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
@@ -69,7 +70,7 @@ namespace September.InGame.Common
                      _playerDataDic.Add(pair.Key, player);
                  }
                  var playerHealth = player.GetComponent<PlayerHealth>();
-                playerHealth.OnDeath += RPC_OnPlayerKilled;
+                playerHealth.OnDeath += OnPlayerKilled;
                 //PlayerHealthのOnDeathに登録
             }
             Register(StaticServiceLocator.Instance);
@@ -81,7 +82,7 @@ namespace September.InGame.Common
         /// <summary>
         /// 各Playerの気絶時に呼ばれるメソッド
         /// </summary>
-        private void RPC_OnPlayerKilled(HitData data)
+        private void OnPlayerKilled(HitData data)
         {
             if (!Runner.IsServer) return; // サーバー側でのみ実行可能
             
@@ -96,7 +97,7 @@ namespace September.InGame.Common
             killerData.Score += _addScore;
             
             Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
-            SetOgreUI(data);
+            RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
         }
 
         void HideCursor()
@@ -116,25 +117,26 @@ namespace September.InGame.Common
         }
 
         // 鬼変更時のUI更新通知
-        private void SetOgreUI(HitData data)
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SetOgreUI(PlayerRef executor, PlayerRef targetRef)
         {
-            _uiController.ShowNoticeKillLog($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
+            _uiController.ShowNoticeKillLog($"鬼が{executor}から{targetRef}に変更された");
             
-            if (data.ExecutorRef == Runner.LocalPlayer)
+            if (executor == Runner.LocalPlayer)
                 _uiController.ShowOgreLamp(false);
-            else if(data.TargetRef == Runner.LocalPlayer)
+            else if(targetRef == Runner.LocalPlayer)
                 _uiController.ShowOgreLamp(true);
         }
 
         public IEnumerable<(PlayerRef, int score)> GetScore()
         {
-            List<(PlayerRef player, int score)> _scores = new List<(PlayerRef, int)>();
+            List<(PlayerRef player, int score)> scores = new();
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                _scores.Add((pair.Key, pair.Value.Score));
+                scores.Add((pair.Key, pair.Value.Score));
             }
 
-            var ordered = _scores.OrderByDescending(x => x.score).ToList();
+            var ordered = scores.OrderByDescending(x => x.score).ToList();
             for (int i = 0; i < ordered.Count(); i++)
             {
                 Debug.Log($"{i + 1} 位は{ordered[i].player}でスコアは{ordered[i].score}点");
@@ -151,6 +153,32 @@ namespace September.InGame.Common
                 _tickTimer = TickTimer.None;
             }
         }
+        
+           
+        /// <summary>
+        /// 鬼を抽選するメソッド
+        /// </summary>
+        public void ChooseOgre()
+        {
+            var dic = PlayerDatabase.Instance.PlayerDataDic;
+            if (dic.Count <= 0 || !Runner.IsServer) return;
+            
+            var index = Random.Range(0, dic.Count);
+            var ogreKey = dic.ToArray()[index].Key;
+            var data = dic.Get(ogreKey);
+            data.IsOgre = true;
+            dic.Set(ogreKey, data);
+            RPC_SetOgreLamp(ogreKey);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        void RPC_SetOgreLamp(PlayerRef ogreRef)
+        {
+            if(ogreRef == Runner.LocalPlayer)
+                _uiController.ShowOgreLamp(true);
+        }
+        
+        
 
         public void Register(ServiceLocator locator)
         {
