@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEditor;
+using sepLog = September.Editor.Logger;
 
 public class EditorButton : EditorWindow
 {
@@ -24,6 +25,7 @@ public class EditorButton : EditorWindow
     private AssetsImporter _importer;
 
     private bool _isFileChecking;
+    private bool _useLogger;
     // まめちしき
     // Unityには UnityEditor.AssetImporter というテクスチャ等のアセットを自動でインポートするやつがあるらしいわよ
     // https://light11.hatenadiary.com/entry/2018/04/05/194303
@@ -54,14 +56,6 @@ public class EditorButton : EditorWindow
 
         DrawColorLabel("インポートが終わるまでUnityのシーンを再生しないでください！", Color.red);
 
-        // UnityPackageをインポートするときのファイル選択ウィンドウを表示するかのフラグ (デフォルトは表示しない false)
-        _showImportWindow = EditorGUILayout.Toggle("アセットの手動インポート", _showImportWindow);
-
-        // 状態を表示
-        EditorGUILayout.LabelField(_showImportWindow
-            ? "現在、アセットインポート時にインポートするフォルダを選べます"
-            : "現在、自動的に全てのアセットの中身がインポートされます");
-
         _releasesSelectedIndex = EditorGUILayout.Popup("パッケージバージョン", _releasesSelectedIndex, _releasesList.ToArray());
 
         GUILayout.Space(10);
@@ -77,7 +71,8 @@ public class EditorButton : EditorWindow
 
         GUILayout.Label(_syncImportingText);
 
-        GUILayout.Space(10);
+        GUILayout.Space(50);
+        GUILayout.Label("-----------------これより下はプログラマー用-----------------");
 
         if (GUILayout.Button("アセット一覧の同期"))
         {
@@ -87,9 +82,24 @@ public class EditorButton : EditorWindow
 
         GUILayout.Label(_syncWaitingText);
 
-        GUILayout.Space(50);
-        GUILayout.Label("-----------------これより下はプログラマー用-----------------");
+        GUILayout.Space(10);
+
+        // UnityPackageをインポートするときのファイル選択ウィンドウを表示するかのフラグ (デフォルトは表示しない false)
+        _showImportWindow = GUILayout.Toggle(_showImportWindow, "アセットの手動インポート");
+
+        GUILayout.Space(10);
+        // 状態を表示
+        EditorGUILayout.LabelField(_showImportWindow
+            ? "現在、アセットインポート時にインポートするフォルダを選べます"
+            : "現在、自動的に全てのアセットの中身がインポートされます");
+
+        GUILayout.Space(10);
+
         _isFileChecking = GUILayout.Toggle(_isFileChecking, "ファイルの存在確認");
+        
+        GUILayout.Space(10);
+        
+        _useLogger = GUILayout.Toggle(_useLogger, "Log出力を有効化");
     }
 
     private void OnEnable()
@@ -109,7 +119,7 @@ public class EditorButton : EditorWindow
     {
         try
         {
-            _importer = new AssetsImporter();
+            _importer = new AssetsImporter(_useLogger);
             await _importer.GetReleases("releases", _ct);
             _releasesList.Clear();
             foreach (var release in _importer.Releases)
@@ -119,7 +129,7 @@ public class EditorButton : EditorWindow
         }
         catch (Exception e)
         {
-            Debug.LogError($"Releases Syncing Exception: {e}");
+            sepLog.Logger.LogError($"Releases Syncing Exception: {e}");
         }
 
         callback("リソース読み込みが完了しました");
@@ -138,7 +148,7 @@ public class EditorButton : EditorWindow
         catch (Exception e)
         {
             callback("アセットのインポートに失敗しました");
-            Debug.LogError($"Importing Exception: {e}");
+            sepLog.Logger.LogError($"Importing Exception: {e}");
             throw;
         }
     }
@@ -149,7 +159,7 @@ public class EditorButton : EditorWindow
         {
             if (string.IsNullOrEmpty(result))
             {
-                Debug.LogError("ファイルのパスが取得できませんでした");
+                sepLog.Logger.LogError("ファイルのパスが取得できませんでした");
                 return;
             }
 
@@ -162,7 +172,7 @@ public class EditorButton : EditorWindow
         }
         catch (Exception e)
         {
-            Debug.LogError($"Download Exception: {e}");
+            sepLog.Logger.LogError($"Download Exception: {e}");
         }
 
         if (_isFileChecking)
