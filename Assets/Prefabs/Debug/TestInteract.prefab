@@ -141,4 +141,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3bfca11126b3c444a1450996ec004f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemName: "\u30C6\u30B9\u30C8\u30A2\u30A4\u30C6\u30E0"
+  _requiredInteractTimeDictionary:
+    keys: 00000000
+    values:
+    - 1
+  _cooldownTimeDictionary:
+    keys: 0000000001000000
+    values:
+    - 5
+    - 10
