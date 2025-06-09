@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Editor.Logger
+namespace September.Editor.Logger
 {
     [System.Serializable]
     public class Logger
