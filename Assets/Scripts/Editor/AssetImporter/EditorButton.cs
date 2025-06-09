@@ -85,7 +85,7 @@ public class EditorButton : EditorWindow
         GUILayout.Space(10);
 
         // UnityPackageをインポートするときのファイル選択ウィンドウを表示するかのフラグ (デフォルトは表示しない false)
-        _showImportWindow = EditorGUILayout.Toggle("アセットの手動インポート", _showImportWindow);
+        _showImportWindow = GUILayout.Toggle(_showImportWindow, "アセットの手動インポート");
 
         GUILayout.Space(10);
         // 状態を表示
