@@ -14,16 +14,16 @@ public class AssetsImporter
 {
     private const string ApiUrl = "https://asset-importer-538394701382.asia-northeast1.run.app";
     
-    private readonly bool _isEditor;
+    private readonly bool _enableLogger;
 
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _defaultToken;
 
     public List<Release> Releases { get; private set; } = new();
 
-    public AssetsImporter(bool isEditor = true)
+    public AssetsImporter(bool enableLogger = true)
     {
-        _isEditor = isEditor;
+        _enableLogger = enableLogger;
         _cts = new CancellationTokenSource();
         _defaultToken = _cts.Token;
     }
@@ -61,17 +61,17 @@ public class AssetsImporter
             return false;
         }
 
-        sepLog.Logger.LogInfo("生データ: " + req.downloadHandler.text, _isEditor);
+        sepLog.Logger.LogInfo("生データ: " + req.downloadHandler.text, _enableLogger);
 
         try
         {
             Releases = JsonConvert.DeserializeObject<List<Release>>(req.downloadHandler.text);
             foreach (var release in Releases)
             {
-                sepLog.Logger.LogInfo($"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}", _isEditor);
+                sepLog.Logger.LogInfo($"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}", _enableLogger);
                 foreach (var asset in release.Assets)
                 {
-                    sepLog.Logger.LogInfo($"Asset: ID: {asset.ID}, Name: {asset.Name}, URL: {asset.URL}, Size: {asset.Size}", _isEditor);
+                    sepLog.Logger.LogInfo($"Asset: ID: {asset.ID}, Name: {asset.Name}, URL: {asset.URL}, Size: {asset.Size}", _enableLogger);
                 }
             }
         }
@@ -123,10 +123,10 @@ public class AssetsImporter
             var fileDirName = Path.GetFileNameWithoutExtension(assetName).TrimStart('\\', '/');
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileDirName);
             
-            sepLog.Logger.LogInfo($"Zip Path: {zipPath}", _isEditor);
+            sepLog.Logger.LogInfo($"Zip Path: {zipPath}", _enableLogger);
             await File.WriteAllBytesAsync(zipPath, fileData, ct);
             
-            sepLog.Logger.LogInfo($"ファイルの保存先: {zipPath}", _isEditor);
+            sepLog.Logger.LogInfo($"ファイルの保存先: {filePath}", _enableLogger);
             await ExtractZipFile(zipPath, filePath, ct);
 
             return filePath;
@@ -152,7 +152,7 @@ public class AssetsImporter
             // ZIPファイルを解凍
             await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, filePath), ct);
 
-            sepLog.Logger.LogInfo($"ZIPファイルを解凍しました: {zipPath} -> {filePath}", _isEditor);
+            sepLog.Logger.LogInfo($"ZIPファイルを解凍しました: {zipPath} -> {filePath}", _enableLogger);
         }
         catch (IOException e)
         {
