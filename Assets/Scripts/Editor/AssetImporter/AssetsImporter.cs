@@ -7,20 +7,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
-using UnityEngine;
 using UnityEngine.Networking;
+using sepLog = September.Editor.Logger;
 
 public class AssetsImporter
 {
     private const string ApiUrl = "https://asset-importer-538394701382.asia-northeast1.run.app";
+    
+    private readonly bool _isEditor;
 
     private readonly CancellationTokenSource _cts;
     private readonly CancellationToken _defaultToken;
 
     public List<Release> Releases { get; private set; } = new();
 
-    public AssetsImporter()
+    public AssetsImporter(bool isEditor = true)
     {
+        _isEditor = isEditor;
         _cts = new CancellationTokenSource();
         _defaultToken = _cts.Token;
     }
@@ -48,34 +51,33 @@ public class AssetsImporter
         }
         catch (Exception e)
         {
-            Debug.LogError("Releases Get Error: " + e.Message);
+            sepLog.Logger.LogError("Releases Get Error: " + e.Message);
             return false;
         }
 
         if (req.result != UnityWebRequest.Result.Success)
         {
-            Debug.LogError("Releases Get Error: " + req.error);
+            sepLog.Logger.LogError("Releases Get Error: " + req.error);
             return false;
         }
 
-        Debug.Log("生データ: " + req.downloadHandler.text);
+        sepLog.Logger.LogInfo("生データ: " + req.downloadHandler.text, _isEditor);
 
         try
         {
             Releases = JsonConvert.DeserializeObject<List<Release>>(req.downloadHandler.text);
             foreach (var release in Releases)
             {
-                Debug.Log(
-                    $"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}");
+                sepLog.Logger.LogInfo($"Release: ID: {release.ID}, Name: {release.Name}, Tag: {release.TagName}, Published At: {release.PublishedAt}", _isEditor);
                 foreach (var asset in release.Assets)
                 {
-                    Debug.Log($"Asset: ID: {asset.ID}, Name: {asset.Name}, URL: {asset.URL}, Size: {asset.Size}");
+                    sepLog.Logger.LogInfo($"Asset: ID: {asset.ID}, Name: {asset.Name}, URL: {asset.URL}, Size: {asset.Size}", _isEditor);
                 }
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"JSONパースエラー: {e.Message}");
+            sepLog.Logger.LogError($"JSONパースエラー: {e.Message}");
             return false;
         }
 
@@ -92,16 +94,17 @@ public class AssetsImporter
         }
         catch (Exception e)
         {
-            Debug.LogError("Url Get Error: " + e.Message);
+            sepLog.Logger.LogError("GetAsset Error: " + e.Message);
             return "";
         }
 
         if (urlReq.result != UnityWebRequest.Result.Success)
         {
-            Debug.LogError("Url Get Error: " + urlReq.error);
+            sepLog.Logger.LogError("Url Get Error: " + urlReq.error);
             return "";
         }
 
+        // TODO: UNIX環境でのパス区切り文字の問題を解決する
         try
         {
             var fileData = urlReq.downloadHandler.data;
@@ -120,17 +123,17 @@ public class AssetsImporter
             var fileDirName = Path.GetFileNameWithoutExtension(assetName).TrimStart('\\', '/');
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), fileDirName);
             
-            Debug.Log($"zipPath: {zipPath}");
+            sepLog.Logger.LogInfo($"Zip Path: {zipPath}", _isEditor);
             await File.WriteAllBytesAsync(zipPath, fileData, ct);
             
-            Debug.Log($"filePath: {filePath}");
+            sepLog.Logger.LogInfo($"ファイルの保存先: {zipPath}", _isEditor);
             await ExtractZipFile(zipPath, filePath, ct);
 
             return filePath;
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error: {e}");
+            sepLog.Logger.LogError($"ファイルの保存中にエラーが発生しました: {e.Message}");
             return "";
         }
     }
@@ -149,11 +152,11 @@ public class AssetsImporter
             // ZIPファイルを解凍
             await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, filePath), ct);
 
-            Debug.Log($"ZIPファイルを解凍しました: {zipPath} -> {filePath}");
+            sepLog.Logger.LogInfo($"ZIPファイルを解凍しました: {zipPath} -> {filePath}", _isEditor);
         }
         catch (IOException e)
         {
-            Debug.LogError($"解凍中にエラーが発生しました: {e.Message}");
+            sepLog.Logger.LogError($"解凍中にIOエラーが発生しました: {e.Message}");
         }
         finally
         {
@@ -172,7 +175,7 @@ public class AssetsImporter
             }
             else
             {
-                Debug.Log("All Files Deleted");
+                sepLog.Logger.LogError("All Files Deleted");
             }
         }
     }
