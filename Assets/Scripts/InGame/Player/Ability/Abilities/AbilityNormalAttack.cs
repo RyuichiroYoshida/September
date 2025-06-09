@@ -9,100 +9,91 @@ using September.InGame.Common;
 namespace InGame.Player.Ability
 {
     [System.Serializable]
-    public class AbilityNormalAttack : AbilityBase
+public class AbilityNormalAttack : AbilityBase
+{
+    [SerializeField] private float _attackRadius = 1.0f;
+    [SerializeField, Label("攻撃力")] private int _attackDamage = 10;
+    [SerializeField] private float _attackDuration = 1.0f;
+    [SerializeField] private LayerMask _hitMask;
+
+    private readonly Collider[] _hitBuffer = new Collider[10];
+    private static InGameManager _inGameManager;
+
+    private float _remainingTime;
+    private Vector3 _attackOrigin;
+    private readonly HashSet<IDamageable> _alreadyHit = new();
+
+    public override bool RunLocal => false;
+    public override string DisplayName => "通常攻撃";
+
+    public AbilityNormalAttack() { }
+    public AbilityNormalAttack(AbilityBase abilityReference) : base(abilityReference) { }
+    public override AbilityBase Clone(AbilityBase abilityReference) => new AbilityNormalAttack(this);
+
+    protected override void OnStart()
     {
-        [SerializeField] private float _attackRadius = 1.0f;
-        [SerializeField, Label("攻撃力")] private int _attackDamage = 10;
-        [SerializeField] private float _attackDuration = 1.0f;
-        [SerializeField] private LayerMask _hitMask;
-
-        private readonly Collider[] _hitBuffer = new Collider[10];
-        private static InGameManager _inGameManager;
-
-        private float _remainingTime;
-        private Vector3 _attackOrigin;
-        private readonly HashSet<PlayerHealth> _alreadyHit = new();
-
-        public override bool RunLocal => false;
-        public override string DisplayName => "通常攻撃";
-
-        public AbilityNormalAttack() { }
-
-        public AbilityNormalAttack(AbilityBase abilityReference) : base(abilityReference) { }
-
-        public override AbilityBase Clone(AbilityBase abilityReference) => new AbilityNormalAttack(this);
-
-        protected override void OnStart()
+        if (!_inGameManager && !StaticServiceLocator.Instance.TryGet(out _inGameManager))
         {
-            if (!_inGameManager && !StaticServiceLocator.Instance.TryGet(out _inGameManager))
-            {
-                Debug.LogError("InGameManagerが見つかりません。通常攻撃を実行できません。");
-                ForceEnd();
-                return;
-            }
+            Debug.LogError("InGameManagerが見つかりません。通常攻撃を実行できません。");
+            ForceEnd();
+            return;
+        }
 
-            if (!_inGameManager.PlayerDataDic.TryGetValue(PlayerRef.FromEncoded(Context.SourcePlayer), out var playerData))
-            {
-                Debug.LogError("PlayerDataが見つかりません。通常攻撃を実行できません。");
-                ForceEnd();
-                return;
-            }
+        if (!_inGameManager.PlayerDataDic.TryGetValue(PlayerRef.FromEncoded(Context.SourcePlayer), out var playerData))
+        {
+            Debug.LogError("PlayerDataが見つかりません。通常攻撃を実行できません。");
+            ForceEnd();
+            return;
+        }
 
-            _attackOrigin = playerData.transform.position;
-            _remainingTime = _attackDuration;
-            _alreadyHit.Clear();
+        _attackOrigin = playerData.transform.position;
+        _remainingTime = _attackDuration;
+        _alreadyHit.Clear();
 
 #if UNITY_EDITOR
-            DebugDrawHelper.RegisterAttackPosition(_attackOrigin, _attackRadius, Color.red, _attackDuration);
+        DebugDrawHelper.RegisterAttackPosition(_attackOrigin, _attackRadius, Color.red, _attackDuration);
 #endif
-        }
-
-        protected override void OnUpdate(float deltaTime)
-        {
-            _remainingTime -= deltaTime;
-            if (_remainingTime <= 0f)
-            {
-                ApplyCachedHits();
-                ForceEnd();
-                return;
-            }
-
-            var hitCount = Physics.OverlapSphereNonAlloc(
-                _attackOrigin,
-                _attackRadius,
-                _hitBuffer
-                // _hitMask,
-                // QueryTriggerInteraction.Collide // ← Trigger 対象も拾いたい場合
-            );
-            
-            for (int i = 0; i < hitCount; i++)
-            {
-                var collider = _hitBuffer[i];
-                var target = collider.GetComponent<PlayerHealth>();
-
-                if (!target || OwnerPlayerId == target.Object.InputAuthority.RawEncoded) continue;
-                _alreadyHit.Add(target); // キャッシュだけ
-            }
-        }
-
-        private void ApplyCachedHits()
-        {
-            foreach (var target in _alreadyHit)
-            {
-                var hitData = new HitData
-                {
-                    HitActionType = HitActionType.Damage,
-                    Amount = _attackDamage,
-                    ExecutorRef = PlayerRef.FromEncoded(Context.SourcePlayer),
-                    TargetRef = target.Object.InputAuthority,
-                    Target = target,
-                };
-                Debug.Log($"ApplyCachedHits: {hitData.ExecutorRef} -> {hitData.TargetRef}");
-
-                target.TakeHit(ref hitData);
-            }
-
-            _alreadyHit.Clear();
-        }
     }
+
+    protected override void OnUpdate(float deltaTime)
+    {
+        _remainingTime -= deltaTime;
+        if (_remainingTime <= 0f)
+        {
+            ApplyCachedHits();
+            ForceEnd();
+            return;
+        }
+
+        AttackHitUtility.OverlapDamageables(
+            _attackOrigin,
+            _attackRadius,
+            _hitBuffer,
+            _alreadyHit,
+            OwnerPlayerId,
+            _hitMask
+        );
+    }
+
+    private void ApplyCachedHits()
+    {
+        foreach (var target in _alreadyHit)
+        {
+            var hitData = new HitData
+            {
+                HitActionType = HitActionType.Damage,
+                Amount = _attackDamage,
+                ExecutorRef = PlayerRef.FromEncoded(Context.SourcePlayer),
+                TargetRef = target.OwnerPlayerRef,
+                Target = target,
+            };
+
+            Debug.Log($"ApplyCachedHits: {hitData.ExecutorRef} -> {hitData.TargetRef}");
+            target.TakeHit(ref hitData);
+        }
+
+        _alreadyHit.Clear();
+    }
+}
+
 }
