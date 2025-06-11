@@ -20,9 +20,9 @@ RenderSettings:
   m_FogDensity: 0.001
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.8773585, g: 0.848756, b: 0.79872733, a: 1}
-  m_AmbientEquatorColor: {r: 0.5660378, g: 0.5660378, b: 0.5660378, a: 1}
-  m_AmbientGroundColor: {r: 0.2924528, g: 0.2723971, b: 0.25520647, a: 1}
+  m_AmbientSkyColor: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
+  m_AmbientEquatorColor: {r: 0.74509805, g: 0.70192415, b: 0.6784314, a: 1}
+  m_AmbientGroundColor: {r: 0.16981131, g: 0.15207158, b: 0.14818439, a: 1}
   m_AmbientIntensity: 1.17
   m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0, g: 0, b: 0, a: 1}
@@ -33,9 +33,9 @@ RenderSettings:
   m_HaloTexture: {fileID: 0}
   m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultReflectionMode: 0
-  m_DefaultReflectionResolution: 128
-  m_ReflectionBounces: 4
-  m_ReflectionIntensity: 0.205
+  m_DefaultReflectionResolution: 64
+  m_ReflectionBounces: 3
+  m_ReflectionIntensity: 0.397
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_UseRadianceAmbientProbe: 0
@@ -93,8 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: eef140b96d29b33459ab5cc659d1136a, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 1eeb350d5d38af44485d97ddb1472324, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -914,8 +914,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 1
-  m_Color: {r: 0.6132076, g: 0.58551353, b: 0.54089534, a: 1}
-  m_Intensity: 0.6
+  m_Color: {r: 0.7924528, g: 0.6776136, b: 0.497152, a: 1}
+  m_Intensity: 0.15
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -927,7 +927,7 @@ Light:
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
-    m_NearPlane: 1.38
+    m_NearPlane: 5.61
     m_CullingMatrixOverride:
       e00: 1
       e01: 0
@@ -977,13 +977,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1044510705}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.8278437, y: 0.059490528, z: -0.036907025, w: 0.5565731}
+  m_LocalRotation: {x: 0.8171909, y: 0.04339889, z: -0.04887148, w: 0.5726493}
   m_LocalPosition: {x: -0.01, y: 13.43, z: 0.03}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 67.805, y: 179.224, z: 171.258}
+  m_LocalEulerAnglesHint: {x: 70.08, y: 185.08, z: 177.484}
 --- !u!114 &1044510708
 MonoBehaviour:
   m_ObjectHideFlags: 0
