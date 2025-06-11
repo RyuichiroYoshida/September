@@ -72,8 +72,17 @@ namespace InGame.Interact
             for (int i = 0; i < count; i++)
             {
                 var col = _hitBuffer[i];
-                if (!col.TryGetComponent(out InteractableBase interactable)) continue;
-                if (!col.TryGetComponent(out NetworkObject netObj)) continue;
+                var go = col.gameObject;
+                var interactable = go.GetComponentInParent<InteractableBase>() 
+                                   ?? go.GetComponent<InteractableBase>() 
+                                   ?? go.GetComponentInChildren<InteractableBase>();
+
+                var netObj = go.GetComponentInParent<NetworkObject>() 
+                             ?? go.GetComponent<NetworkObject>() 
+                             ?? go.GetComponentInChildren<NetworkObject>();
+
+                if (interactable == null || netObj == null)
+                    continue;
 
                 float baseTime = interactable.RequiredInteractTimeDictionary.Dictionary
                     .GetValueOrDefault(_characterType, 0f);

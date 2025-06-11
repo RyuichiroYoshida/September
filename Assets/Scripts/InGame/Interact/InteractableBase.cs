@@ -6,7 +6,6 @@ using System.Collections.Generic;
 namespace InGame.Interact
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(Collider), typeof(NetworkObject))]
     public abstract class InteractableBase : NetworkBehaviour
     {
         [SerializeField]
