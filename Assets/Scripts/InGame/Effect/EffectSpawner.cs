@@ -49,7 +49,7 @@ namespace September.InGame.Effect
         /// </summary>
         public void RequestPlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            RPC_PlayOneShotEffect(effectType, position, rotation);
+            RPC_PlayEffect(effectType, position, rotation, false, string.Empty);
         }
         
         /// <summary>
@@ -58,7 +58,7 @@ namespace September.InGame.Effect
         /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
         public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            RPC_PlayLoopEffect(effectId, effectType, position, rotation);
+            RPC_PlayEffect(effectType, position, rotation, true, effectId);
         }
 
         /// <summary>
@@ -69,9 +69,16 @@ namespace September.InGame.Effect
             RPC_StopEffectById(effectId);
         }
 
-        //エフェクトの発火
+        /// <summary>
+        /// 統一されたエフェクト再生RPC
+        /// </summary>
+        /// <param name="effectType">エフェクトタイプ</param>
+        /// <param name="position">生成位置</param>
+        /// <param name="rotation">生成回転</param>
+        /// <param name="isLoop">ループするかどうか</param>
+        /// <param name="effectId">エフェクトID（ループエフェクトの場合のみ使用）</param>
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_PlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
+        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, string effectId)
         {
             if (_effectDatabase == null)
             {
@@ -90,39 +97,37 @@ namespace September.InGame.Effect
             
             //パーティクルシステムの設定
             ParticleSystem system = effect.GetComponent<ParticleSystem>();
-            var main = system.main;
-            main.loop = true;
-            system.Play();
-            
-            _activeEffects[effectId] = effect;
-            Debug.Log($"エフェクトID '{effectId}' を生成");
-        }
-
-        //エフェクト処理を全体に通知する
-        [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_PlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation)
-        {
-            if (_effectDatabase == null)
+            if (system != null)
             {
-                InitializeEffectDatabase();
+                var main = system.main;
+                main.loop = isLoop;
+                
+                if (isLoop)
+                {
+                    // ループエフェクトの場合
+                    system.Play();
+                    _activeEffects[effectId] = effect;
+                    Debug.Log($"ループエフェクトID '{effectId}' を生成");
+                }
+                else
+                {
+                    // ワンショットエフェクトの場合
+                    main.stopAction = ParticleSystemStopAction.Destroy;
+                    system.Play();
+                    Debug.Log($"ワンショットエフェクト '{effectType}' を生成");
+                }
             }
-            
-            var effectData = _effectDatabase.GetEffectData(effectType);
-            
-            if (effectData.Prefab == null)
+            else
             {
-                Debug.LogError($"'{effectType}' に対応するプレハブが見つかりません");
-                return;
+                Debug.LogWarning($"エフェクト '{effectType}' にParticleSystemが見つかりません");
+                
+                // ループエフェクトでParticleSystemがない場合も辞書に追加
+                if (isLoop && !string.IsNullOrEmpty(effectId))
+                {
+                    _activeEffects[effectId] = effect;
+                    Debug.Log($"非パーティクルループエフェクトID '{effectId}' を生成");
+                }
             }
-            
-            GameObject effect = Instantiate(effectData.Prefab, position, rotation);
-            
-            //パーティクルシステムの設定
-            ParticleSystem system = effect.GetComponent<ParticleSystem>();
-            var main = system.main;
-            main.loop = false;
-            main.stopAction = ParticleSystemStopAction.Destroy;
-            system.Play();
         }
         
         //エフェクトを止める
