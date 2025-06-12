@@ -9,12 +9,7 @@ namespace September.InGame.Effect
     {
         private NetworkRunner _networkRunner;
         private EffectDatabase _effectDatabase;
-
-        private Dictionary<int, GameObject> _activeEffects;
-        private int _effectID = 0;
-        
-        // コールバック管理用
-        private Dictionary<int, Action<int>> _pendingCallbacks = new Dictionary<int, Action<int>>();
+        private Dictionary<string, GameObject> _activeEffects; //IDは呼び出し側に作ってもらう
 
         private void Start()
         {
@@ -29,6 +24,7 @@ namespace September.InGame.Effect
             InitializeEffectDatabase();
         }
         
+        //初期化処理
         private void InitializeEffectDatabase()
         {
             if (_effectDatabase == null)
@@ -45,77 +41,37 @@ namespace September.InGame.Effect
             }
             
             if (_activeEffects == null)
-                _activeEffects = new Dictionary<int, GameObject>();
+                _activeEffects = new Dictionary<string, GameObject>();
         }
 
         /// <summary>
-        /// 一度だけ発火するエフェクト
+        /// ループせずに生成するエフェクト
         /// </summary>
-        /// <param name="effectType"></param>
-        /// <param name="position"></param>
-        /// <param name="rotation"></param>
-        /// <param name="effectSpqwnSettings"></param>
-        public void RequestPlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, EffectSpqwnSettings effectSpqwnSettings = null)
+        public void RequestPlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            RPC_SimplePlayEffect(effectType, position, rotation, effectSpqwnSettings);
+            RPC_PlayOneShotEffect(effectType, position, rotation);
         }
         
         /// <summary>
         /// 手動で削除するエフェクトのリクエスト
         /// </summary>
-        public void RequestPlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, Action<int> onEffectCreated = null, EffectSpqwnSettings effectSpqwnSettings = null)
+        /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
+        public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            // サーバーでのみID生成とRPC送信
-            if (_networkRunner.IsServer)
-            {
-                int id = _effectID++;
-                if (onEffectCreated != null)
-                {
-                    _pendingCallbacks[id] = onEffectCreated;
-                }
-                RPC_PlayEffect(effectType, position, rotation, id);
-            }
-            else
-            {
-                // クライアントの場合、コールバックIDを生成して送信
-                int callbackId = UnityEngine.Random.Range(10000, 99999); // 一時的なコールバックID
-                if (onEffectCreated != null)
-                {
-                    _pendingCallbacks[callbackId] = onEffectCreated;
-                }
-                RPC_RequestPlayEffect(effectType, position, rotation, callbackId);
-            }
+            RPC_PlayLoopEffect(effectId, effectType, position, rotation);
         }
 
         /// <summary>
         /// 指定されたIDのエフェクトを停止する
         /// </summary>
-        /// <param name="instanceId"></param>
-        public void StopEffect(int instanceId)
+        public void StopEffect(string effectId)
         {
-            RPC_RequestStopEffect(instanceId);
-        }
-
-        // クライアントからのリクエストを受ける（サーバーのみ）
-        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_RequestPlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, int callbackId)
-        {
-            int id = _effectID++;
-            RPC_PlayEffect(effectType, position, rotation, id);
-            
-            // クライアントにIDを通知
-            RPC_NotifyEffectCreated(id, callbackId);
-        }
-
-        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_RequestStopEffect(int instanceId)
-        {
-            RPC_StopEffectById(instanceId);
+            RPC_StopEffectById(effectId);
         }
 
         //エフェクトの発火
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, int instanceId)
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_PlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
         {
             if (_effectDatabase == null)
             {
@@ -131,31 +87,20 @@ namespace September.InGame.Effect
             }
             
             GameObject effect = Instantiate(effectData.Prefab, position, rotation);
-            _activeEffects[instanceId] = effect;
-            Debug.Log($"エフェクトID '{instanceId}' を生成");
             
-            // コールバック実行（サーバー側）
-            if (_pendingCallbacks.TryGetValue(instanceId, out Action<int> callback))
-            {
-                callback?.Invoke(instanceId);
-                _pendingCallbacks.Remove(instanceId);
-            }
-        }
-        
-        // クライアントへのID通知用RPC
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_NotifyEffectCreated(int effectId, int callbackId)
-        {
-            if (_pendingCallbacks.TryGetValue(callbackId, out Action<int> callback))
-            {
-                callback?.Invoke(effectId);
-                _pendingCallbacks.Remove(callbackId);
-            }
+            //パーティクルシステムの設定
+            ParticleSystem system = effect.GetComponent<ParticleSystem>();
+            var main = system.main;
+            main.loop = true;
+            system.Play();
+            
+            _activeEffects[effectId] = effect;
+            Debug.Log($"エフェクトID '{effectId}' を生成");
         }
 
-        //音をPlay
+        //エフェクト処理を全体に通知する
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_SimplePlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, EffectSpqwnSettings effectSpqwnSettings = null)
+        private void RPC_PlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation)
         {
             if (_effectDatabase == null)
             {
@@ -171,24 +116,27 @@ namespace September.InGame.Effect
             }
             
             GameObject effect = Instantiate(effectData.Prefab, position, rotation);
-            ParticleSystem particleSystem = effect.GetComponent<ParticleSystem>();
             
-            var main = particleSystem.main;
+            //パーティクルシステムの設定
+            ParticleSystem system = effect.GetComponent<ParticleSystem>();
+            var main = system.main;
             main.loop = false;
+            main.stopAction = ParticleSystemStopAction.Destroy;
+            system.Play();
         }
         
         //エフェクトを止める
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_StopEffectById(int instanceId)
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_StopEffectById(string effectId)
         {
-            if (_activeEffects.TryGetValue(instanceId, out GameObject effect))
+            if (_activeEffects.TryGetValue(effectId, out GameObject effect))
             {
                 if (effect != null)
                 {
                     Destroy(effect);
                 }
-                _activeEffects.Remove(instanceId);
-                Debug.Log($"エフェクトID '{instanceId}' を停止");
+                _activeEffects.Remove(effectId);
+                Debug.Log($"エフェクトID '{effectId}' を停止");
             }
         }
 
@@ -206,8 +154,6 @@ namespace September.InGame.Effect
                 }
                 _activeEffects.Clear();
             }
-            
-            _pendingCallbacks?.Clear();
         }
     }
 }

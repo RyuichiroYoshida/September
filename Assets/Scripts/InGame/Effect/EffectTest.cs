@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using September.InGame.Effect;
 using UnityEngine;
@@ -7,6 +8,7 @@ public class EffectTest : MonoBehaviour
 {
 
     EffectSpawner _effectSpawner;
+    List<string> idList = new List<string>();
 
     int _spawn = 0;
     int _id = 0;
@@ -20,47 +22,35 @@ public class EffectTest : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.I))
         {
-            SpawnEffect();
+            //SpawnEffect();
+            SpawnLoopEffect();
         }
 
-        if (Input.GetKeyDown(KeyCode.O))
+        if (Input.GetKeyDown(KeyCode.O) && idList.Count > 0)
         {
-            StopSpawnEffect(_id);
+            int i = idList.Count - 1;
+            StopSpawnEffect(idList[i]);
         }
     }
-
-
 
     public void SpawnEffect()
     {
-        if (_spawn % 2 == 0)
-        {
-            _effectSpawner.RequestPlayEffect(EffectType.Test1, new Vector3(0 + _id * 2, 0.9f, 0),
-                new Quaternion(0, 0, 0, 0),
-                (effectId) =>
-                {
-                    Debug.Log($"エフェクトが生成されました。ID: {effectId}");
-                    _id = effectId;
-                });
-        }
-        else
-        {
-            _effectSpawner.RequestPlayEffect(EffectType.Test2, new Vector3(0 + _id * 2, 0.9f, 0),
-                new Quaternion(0, 0, 0, 0),
-                (effectId) =>
-                {
-                    Debug.Log($"エフェクトが生成されました。ID: {effectId}");
-                    _id = effectId;
-                });
-        }
-
+        _effectSpawner.RequestPlayOneShotEffect(EffectType.Test1, new Vector3(0 + _spawn * 2, 0, 0), Quaternion.identity);
         _spawn++;
-
     }
 
-    public void StopSpawnEffect(int i)
+    public void SpawnLoopEffect()
     {
-        _effectSpawner.StopEffect(i);
-        Debug.Log($"'{i}' を削除");
+        string id = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+        _effectSpawner.RequestPlayLoopEffect(id, EffectType.Test1, new Vector3(0 + _spawn * 2, 0, 0), Quaternion.identity);
+        _spawn++;
+        idList.Add(id);
+    }
+
+    public void StopSpawnEffect(string effectId)
+    {
+        _effectSpawner.StopEffect(effectId);
+        idList.Remove(effectId);
+        Debug.Log($"'{effectId}' を削除");
     }
 }
