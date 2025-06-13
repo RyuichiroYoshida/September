@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
@@ -8,6 +10,7 @@ using NaughtyAttributes;
 using September.Common;
 using September.InGame.UI;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 
 namespace September.InGame.Common
@@ -28,17 +31,20 @@ namespace September.InGame.Common
         private int _addScore;
         
         private UIController _uiController;
+        
+        public GameState CurrentState { get; private set; }
 
-
+        private CancellationTokenSource _cts;
         public override void Spawned()
         {
+            _cts = new CancellationTokenSource();
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
             }
             _uiController = UIController.I;
-            if (_networkRunner == Runner.IsServer)
+            if (_networkRunner.IsServer)
             {
                 Initialize();
             }
@@ -64,6 +70,7 @@ namespace September.InGame.Common
                  var player = await _networkRunner.SpawnAsync(
                      container.GetCharacterData(pair.Value.CharacterType).Prefab,
                      inputAuthority: pair.Key);
+                 _networkRunner.SetPlayerObject(pair.Key, player);
                  Debug.Log($"Player {pair.Key} spawned");
                  if (!PlayerDataDic.ContainsKey(pair.Key))
                  {
@@ -93,9 +100,7 @@ namespace September.InGame.Common
             var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(data.TargetRef);
             killedData.IsOgre = false;
             PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
-            
             killerData.Score += _addScore;
-            
             Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
             RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
         }
@@ -106,13 +111,24 @@ namespace September.InGame.Common
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        private void StartTimer()
+        private async UniTask StartTimer()
         {
+            CurrentState = GameState.Preparation;
+            for (int i = _timerData.PreStartTime; i >= 1; i--)
+            {
+                //ReadyTime表示
+                await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
+            }
+            CurrentState = GameState.Waiting;
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.AfterReadyDelay), cancellationToken: _cts.Token);
+            //Start!
+            CurrentState = GameState.Playing;
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
         }
 
         private void GameEnded()
         {
+            CurrentState = GameState.GameEnded;
             GetScore();
         }
 
@@ -151,6 +167,8 @@ namespace September.InGame.Common
             {
                 GameEnded();
                 _tickTimer = TickTimer.None;
+                _cts.Cancel();
+                _cts.Dispose();
             }
         }
         
@@ -183,6 +201,11 @@ namespace September.InGame.Common
         public void Register(ServiceLocator locator)
         {
             locator.Register<InGameManager>(this);
+        }
+
+        public enum GameState
+        {
+            Preparation,Waiting,Playing,GameEnded
         }
     }
 }
