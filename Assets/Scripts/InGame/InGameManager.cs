@@ -38,7 +38,7 @@ namespace September.InGame.Common
                 Debug.LogError("NetworkRunnerがありません");
             }
             _uiController = UIController.I;
-            if (_networkRunner == Runner.IsServer)
+            if (_networkRunner.IsServer)
             {
                 Initialize();
             }
@@ -64,6 +64,7 @@ namespace September.InGame.Common
                  var player = await _networkRunner.SpawnAsync(
                      container.GetCharacterData(pair.Value.CharacterType).Prefab,
                      inputAuthority: pair.Key);
+                 _networkRunner.SetPlayerObject(pair.Key, player);
                  Debug.Log($"Player {pair.Key} spawned");
                  if (!PlayerDataDic.ContainsKey(pair.Key))
                  {
