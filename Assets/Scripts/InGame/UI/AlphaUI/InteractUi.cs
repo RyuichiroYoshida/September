@@ -7,8 +7,6 @@ namespace September.InGame.UI
     /// <summary>
     /// インタラクトUIの管理クラス
     /// </summary>
-    // このクラスは、インタラクトUIの表示や更新を行うためのクラスです。
-    // 具体的な機能はまだ実装されていません。
     public class InteractUi : MonoBehaviour
     {
         enum ConnectionState
