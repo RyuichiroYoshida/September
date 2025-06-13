@@ -34,7 +34,7 @@ namespace InGame.Interact
         /// <summary>
         /// 共通のバリデーション（null, クールダウン）
         /// </summary>
-        protected virtual bool ValidateInteraction(IInteractableContext context)
+        public virtual bool ValidateInteraction(IInteractableContext context)
         {
             if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(context.Interactor), out var data))
             {

@@ -20,6 +20,7 @@ namespace September.InGame.UI
         [SerializeField, Label("鬼UI")] private GameObject _ogreUIPrefab;
         [SerializeField, Label("TimerUI")] private TextMeshProUGUI _timerUIPrefab;
         [SerializeField, Label("スタミナUI")] private GameObject _staminaBarPrefab;
+        [SerializeField, Label("インタラクトUI")] private GameObject _interactUIPrefab;
 
         [Header("Canvas Prefabs")] 
         [SerializeField, Label("MainCanvas")] private Canvas _mainCanvas;
@@ -36,6 +37,7 @@ namespace September.InGame.UI
         private GameObject _optionUI;
         private GameObject _killLogUI;
         private GameObject _ogreUiInstance;
+        private InteractUi _interactUI;
 
         private CancellationTokenSource _cts;
 
@@ -55,6 +57,8 @@ namespace September.InGame.UI
             ui.OnNoticeKillLog.Subscribe(killText => ShowKillLog(killText).Forget()).AddTo(_cts.Token);
             ui.OnShowOgreUI.Subscribe(ShowOgreLamp).AddTo(_cts.Token);
             ui.OnChangeStaminaValue.Skip(1).Subscribe(ChangeStamina).AddTo(_cts.Token);
+            ui.IsInteracting.Subscribe(isInteracting => _interactUI?.SetActive(isInteracting.Item1, isInteracting.Item2)).AddTo(_cts.Token);
+            ui.OnChangeInteractProgress.Subscribe(progress => _interactUI?.SetInteractProgress(progress)).AddTo(_cts.Token);
         }
 
         private void SetupUI()
@@ -78,6 +82,9 @@ namespace September.InGame.UI
             
             _staminaBarSlider = Instantiate(_staminaBarPrefab.gameObject,_mainCanvas.transform).GetComponent<Slider>();
             _staminaBarSlider.gameObject.SetActive(true);
+            
+            _interactUI = Instantiate(_interactUIPrefab, _mainCanvas.transform).GetComponent<InteractUi>();
+            _interactUI.SetActive(false);
         }
 
         private void ChangeHp(int value)
