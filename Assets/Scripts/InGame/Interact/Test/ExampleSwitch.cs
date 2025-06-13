@@ -11,7 +11,7 @@ namespace InGame.Interact.Test
 
         protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
-            return !_isInUse;
+            return true;
         }
 
         protected override void OnInteract(IInteractableContext context)

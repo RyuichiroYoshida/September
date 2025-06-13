@@ -17,6 +17,8 @@ namespace September.InGame.UI
         private readonly ReactiveProperty<bool> _onShowOgreUI = new();
         private readonly ReactiveProperty<float> _onChangeStaminaValue = new();
         private readonly Subject<Unit> _onGameStart = new();
+        private readonly Subject<(bool, GameObject)> _isInteracting = new();
+        private readonly ReactiveProperty<float> _onChangeInteractProgress = new();
 
         #endregion
         
@@ -30,9 +32,11 @@ namespace September.InGame.UI
         public IReadOnlyReactiveProperty<float> OnChangeStaminaValue => _onChangeStaminaValue;
         
         public IObservable<Unit> OnGameStart => _onGameStart;
+        public IObservable<(bool, GameObject)> IsInteracting => _isInteracting;
+        public IReadOnlyReactiveProperty<float> OnChangeInteractProgress => _onChangeInteractProgress;
         
         #endregion
-
+        
         public void SetUpStartUI()
         {
             _onGameStart.OnNext(Unit.Default);
@@ -61,6 +65,20 @@ namespace September.InGame.UI
         public void ChangeStaminaValue(float value)
         {
             _onChangeStaminaValue.Value = value;
+        }
+        
+        public void ShowInteractUI(bool isShow, GameObject target = null)
+        {
+            _isInteracting.OnNext((isShow, target));
+        }
+        
+        public void SetInteractProgress(float progress)
+        {
+            _onChangeInteractProgress.Value = progress;
+            if (progress >= 1.0f)
+            {
+                _isInteracting.OnNext((false, null));
+            }
         }
     }
 }
