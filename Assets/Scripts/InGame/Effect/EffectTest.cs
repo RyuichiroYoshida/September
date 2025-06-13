@@ -35,14 +35,14 @@ public class EffectTest : MonoBehaviour
 
     public void SpawnEffect()
     {
-        _effectSpawner.RequestPlayOneShotEffect(EffectType.Test1, new Vector3(0 + _spawn * 2, 0, 0), Quaternion.identity);
+        _effectSpawner.RequestPlayOneShotEffect(EffectType.Test, new Vector3(0 + _spawn * 2, 0, 0), Quaternion.identity);
         _spawn++;
     }
 
     public void SpawnLoopEffect()
     {
         string id = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-        _effectSpawner.RequestPlayLoopEffect(id, EffectType.Test1, new Vector3(0 + _spawn * 2, 0, 0), Quaternion.identity);
+        _effectSpawner.RequestPlayLoopEffect(id, EffectType.Test, new Vector3(0 + _spawn * 2, 0, 0), Quaternion.identity);
         _spawn++;
         idList.Add(id);
     }
