@@ -26,12 +26,13 @@ namespace September.InGame.Common
         
         private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
         public IReadOnlyDictionary<PlayerRef, NetworkObject> PlayerDataDic => _playerDataDic;
+        
+        public static List<(string playerName,int score)> Scores = new List<(string,int)>();
 
         [Header("他Playerを気絶させたときに得られるスコア")] [SerializeField]
         private int _addScore;
         
         private UIController _uiController;
-        
         public GameState CurrentState { get; private set; }
 
         private CancellationTokenSource _cts;
@@ -52,7 +53,7 @@ namespace September.InGame.Common
             {
                 RPC_SetUpUI();
             }
-            ChooseOgre();
+            HideCursor();
         }
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetUpUI()
@@ -82,7 +83,6 @@ namespace September.InGame.Common
             }
             Register(StaticServiceLocator.Instance);
             StartTimer();
-            HideCursor();
         }
 
 
@@ -122,14 +122,19 @@ namespace September.InGame.Common
             CurrentState = GameState.Waiting;
             await UniTask.Delay(TimeSpan.FromSeconds(_timerData.AfterReadyDelay), cancellationToken: _cts.Token);
             //Start!
+            ChooseOgre();
             CurrentState = GameState.Playing;
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
         }
 
-        private void GameEnded()
+        private async void GameEnded()
         {
             CurrentState = GameState.GameEnded;
             GetScore();
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
+            _cts.Cancel();
+            _cts.Dispose();
+            NetworkManager.Instance.QuitInGameScene();
         }
 
         // 鬼変更時のUI更新通知
@@ -144,31 +149,25 @@ namespace September.InGame.Common
                 _uiController.ShowOgreLamp(true);
         }
 
-        public IEnumerable<(PlayerRef, int score)> GetScore()
+        public void GetScore()
         {
-            List<(PlayerRef player, int score)> scores = new();
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                scores.Add((pair.Key, pair.Value.Score));
+                Scores.Add((pair.Value.DisplayNickName, pair.Value.Score));
             }
-
-            var ordered = scores.OrderByDescending(x => x.score).ToList();
+            var ordered = Scores.OrderByDescending(x => x.score).ToList();
             for (int i = 0; i < ordered.Count(); i++)
             {
-                Debug.Log($"{i + 1} 位は{ordered[i].player}でスコアは{ordered[i].score}点");
+                Debug.Log($"{i + 1} 位は{ordered[i].playerName}でスコアは{ordered[i].score}点");
             }
-
-            return ordered;
         }
 
         public override void FixedUpdateNetwork()
         {
             if (_tickTimer.Expired(Runner))
             {
-                GameEnded();
                 _tickTimer = TickTimer.None;
-                _cts.Cancel();
-                _cts.Dispose();
+                GameEnded();
             }
         }
         
@@ -195,8 +194,6 @@ namespace September.InGame.Common
             if(ogreRef == Runner.LocalPlayer)
                 _uiController.ShowOgreLamp(true);
         }
-        
-        
 
         public void Register(ServiceLocator locator)
         {

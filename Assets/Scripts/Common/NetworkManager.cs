@@ -15,6 +15,7 @@ namespace September.Common
         [SerializeField, Scene] string _titleSceneName;
         [SerializeField, Scene] string _lobbySceneName;
         [SerializeField, Scene] string _gameSceneName;
+        [SerializeField, Scene] string _resultSceneName;
         NetworkRunner _networkRunner;
         UniTask _currentTask;
         private void Start()
@@ -91,6 +92,12 @@ namespace September.Common
             if (!_networkRunner.IsServer) return;
             _networkRunner.SessionInfo.IsOpen = false;
             await _networkRunner.LoadScene(_gameSceneName);
+        }
+
+        public async UniTaskVoid QuitInGameScene()
+        {
+            if (!_networkRunner.IsServer) return;
+            await _networkRunner.LoadScene(_resultSceneName);
         }
     }
 }
