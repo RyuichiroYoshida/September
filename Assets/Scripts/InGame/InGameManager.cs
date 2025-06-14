@@ -91,18 +91,24 @@ namespace September.InGame.Common
         /// </summary>
         private void OnPlayerKilled(HitData data)
         {
-            if (!Runner.IsServer) return; // サーバー側でのみ実行可能
-            
+            if (!HasStateAuthority) return;
             var killerData = PlayerDatabase.Instance.PlayerDataDic.Get(data.ExecutorRef); //DataBaseから該当Playerの情報取得
-            killerData.IsOgre = false;
-            PlayerDatabase.Instance.PlayerDataDic.Set(data.ExecutorRef, killerData); //DataBase更新 
-
             var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(data.TargetRef);
-            killedData.IsOgre = false;
-            PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
+            if (killerData.IsOgre)
+            {
+                killerData.IsOgre = false;
+                killedData.IsOgre = true;
+                RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
+                Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
+            }
             killerData.Score += _addScore;
-            Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
-            RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
+            PlayerDatabase.Instance.PlayerDataDic.Set(data.ExecutorRef, killerData); //DataBase更新 
+            PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
+            var pData = PlayerDatabase.Instance.PlayerDataDic;
+            foreach (var pair in pData)
+            {
+                Debug.Log(pair.Value.DisplayNickName + "が"+pair.Value.Score+"点");
+            }
         }
 
         void HideCursor()
@@ -131,7 +137,7 @@ namespace September.InGame.Common
         {
             CurrentState = GameState.GameEnded;
             GetScore();
-            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.EndGameDelay), cancellationToken: _cts.Token);
             _cts.Cancel();
             _cts.Dispose();
             NetworkManager.Instance.QuitInGameScene();
