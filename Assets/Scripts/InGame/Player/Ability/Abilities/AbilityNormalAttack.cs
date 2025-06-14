@@ -27,7 +27,14 @@ public class AbilityNormalAttack : AbilityBase
     public override string DisplayName => "通常攻撃";
 
     public AbilityNormalAttack() { }
-    public AbilityNormalAttack(AbilityBase abilityReference) : base(abilityReference) { }
+
+    public AbilityNormalAttack(AbilityNormalAttack original) : base(original)
+    {
+        _attackRadius = original._attackRadius;
+        _attackDamage = original._attackDamage;
+        _attackDuration = original._attackDuration;
+        _hitMask = original._hitMask;
+    }
     public override AbilityBase Clone(AbilityBase abilityReference) => new AbilityNormalAttack(this);
 
     protected override void OnStart()
