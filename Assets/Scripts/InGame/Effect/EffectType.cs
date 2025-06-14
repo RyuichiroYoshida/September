@@ -2,8 +2,6 @@ using UnityEngine;
 
 public enum EffectType
 {
-    None,
+    Test,
     Warp,
-    Test1,
-    Test2,
 }
