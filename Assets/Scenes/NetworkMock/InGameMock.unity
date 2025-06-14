@@ -1226,6 +1226,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2778905810760030615, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
+      propertyPath: SortKey
+      value: 3131341842
+      objectReference: {fileID: 0}
+    - target: {fileID: 3109569138833284940, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
+      propertyPath: _addScore
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 3109569138833284940, guid: d36569df6a8b8a24e8d0ff9667cb7b31, type: 3}
       propertyPath: _timerData
       value: 

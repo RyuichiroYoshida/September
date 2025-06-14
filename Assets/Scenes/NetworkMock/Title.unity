@@ -4404,6 +4404,7 @@ MonoBehaviour:
   _titleSceneName: Title
   _lobbySceneName: Lobby
   _gameSceneName: InGameMock
+  _resultSceneName: Result
 --- !u!1 &2019171792
 GameObject:
   m_ObjectHideFlags: 0
