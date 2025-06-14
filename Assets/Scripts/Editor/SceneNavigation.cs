@@ -1,7 +1,5 @@
 #if UNITY_EDITOR
 using UnityEditor;
-#endif
-
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 
@@ -38,3 +36,4 @@ public static class SceneNavigation
         }
     }
 }
+#endif

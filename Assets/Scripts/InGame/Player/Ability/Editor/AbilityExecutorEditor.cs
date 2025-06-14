@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -165,3 +166,4 @@ public class AbilityExecutorEditor : Editor
             .ToList();
     }
 }
+#endif
