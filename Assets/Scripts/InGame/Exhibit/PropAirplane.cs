@@ -104,7 +104,8 @@ namespace InGame.Exhibit
             // playerの状態切り替え
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>().PlayerDataDic[_ownerPlayerRef].GetComponent<PlayerManager>();
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedMovement);
-            _ownerPlayerManager.RPC_SetGhostMode(true);
+            _ownerPlayerManager.RPC_SetColliderActive(false);
+            _ownerPlayerManager.RPC_SetMeshActive(false);
         }
 
         void GetOff()
@@ -118,7 +119,8 @@ namespace InGame.Exhibit
             _cameraController.SetCameraPriority(5);
             // playerの状態切り替え
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
-            _ownerPlayerManager.RPC_SetGhostMode(false);
+            _ownerPlayerManager.RPC_SetColliderActive(true);
+            _ownerPlayerManager.RPC_SetMeshActive(true);
             // 降りる場所にセット
             _ownerPlayerManager.transform.position = _getOffPoint.position;
         }

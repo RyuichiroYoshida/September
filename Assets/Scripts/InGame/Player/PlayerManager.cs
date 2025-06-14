@@ -128,10 +128,15 @@ namespace InGame.Player
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
-        public void RPC_SetGhostMode(NetworkBool enable)
+        public void RPC_SetColliderActive(NetworkBool active)
         {
-            _colliderObj.SetActive(!enable);
-            _meshObj.SetActive(!enable);
+            _colliderObj.SetActive(active);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void RPC_SetMeshActive(NetworkBool active)
+        {
+            _meshObj.SetActive(active);
         }
 
         /// <summary> スタンの経過時間を取得する </summary>
