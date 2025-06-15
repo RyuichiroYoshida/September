@@ -52,6 +52,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: AbilityExecutor
       objectReference: {fileID: 0}
+    - target: {fileID: 355170716067853116, guid: 52643197c4870fc49ac21aa68653aed4, type: 3}
+      propertyPath: managedReferences[7643012117068513408]._attackRadius
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 355170716067853116, guid: 52643197c4870fc49ac21aa68653aed4, type: 3}
+      propertyPath: managedReferences[7643012117068513408]._attackDuration
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 3873900256575586363, guid: 52643197c4870fc49ac21aa68653aed4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.317485

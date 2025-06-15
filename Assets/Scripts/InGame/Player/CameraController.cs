@@ -1,3 +1,4 @@
+using Cinemachine;
 using DG.Tweening;
 using Unity.Mathematics;
 using UnityEngine;
@@ -5,12 +6,13 @@ using UnityEngine;
 namespace InGame.Player
 {
     /// <summary> プレイヤーのカメラ操作 </summary>
-    public class PlayerCameraController : MonoBehaviour
+    public class CameraController : MonoBehaviour
     {
         [SerializeField] private float _sens;
         [SerializeField] private Transform _characterTf;
         [SerializeField] private Transform _cameraPivot;
         [SerializeField] private Transform _cameraTf;
+        [SerializeField] private CinemachineVirtualCameraBase _camera;
         [Header("CameraCollision")]
         [SerializeField] private LayerMask _collideAgainst = ~0;
         [SerializeField] private float _cameraRadius;
@@ -29,10 +31,10 @@ namespace InGame.Player
         private CameraSettings _cameraSettings;
         private CameraSettings _defaultCameraSettings;
 
-        public void Init(bool isLocal)
+        public void Init(bool use)
         {
-            _cameraPivot.gameObject.SetActive(isLocal);
-            if (!isLocal) return;
+            _cameraPivot.gameObject.SetActive(use);
+            if (!use) return;
 
             // Prefabの初期状態をデフォルトとして保存
             _defaultRotation = _cameraPivot.localRotation;
@@ -124,6 +126,11 @@ namespace InGame.Player
             // デフォルトのLocalQuaternionをWorldにする
             Quaternion relativeRotation = _characterTf.rotation * _defaultRotation;
             SmoothRotateCameraTo(relativeRotation);
+        }
+
+        public void SetCameraPriority(int priority)
+        {
+            _camera.Priority = priority;
         }
 
         /// <summary> 0 <= return < 360 </summary>
