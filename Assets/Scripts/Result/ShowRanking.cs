@@ -1,3 +1,5 @@
+using System;
+using Fusion;
 using September.InGame.Common;
 using TMPro;
 using UnityEngine;
@@ -5,16 +7,25 @@ using UnityEngine;
 public class ShowRanking : MonoBehaviour
 {
    　TextMeshProUGUI _text;
-    private string _ranking;
-    void Start()
+    private void Start()
     {
+        string result = null;
         _text = GetComponent<TextMeshProUGUI>();
-        int count = 0;
-        var rankingData = InGameManager.Scores;
-        foreach (var item in rankingData)
+        var names = RankingDataHolder.Instance.Names;
+        var scores = RankingDataHolder.Instance.Scores;
+        for (int i = 0; i < names.Length; i++)
         {
-            count++;
-            _text.text += $"{count}位：{item.playerName} 　{item.score}点 \r\n";
+            if (i == names.Length - 1)
+            {
+                result += $"鬼:{names[i]} 得点:{scores[i]}点 \r\n";
+            }
+            else
+            {
+                result += $"{i + 1}位:{names[i]} 得点:{scores[i]}点 \r\n";
+            }
         }
+        _text.text = result;
     }
+
+   
 }

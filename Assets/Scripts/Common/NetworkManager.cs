@@ -93,10 +93,10 @@ namespace September.Common
             _networkRunner.SessionInfo.IsOpen = false;
             await _networkRunner.LoadScene(_gameSceneName);
         }
-
-        public async UniTaskVoid QuitInGameScene()
+        public async UniTask QuitInGame()
         {
             if (!_networkRunner.IsServer) return;
+            _networkRunner.SessionInfo.IsOpen = false;
             await _networkRunner.LoadScene(_resultSceneName);
         }
     }

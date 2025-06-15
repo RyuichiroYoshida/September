@@ -27,8 +27,6 @@ namespace September.InGame.Common
         private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
         public IReadOnlyDictionary<PlayerRef, NetworkObject> PlayerDataDic => _playerDataDic;
         
-        public static List<(string playerName,int score)> Scores = new List<(string,int)>();
-
         [Header("他Playerを気絶させたときに得られるスコア")] [SerializeField]
         private int _addScore;
         
@@ -117,6 +115,12 @@ namespace September.InGame.Common
             Cursor.lockState = CursorLockMode.Locked;
         }
 
+        void ShowCursor()
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+
         private async UniTask StartTimer()
         {
             CurrentState = GameState.Preparation;
@@ -133,14 +137,15 @@ namespace September.InGame.Common
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
         }
 
-        private async void GameEnded()
+        private async UniTaskVoid GameEnded()
         {
             CurrentState = GameState.GameEnded;
             GetScore();
             await UniTask.Delay(TimeSpan.FromSeconds(_timerData.EndGameDelay), cancellationToken: _cts.Token);
             _cts.Cancel();
             _cts.Dispose();
-            NetworkManager.Instance.QuitInGameScene();
+            ShowCursor();
+            await NetworkManager.Instance.QuitInGame();
         }
 
         // 鬼変更時のUI更新通知
@@ -157,17 +162,26 @@ namespace September.InGame.Common
 
         public void GetScore()
         {
+            List<(string playerName,int score,bool isOgre)> data = new List<(string,int,bool)>();
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                Scores.Add((pair.Value.DisplayNickName, pair.Value.Score));
+                data.Add((pair.Value.DisplayNickName, pair.Value.Score,pair.Value.IsOgre));
             }
-            var ordered = Scores.OrderByDescending(x => x.score).ToList();
-            for (int i = 0; i < ordered.Count(); i++)
-            {
-                Debug.Log($"{i + 1} 位は{ordered[i].playerName}でスコアは{ordered[i].score}点");
-            }
+            var ordered = data.OrderBy(x => x.isOgre ? 1 : 0)
+                                                      .OrderByDescending(x => x.score)
+                                                      .ToList();
+            var names = ordered.Select(x => x.playerName).ToArray();
+            var scores = ordered.Select(x => x.score).ToArray();
+            RPC_SetRankingData(names,scores);
         }
-
+        
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SetRankingData(string[] names, int[] scores)
+        {
+            Debug.Log("SetRankingData");
+            RankingDataHolder.Instance.SetData(names, scores);
+        }
+        
         public override void FixedUpdateNetwork()
         {
             if (_tickTimer.Expired(Runner))
