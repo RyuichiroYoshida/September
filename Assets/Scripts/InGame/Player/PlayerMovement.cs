@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using ExitGames.Client.Photon;
 using Fusion;
-using Fusion.Addons.Physics;
 using UniRx;
 using UnityEngine;
 
@@ -12,6 +10,7 @@ namespace InGame.Player
     public class PlayerMovement : NetworkBehaviour
     {
         [Header("BasicMove")]
+        [SerializeField] private CapsuleCollider _moveCapsuleCollider;
         [SerializeField, Tooltip("重力")] private float _gravity = 9.81f;
         [SerializeField, Tooltip("加速")] private float _acceleration;
         [SerializeField, Tooltip("最大速度")] private float _maxMoveSpeed;
@@ -38,10 +37,10 @@ namespace InGame.Player
         [SerializeField] private int _visibleBit;
 
         private Rigidbody _rb;
-        private CapsuleCollider _moveCapsuleCollider;
         
         // base move
         private Vector3 _moveVelocity;
+        private Vector3 _rotationDirection;
         private bool _isGround;
         // スタミナ消費量
         private float _staminaConsumption;
@@ -70,7 +69,6 @@ namespace InGame.Player
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            _moveCapsuleCollider = GetComponent<CapsuleCollider>();
         }
 
         public void Init(float stamina, float staminaConsumption, float staminaRegen)
@@ -99,7 +97,7 @@ namespace InGame.Player
             }
             
             // Character の回転
-            RotationByDirection(_moveVelocity, deltaTime);
+            RotationByDirection(_rotationDirection, deltaTime);
             
             // スタミナの更新
             UpdateStamina(isDash, deltaTime);
@@ -207,6 +205,8 @@ namespace InGame.Player
             else _moveVelocity.y -= _gravity * deltaTime;
             // 速度の代入
             _rb.linearVelocity = _moveVelocity;
+            // 回転の向きを代入
+            _rotationDirection = _moveVelocity;
         }
 
         /// <summary> 条件付きでスタミナを回復させる </summary>
@@ -322,10 +322,11 @@ namespace InGame.Player
         {
             _vaultTimer = 0;
             _doingVault = true;
+            Stop();
             
             Vector3 dir = _vaultEndPos - _vaultStartPos;
             dir.y = 0;
-            _moveVelocity = dir;
+            _rotationDirection = dir;
         }
 
         void UpdateVault(float deltaTime)
@@ -350,6 +351,12 @@ namespace InGame.Player
         {
             _moveVelocity += force;
             if (_moveVelocity.y > 0) _isGround = false;
+        }
+
+        /// <summary> 速度ベクトルを0にする </summary>
+        public void Stop()
+        {
+            _moveVelocity = Vector3.zero;
         }
 
         private void CheckGround(Collision collision)
@@ -473,6 +480,6 @@ namespace InGame.Player
             Gizmos.DrawLine(p1 + transform.forward * r, p2 + transform.forward * r);
             Gizmos.DrawLine(p1 - transform.forward * r, p2 - transform.forward * r);
         }
-        #endif
+#endif
     }
 }
