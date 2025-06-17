@@ -173,7 +173,7 @@ namespace September.InGame.Common
                 data.Add((pair.Value.DisplayNickName, pair.Value.Score,pair.Value.IsOgre));
             }
             var ordered = data.OrderBy(x => x.isOgre ? 1 : 0)
-                                                      .OrderByDescending(x => x.score)
+                                                      .ThenByDescending(x => x.score)
                                                       .ToList();
             var names = ordered.Select(x => x.playerName).ToArray();
             var scores = ordered.Select(x => x.score).ToArray();
