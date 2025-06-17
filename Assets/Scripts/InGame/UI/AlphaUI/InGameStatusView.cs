@@ -29,7 +29,7 @@ namespace September.InGame.UI
         [Header("Timer Settings")]
         [SerializeField,Label("TimerData")] private GameTimerData _timerData;
 
-        [Header("UI Positions")] [SerializeField, Label("鬼ランプの表示Position")] private Vector2 _ogreUIPosition;
+        //[Header("UI Positions")] [SerializeField, Label("鬼ランプの表示Position")] private Vector2 _ogreUIPosition;
 
         private Slider _hpBarSlider;
         private Slider _staminaBarSlider;
@@ -73,8 +73,8 @@ namespace September.InGame.UI
                 Debug.LogWarning("_killLogText is null");
             
             _ogreUiInstance = Instantiate(_ogreUIPrefab, _mainCanvas.transform);
-            RectTransform rectTransform = _ogreUiInstance.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = _ogreUIPosition;
+            //RectTransform rectTransform = _ogreUiInstance.GetComponent<RectTransform>();
+            //rectTransform.anchoredPosition = _ogreUIPosition;
             _ogreUiInstance.SetActive(false);
             
             _hpBarSlider = Instantiate(_hpBarPrefab.gameObject,_mainCanvas.transform).GetComponent<Slider>();

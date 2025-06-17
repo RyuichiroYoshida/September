@@ -156,6 +156,7 @@ MonoBehaviour:
     - 1
   _warpDestination: {fileID: 0}
   _warpRotation: 180
+  _warpDuration: 0.5
 --- !u!114 &7869641315205178847
 MonoBehaviour:
   m_ObjectHideFlags: 0
