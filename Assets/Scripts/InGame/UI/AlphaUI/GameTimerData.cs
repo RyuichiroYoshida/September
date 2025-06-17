@@ -11,5 +11,6 @@ namespace September.InGame.UI
         [Label("ReadyとGoの間")]public float AfterReadyDelay;
         [Header("ゲーム時間(秒数)")]
         [Label("ゲーム時間")]public float GameTime;
+        [Label("リザルトまでの猶予時間")]public float EndGameDelay;
     }
 }
