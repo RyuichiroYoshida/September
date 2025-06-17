@@ -10,8 +10,7 @@ jobs:
         runs-on: [self-hosted, macOS, X64]
         steps:
             - name: Build
-              working-directory: ../../
-              run: bash build.sh
+              run: bash ../../../build.sh
               continue-on-error: true
             - name: DiscordFailurePost
               if: failure()
