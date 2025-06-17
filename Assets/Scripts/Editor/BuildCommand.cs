@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
@@ -56,6 +57,7 @@ public class BuildCommand
                             ext = "";
                             break;
                     }
+
                     break;
                 default:
                     break;
@@ -63,14 +65,17 @@ public class BuildCommand
         }
 
         //ビルドオプションの成型
-        var option = new BuildPlayerOptions();
-        option.scenes = scenes;
-        option.locationPathName = outpath + "\\" + exeName + ext;
+        var option = new BuildPlayerOptions
+        {
+            scenes = scenes,
+            locationPathName = outpath + "\\" + exeName + ext
+        };
         if (isDevelopment)
         {
             //optionsはビットフラグなので、|で追加していくことができる
             option.options = BuildOptions.Development | BuildOptions.AllowDebugging;
         }
+
         option.target = platform; //ビルドターゲットを設定
 
         // 実行
@@ -86,7 +91,7 @@ public class BuildCommand
         {
             Debug.LogError("BUILD FAILED");
 
-            foreach(var step in report.steps)
+            foreach (var step in report.steps)
             {
                 Debug.Log(step.ToString());
             }
@@ -96,3 +101,4 @@ public class BuildCommand
         }
     }
 }
+#endif
