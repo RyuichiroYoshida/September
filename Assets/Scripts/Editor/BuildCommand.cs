@@ -1,27 +1,21 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-using System.Linq;
+using UnityEditor.Build.Profile;
 
 public class BuildCommand
 {
     public static void Build()
     {
+        var profile = new BuildPlayerWithProfileOptions();
+        
         //プラットフォーム、オプション
         var isDevelopment = true;
-        var platform = BuildTarget.StandaloneWindows;
-
 
         // 出力名とか
         var exeName = PlayerSettings.productName;
-        var ext = ".exe";
-        var outpath = @"C:\Build\";
-
-        // ビルド対象シーンリスト
-        var scenes = EditorBuildSettings.scenes
-            .Where(scene => scene.enabled)
-            .Select(scene => scene.path)
-            .ToArray();
+        var ext = "";
+        var outputPath = @"C:\Build\";
 
         // コマンドラインの引数をパース
         var args = System.Environment.GetCommandLineArgs();
@@ -30,7 +24,7 @@ public class BuildCommand
             switch (args[i])
             {
                 case "-projectPath":
-                    outpath = args[i + 1] + "\\Build";
+                    outputPath = args[i + 1] + "\\Build";
                     break;
                 case "-devmode":
                     isDevelopment = args[i + 1] == "true";
@@ -39,21 +33,25 @@ public class BuildCommand
                     switch (args[i + 1])
                     {
                         case "Windows":
-                            platform = BuildTarget.StandaloneWindows;
                             ext = ".exe";
                             break;
                         case "Mac":
-                            platform = BuildTarget.StandaloneOSX;
                             ext = ".app";
-                            // Macの場合は対象CPUアーキテクチャを設定する
-                            PlayerSettings.SetArchitecture(BuildTargetGroup.Standalone, 2);
+                            var specificBuildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profile/macOS.asset");
+                            if (specificBuildProfile != null)
+                            {
+                                BuildProfile.SetActiveBuildProfile(specificBuildProfile);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("macOS build profile not found, using default.");
+                            }
+                            // PlayerSettings.SetArchitecture(BuildTargetGroup.Standalone, 2);
                             break;
                         case "Android":
-                            platform = BuildTarget.Android;
                             ext = ".apk";
                             break;
                         case "Switch":
-                            platform = BuildTarget.Switch;
                             ext = "";
                             break;
                     }
@@ -63,23 +61,20 @@ public class BuildCommand
                     break;
             }
         }
-
-        //ビルドオプションの成型
-        var option = new BuildPlayerOptions
-        {
-            scenes = scenes,
-            locationPathName = outpath + "\\" + exeName + ext
-        };
+        // プラットフォームの設定
+        profile.buildProfile = BuildProfile.GetActiveBuildProfile();
+        
+        // ビルド成果物の出力パスを設定
+        profile.locationPathName = outputPath + "\\" + exeName + ext;
+        
         if (isDevelopment)
         {
             //optionsはビットフラグなので、|で追加していくことができる
-            option.options = BuildOptions.Development | BuildOptions.AllowDebugging;
+            profile.options = BuildOptions.AllowDebugging | BuildOptions.Development;
         }
 
-        option.target = platform; //ビルドターゲットを設定
-
         // 実行
-        var report = BuildPipeline.BuildPlayer(option);
+        var report = BuildPipeline.BuildPlayer(profile);
 
         // 結果出力
         if (report.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
