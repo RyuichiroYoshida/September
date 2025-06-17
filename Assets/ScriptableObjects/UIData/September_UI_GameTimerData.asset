@@ -16,3 +16,4 @@ MonoBehaviour:
   Duration: 1
   AfterReadyDelay: 1
   GameTime: 60
+  EndGameDelay: 5
