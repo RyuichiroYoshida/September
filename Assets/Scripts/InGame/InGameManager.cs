@@ -144,10 +144,15 @@ namespace September.InGame.Common
             await UniTask.Delay(TimeSpan.FromSeconds(_timerData.EndGameDelay), cancellationToken: _cts.Token);
             _cts.Cancel();
             _cts.Dispose();
-            ShowCursor();
+            RPC_ShowCursor();
             await NetworkManager.Instance.QuitInGame();
         }
 
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_ShowCursor()
+        {
+            ShowCursor();
+        }
         // 鬼変更時のUI更新通知
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetOgreUI(PlayerRef executor, PlayerRef targetRef)
