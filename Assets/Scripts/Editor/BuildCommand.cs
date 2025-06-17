@@ -10,8 +10,6 @@ public class BuildCommand
         var isDevelopment = true;
         var platform = BuildTarget.StandaloneWindows;
 
-        // チーム名
-        var teamID = "Foundation";
 
         // 出力名とか
         var exeName = PlayerSettings.productName;
