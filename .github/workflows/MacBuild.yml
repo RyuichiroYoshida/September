@@ -1,0 +1,17 @@
+name: MacBuild
+on:
+    workflow_dispatch: {}
+    schedule:
+        # 毎日、JST 午前3時に実行
+        - cron: '0 18 * * *'
+
+jobs:
+    build:
+        runs-on: [self-hosted, macOS, X64]
+        steps:
+            - name: Build
+              run: bash ../../../build.sh
+              continue-on-error: true
+            - name: DiscordFailurePost
+              if: failure()
+              run: echo "失敗時通知"

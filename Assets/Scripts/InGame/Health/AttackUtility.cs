@@ -20,11 +20,11 @@ namespace InGame.Health
         {
             Vector3 direction = forward ?? Vector3.forward;
             int count = Physics.OverlapSphereNonAlloc(origin, radius, buffer, mask);
-
             for (int i = 0; i < count; i++)
             {
                 var col = buffer[i];
-                if (!col.TryGetComponent(out IDamageable target)) continue;
+                var target = col.GetComponentInParent<IDamageable>();
+                if (target == null) continue;
 
                 if (target.OwnerPlayerRef.RawEncoded == selfPlayerId) continue;
 
