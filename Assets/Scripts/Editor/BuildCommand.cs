@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.Build.Profile;
@@ -8,7 +9,7 @@ public class BuildCommand
     public static void Build()
     {
         var profile = new BuildPlayerWithProfileOptions();
-        
+
         //プラットフォーム、オプション
         var isDevelopment = true;
 
@@ -16,9 +17,10 @@ public class BuildCommand
         var exeName = PlayerSettings.productName;
         var ext = "";
         var outputPath = @"C:\Build\";
+        var profileName = "";
 
         // コマンドラインの引数をパース
-        var args = System.Environment.GetCommandLineArgs();
+        var args = Environment.GetCommandLineArgs();
         for (var i = 0; i < args.Length; i++)
         {
             switch (args[i])
@@ -33,20 +35,12 @@ public class BuildCommand
                     switch (args[i + 1])
                     {
                         case "Windows":
+                            profileName = "windows";
                             ext = ".exe";
                             break;
                         case "Mac":
+                            profileName = "macOS";
                             ext = ".app";
-                            var specificBuildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profile/macOS.asset");
-                            if (specificBuildProfile != null)
-                            {
-                                BuildProfile.SetActiveBuildProfile(specificBuildProfile);
-                            }
-                            else
-                            {
-                                Debug.LogWarning("macOS build profile not found, using default.");
-                            }
-                            // PlayerSettings.SetArchitecture(BuildTargetGroup.Standalone, 2);
                             break;
                         case "Android":
                             ext = ".apk";
@@ -57,16 +51,17 @@ public class BuildCommand
                     }
 
                     break;
-                default:
-                    break;
             }
         }
+
         // プラットフォームの設定
-        profile.buildProfile = BuildProfile.GetActiveBuildProfile();
-        
+        var assetPath = "Assets/Settings/Build Profile/" + profileName + ".asset";
+        var buildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>(assetPath);
+        profile.buildProfile = buildProfile ?? BuildProfile.GetActiveBuildProfile();
+
         // ビルド成果物の出力パスを設定
         profile.locationPathName = outputPath + "\\" + exeName + ext;
-        
+
         if (isDevelopment)
         {
             //optionsはビットフラグなので、|で追加していくことができる

@@ -103,8 +103,7 @@ public class AssetsImporter
             sepLog.Logger.LogError("Url Get Error: " + urlReq.error);
             return "";
         }
-
-        // TODO: UNIX環境でのパス区切り文字の問題を解決する
+        
         try
         {
             var fileData = urlReq.downloadHandler.data;
