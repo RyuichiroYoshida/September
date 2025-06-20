@@ -17,17 +17,18 @@ namespace InGame.Interact
         [SerializeField] private float _baseInteractTime = 1.0f;
         [SerializeField] private float _ogreInteractMultiplier = 1.0f;
         [SerializeField] private CharacterType _characterType = CharacterType.OkabeWright;
-
+        [SerializeField] private float _interactResponseTimeout = 3f;
+        [SerializeField] private float _interactAngleBuffer = 10f; // 角度に+10°
+        [SerializeField] private float _interactRadiusBuffer = 0.3f; // 距離に+0.3m
+        
+        private bool _isWaitingForResponse = false;
+        private float _interactWaitTimer = 0f;
         private readonly Collider[] _hitBuffer = new Collider[32];
         private InteractableBase _focusedInteractable;
         private GameObject _focusedObj;
-
         private bool _isInteracting = false;
         private float _currentInteractTime = 0f;
         private float _requiredInteractTime = 1.0f;
-
-        public bool IsInteracting => _isInteracting;
-        public float CurrentInteractTime => _currentInteractTime;
 
         private void Awake()
         {
@@ -41,6 +42,18 @@ namespace InGame.Interact
             if (!GetInput(out PlayerInput input)) return;
 
             UpdateFocusedInteractable();
+
+            if (_isWaitingForResponse)
+            {
+                _interactWaitTimer += Runner.DeltaTime;
+                if (_interactWaitTimer >= _interactResponseTimeout)
+                {
+                    Debug.LogWarning("インタラクト応答タイムアウト: ロック解除");
+                    _isWaitingForResponse = false;
+                    _interactWaitTimer = 0f;
+                }
+                return; // 応答待ち中は入力処理を無視
+            }
 
             bool isHolding = input.Buttons.IsSet(PlayerButtons.Interact);
 
@@ -69,47 +82,85 @@ namespace InGame.Interact
         private void UpdateFocusedInteractable()
         {
             _focusedInteractable = null;
-            _focusedObj = null;
 
-            int count = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRadius, _hitBuffer, _interactMask);
-            float closestDistanceSqr = float.MaxValue;
+            // 現在の focusedObj がまだ有効な範囲内かチェック
+            if (_focusedObj != null)
+            {
+                if (!IsInInteractRange(_focusedObj.transform.position, InteractRangeCheckMode.Buffered))
+                {
+                    _focusedObj = null;
+                }
+                else
+                {
+                    _focusedInteractable = _focusedObj.GetComponentInParent<InteractableBase>()
+                                           ?? _focusedObj.GetComponent<InteractableBase>()
+                                           ?? _focusedObj.GetComponentInChildren<InteractableBase>();
+                }
+            }
+
+            // より近い候補があれば差し替え
+            int count = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRadius, _hitBuffer,
+                _interactMask);
+            float closestDistanceSqr = _focusedObj != null
+                ? (_focusedObj.transform.position - _interactOrigin.position).sqrMagnitude
+                : float.MaxValue;
 
             for (int i = 0; i < count; i++)
             {
-                var col = _hitBuffer[i];
-                var go = col.gameObject;
-                var interactable = go.GetComponentInParent<InteractableBase>() 
-                                   ?? go.GetComponent<InteractableBase>() 
+                GameObject go = _hitBuffer[i].gameObject;
+                if (go == _focusedObj) continue;
+
+                var interactable = go.GetComponentInParent<InteractableBase>()
+                                   ?? go.GetComponent<InteractableBase>()
                                    ?? go.GetComponentInChildren<InteractableBase>();
+                if (interactable == null) continue;
 
-                if (!interactable)
-                    continue;
-                
-                var context = new InteractableContext
-                {
-                    Interactor = Object.InputAuthority.RawEncoded,
-                    WorldPosition = _interactOrigin.position,
-                    RequiredInteractTime = GetRequireInteractTime()
-                };
-                if (!interactable.ValidateInteraction(context))
-                    continue;
+                Vector3 targetPos = interactable.transform.position;
+                if (!IsInInteractRange(targetPos)) continue;
 
-                Vector3 direction = (interactable.transform.position - _interactOrigin.position).normalized;
-                float angle = Vector3.Angle(_interactOrigin.forward, direction);
-
-                if (angle > _interactAngle)
-                    continue;
-
-                float distanceSqr = (interactable.transform.position - _interactOrigin.position).sqrMagnitude;
+                float distanceSqr = (targetPos - _interactOrigin.position).sqrMagnitude;
                 if (distanceSqr < closestDistanceSqr)
                 {
                     closestDistanceSqr = distanceSqr;
-                    _focusedInteractable = interactable;
                     _focusedObj = interactable.gameObject;
+                    _focusedInteractable = interactable;
                 }
             }
-            UIController.I.ShowInteractUI(_focusedObj, _focusedObj?.gameObject);
+
+            // UI更新
+            UIController.I.ShowInteractUI(_focusedObj, _focusedObj);
+            if (Runner.IsClient) Debug.Log(_focusedObj is not null);
         }
+
+        /// <summary>
+        /// 指定されたワールド座標が、インタラクトの有効範囲内（前方角度・距離）にあるかチェック
+        /// </summary>
+        private enum InteractRangeCheckMode
+        {
+            Strict, // 通常判定
+            Buffered // バッファ許容
+        }
+
+        private bool IsInInteractRange(Vector3 targetPosition, InteractRangeCheckMode mode = InteractRangeCheckMode.Strict)
+        {
+            Vector3 toTarget = targetPosition - _interactOrigin.position;
+            float radius = mode == InteractRangeCheckMode.Strict
+                ? _interactRadius
+                : _interactRadius + _interactRadiusBuffer;
+
+            float angleLimit = mode == InteractRangeCheckMode.Strict
+                ? _interactAngle
+                : _interactAngle + _interactAngleBuffer;
+
+            return toTarget.sqrMagnitude <= radius * radius;
+            if (toTarget.sqrMagnitude > radius * radius)
+                return false;
+
+            float angle = Vector3.Angle(_interactOrigin.forward, toTarget);
+            return angle <= angleLimit;
+        }
+
+
 
         private void TryStartInteraction()
         {
@@ -129,7 +180,8 @@ namespace InGame.Interact
                 .GetValueOrDefault(_characterType, _baseInteractTime);
 
             float multiplier = 1f;
-            if (PlayerDatabase.Instance.PlayerDataDic.TryGet(Object.InputAuthority, out var playerData) && playerData.IsOgre)
+            if (PlayerDatabase.Instance.PlayerDataDic.TryGet(Object.InputAuthority, out var playerData) &&
+                playerData.IsOgre)
                 multiplier = _ogreInteractMultiplier;
 
             return baseTime * multiplier;
@@ -152,6 +204,12 @@ namespace InGame.Interact
             }
             else
             {
+                if (!_focusedObj) return;
+
+                // 応答待ちモードに入る
+                _isWaitingForResponse = true;
+                _interactWaitTimer = 0f;
+
                 RPC_RequestInteract(context.Interactor, _focusedObj.GetComponent<NetworkObject>(), context.RequiredInteractTime);
             }
         }
@@ -178,7 +236,7 @@ namespace InGame.Interact
                 interactable.Interact(context);
             }
         }
-        
+
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
@@ -188,7 +246,7 @@ namespace InGame.Interact
             // Sphere範囲表示
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(_interactOrigin.position, _interactRadius);
-            
+
             // 前方角度表示
             Vector3 forward = _interactOrigin.forward;
 
@@ -213,6 +271,5 @@ namespace InGame.Interact
             }
         }
 #endif
-
     }
 }
