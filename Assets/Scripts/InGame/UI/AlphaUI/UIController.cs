@@ -1,46 +1,84 @@
 using System;
-using UnityEngine;
 using UniRx;
+using UnityEngine;
 
-namespace September.InGame.UI
+namespace September.InGame.UI 
 {
     // 各UIのイベントを所持するクラス
     // 登録も自身で行う
-    public class UIController : MonoBehaviour
+    public class UIController : SingletonMonoBehaviour<UIController>
     {
-        [SerializeField] private UIView _uiView;
         #region イベント
 
-        private readonly Subject<Unit> _onClickShowOptionButton = new();
-        private readonly Subject<Unit> _onClickCloseOptionButton = new();
-        private readonly Subject<int> _sliderValueChanged = new();
+        private readonly Subject<bool> _onClickOptionButton = new();
+        private readonly ReactiveProperty<int> _onChangeSliderValue = new();
+        private readonly Subject<Unit> _onStartTimer = new();
+        private readonly Subject<string> _onNoticeKillLog = new();
+        private readonly ReactiveProperty<bool> _onShowOgreUI = new();
+        private readonly ReactiveProperty<float> _onChangeStaminaValue = new();
+        private readonly Subject<Unit> _onGameStart = new();
+        private readonly Subject<(bool, GameObject)> _isInteracting = new();
+        private readonly ReactiveProperty<float> _onChangeInteractProgress = new();
 
         #endregion
         
         # region 外部公開プロパティ
         
-        public IObservable<Unit> OnClickShowOptionButton => _onClickShowOptionButton;
-        public IObservable<Unit> OnClickCloseOptionButton => _onClickCloseOptionButton;
-        public IObservable<int> OnSliderValueChanged => _sliderValueChanged;
+        public IObservable<bool> OnClickOptionButton => _onClickOptionButton;
+        public IReadOnlyReactiveProperty<int> OnChangeSliderValue => _onChangeSliderValue;
+        public IObservable<Unit> OnStartTimer => _onStartTimer;
+        public IObservable<string> OnNoticeKillLog => _onNoticeKillLog;
+        public IObservable<bool> OnShowOgreUI => _onShowOgreUI;
+        public IReadOnlyReactiveProperty<float> OnChangeStaminaValue => _onChangeStaminaValue;
+        
+        public IObservable<Unit> OnGameStart => _onGameStart;
+        public IObservable<(bool, GameObject)> IsInteracting => _isInteracting;
+        public IReadOnlyReactiveProperty<float> OnChangeInteractProgress => _onChangeInteractProgress;
         
         #endregion
-
-        private void Start()
+        
+        public void SetUpStartUI()
         {
-            Initialize();
+            _onGameStart.OnNext(Unit.Default);
         }
 
-        private void Initialize()
+        public void ShowNoticeKillLog(string text)
         {
-            OnSliderValueChanged.Subscribe(hp => _uiView.ChangeHp(hp));
-            OnClickShowOptionButton.Subscribe(_ => _uiView.ShowOptionUI());
-            OnClickCloseOptionButton.Subscribe(_ => _uiView.CloseOptionUI());
+            _onNoticeKillLog.OnNext(text);
+        }
+        
+        public void StartTimer()
+        {
+            _onStartTimer.OnNext(Unit.Default);
         }
 
-        // UIを動的に生成する
-        private void GameStart()
+        public void ShowOgreLamp(bool isShow)
         {
-            _uiView.CreateMainUI();
+            _onShowOgreUI.Value = isShow;
+        }
+
+        public void ChangeSliderValue(int value)
+        {
+            _onChangeSliderValue.Value = value;
+        }
+
+        public void ChangeStaminaValue(float value)
+        {
+            _onChangeStaminaValue.Value = value;
+        }
+        
+        public void ShowInteractUI(bool isShow, GameObject target = null)
+        {
+            _isInteracting.OnNext((isShow, target));
+        }
+        
+        public void SetInteractProgress(float progress)
+        {
+            _onChangeInteractProgress.Value = progress;
+            if (progress >= 1.0f)
+            {
+                _isInteracting.OnNext((false, null));
+            }
         }
     }
 }

@@ -152,4 +152,9 @@ namespace September.InGame.Common
             locator.Register<ISpawner>(this);
         }
     }
+
+    public interface IRegisterableService
+    {
+        void Register(ServiceLocator locator);
+    }
 }

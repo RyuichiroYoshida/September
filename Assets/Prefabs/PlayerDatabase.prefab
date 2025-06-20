@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2337424577740485690}
-  - component: {fileID: 2990249678136896890}
-  - component: {fileID: 2186660138948016346}
+  - component: {fileID: -1770104000342906910}
+  - component: {fileID: -7799034437319313603}
   m_Layer: 0
   m_Name: PlayerDatabase
   m_TagString: Untagged
@@ -33,7 +33,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2990249678136896890
+--- !u!114 &-1770104000342906910
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -45,9 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34381778aee28a6429d1a78efe7ee4b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _PlayerDataDic:
-    _items: []
---- !u!114 &2186660138948016346
+--- !u!114 &-7799034437319313603
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -59,10 +57,10 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SortKey: 3423660852
+  SortKey: 4109770983
   ObjectInterest: 1
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 2990249678136896890}
+  - {fileID: -1770104000342906910}
   ForceRemoteRenderTimeframe: 0

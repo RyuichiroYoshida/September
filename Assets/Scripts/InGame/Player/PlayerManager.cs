@@ -1,4 +1,5 @@
 using Fusion;
+using InGame.Health;
 using September.Common;
 using UnityEngine;
 
@@ -7,16 +8,39 @@ namespace InGame.Player
     /// <summary>
     /// Playerのどこまでの機能を入れるかは未定
     /// </summary>
-    public class PlayerManager : NetworkBehaviour
+    public class PlayerManager : NetworkBehaviour, IAfterTick
     {
-        [SerializeField] PlayerStatus _playerStatus;
+        [SerializeField] PlayerParameter _playerParameter;
+        [SerializeField] GameObject _colliderObj;
+        [SerializeField] GameObject _meshObj;
+        [SerializeField] private float _stunTime; // PlayerParameter に入れるべきか
         
         PlayerMovement _playerMovement;
-        PlayerCameraController _playerCameraController;
+        CameraController _cameraController;
         PlayerHealth _playerHealth;
         GameInput _gameInput;
+        PlayerControlState _playerControlState = PlayerControlState.Normal;
+        TickTimer _stunTickTimer;
+
+        private bool _shouldWarp = false;
+        private Vector3 _targetPosition;
+        private Quaternion _targetRotation;
+
+        public void SetWarpTarget(Vector3 targetPosition,Quaternion targetRotation)
+        {
+            if(!HasStateAuthority)
+                return;
+            
+            _targetPosition = targetPosition;
+            _targetRotation = targetRotation;
+            _shouldWarp = true;
+        }
         
         public bool IsLocalPlayer => HasInputAuthority;
+        public PlayerParameter PlayerParameter => _playerParameter;
+        
+        [Networked] private NetworkButtons PreviousButtons { get; set; }
+        [Networked, HideInInspector] public NetworkBool IsStun { get; private set; }
 
         private void Start()
         {
@@ -24,10 +48,6 @@ namespace InGame.Player
             {
                 _gameInput = new GameInput();
                 _gameInput.Enable();
-                
-                // カーソルを消す todo:ゲームロジックがやるべき
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
             }
         }
 
@@ -42,19 +62,20 @@ namespace InGame.Player
             if (TryGetComponent(out PlayerMovement movement))
             {
                 _playerMovement = movement;
-                movement.Init(_playerStatus.Stamina, _playerStatus.StaminaConsumption, _playerStatus.StaminaRegen);
+                movement.Init(_playerParameter.Stamina, _playerParameter.StaminaConsumption, _playerParameter.StaminaRegen);
             }
 
-            if (TryGetComponent(out PlayerCameraController cameraController))
+            if (TryGetComponent(out CameraController cameraController))
             {
-                _playerCameraController = cameraController;
+                this._cameraController = cameraController;
                 cameraController.Init(IsLocalPlayer);
             }
 
             if (TryGetComponent(out PlayerHealth health))
             {
                 _playerHealth = health;
-                health.Init(_playerStatus.Health);
+                health.Init(_playerParameter.Health);
+                health.OnDeath += OnDeath;
             }
         }
 
@@ -65,20 +86,89 @@ namespace InGame.Player
             {
                 if (_gameInput.Player.Aim.triggered)
                 {
-                    _playerCameraController.CameraReset();
+                    _cameraController.CameraReset();
                 }
             
-                _playerCameraController.RotateCamera(_gameInput.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
+                _cameraController.RotateCamera(_gameInput.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
         }
 
         public override void FixedUpdateNetwork()
         {
-            // プレイヤーの入力の管理
-            if (GetInput<PlayerInput>(out var input))
+            if (HasStateAuthority)
             {
-                _playerMovement.Move(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), input.CameraYaw, Runner.DeltaTime);
+                if (_stunTickTimer.Expired(Runner) && IsStun)
+                {
+                    Restart();
+                }
             }
+            
+            // プレイヤーの入力の管理
+            if (GetInput<PlayerInput>(out var input) && !IsStun && _playerControlState == PlayerControlState.Normal)
+            {
+                // player movement に入力を与えて更新する
+                _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
+                    input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
+            }
+
+            if (_shouldWarp)
+            {
+                transform.position = _targetPosition;
+                transform.rotation = _targetRotation;
+                _cameraController.CameraReset();
+                _shouldWarp = false;
+            }
+        }
+
+        public void AfterTick()
+        {
+            PreviousButtons = GetInput<PlayerInput>().GetValueOrDefault().Buttons;
+        }
+
+        /// <summary> 気絶が終わったとき </summary>
+        void Restart()
+        {
+            IsStun = false;
+            _playerHealth.IsInvincible = false;
+        }
+
+        void OnDeath(HitData lastHitData)
+        {
+            IsStun = true;
+            _stunTickTimer = TickTimer.CreateFromSeconds(Runner, _stunTime);
+            _playerHealth.IsInvincible = true;
+        }
+
+        public void SetControlState(PlayerControlState controlState)
+        {
+            _playerControlState = controlState;
+
+            if (_playerControlState == PlayerControlState.ForcedMovement)
+            {
+                _playerMovement.Stop();
+            }
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void RPC_SetColliderActive(NetworkBool active)
+        {
+            _colliderObj.SetActive(active);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void RPC_SetMeshActive(NetworkBool active)
+        {
+            _meshObj.SetActive(active);
+        }
+
+        /// <summary> スタンの経過時間を取得する </summary>
+        public float GetRemainingStunTime => _stunTickTimer.RemainingTime(Runner) ?? 0;
+        
+        public enum PlayerControlState
+        {
+            Normal,
+            InputLocked,
+            ForcedMovement
         }
     }
 }

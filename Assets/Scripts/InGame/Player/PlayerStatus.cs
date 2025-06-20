@@ -1,25 +1,46 @@
+using System;
+using UniRx;
 using UnityEngine;
 
 namespace InGame.Player
 {
-    [CreateAssetMenu(fileName = "PlayerStatus", menuName = "Scriptable Objects/PlayerStatus")]
-    public class PlayerStatus : ScriptableObject
+    // いろんなPlayerのデータの中継
+    [RequireComponent(typeof(PlayerManager))]
+    [RequireComponent(typeof(PlayerHealth))]
+    [RequireComponent(typeof(PlayerMovement))]
+    public class PlayerStatus : MonoBehaviour
     {
-        [SerializeField] string _characterName;
-        [SerializeField] int _health;
-        [SerializeField] float _speed;
-        [SerializeField] float _stamina;
-        [SerializeField] private float _staminaConsumption;
-        [SerializeField] float _staminaRegen;
-        [SerializeField] int _attackDamage;
-        [SerializeField] int _attackDamageOgre;
+        PlayerManager _playerManager;
         
-        public int Health => _health;
-        public float Speed => _speed;
-        public float Stamina => _stamina;
-        public float StaminaConsumption => _staminaConsumption;
-        public float StaminaRegen => _staminaRegen;
-        public int AttackDamage => _attackDamage;
-        public int AttackDamageOgre => _attackDamageOgre;
+        public int MaxHealth { get; private set; }
+        public float MaxStamina { get; private set; }
+        public int AttackDamage { get; private set; }
+        public int AttackDamageOgre { get; private set; }
+        
+        public bool ISLocalPlayer => _playerManager && _playerManager.IsLocalPlayer;
+        
+        
+        #region Events
+
+        private readonly ReactiveProperty<int> _currentHealth = new(0);
+        private readonly ReactiveProperty<float> _currentStamina = new(0);
+        public ReadOnlyReactiveProperty<int> CurrentHealth => _currentHealth.ToReadOnlyReactiveProperty();
+        public ReadOnlyReactiveProperty<float> CurrentStamina => _currentStamina.ToReadOnlyReactiveProperty();
+        
+        #endregion
+
+        private void Start()
+        {
+            _playerManager = GetComponent<PlayerManager>();
+            AttackDamage = _playerManager.PlayerParameter.AttackDamage;
+            
+            var health = GetComponent<PlayerHealth>();
+            MaxHealth = _playerManager.PlayerParameter.Health;
+            health.OnHealthChanged.Subscribe(hp => _currentHealth.Value = hp).AddTo(this);
+            
+            var movement = GetComponent<PlayerMovement>();
+            MaxStamina = _playerManager.PlayerParameter.Stamina;
+            movement.OnStaminaChanged.Subscribe(stamina => _currentStamina.Value = stamina).AddTo(this);
+        }
     }
 }

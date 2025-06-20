@@ -79,14 +79,13 @@ namespace InGame.Player.Ability
 
         private void ProcessPhase(float deltaTime)
         {
-            Debug.Log($"[{AbilityName}] Processing phase: {Phase}, DeltaTime: {deltaTime}");
             switch (Phase)
             {
                 case AbilityPhase.None:
                     break;
                 case AbilityPhase.Started:
-                    OnStart();
                     Phase = AbilityPhase.Active;
+                    OnStart();
                     break;
                 case AbilityPhase.Active:
                     OnUpdate(deltaTime);
@@ -156,13 +155,15 @@ namespace InGame.Player.Ability
 
         private void ExecuteEndAbility()
         {
-            Debug.Log($"[{AbilityName}] Ended ability execution.");
             OnEndAbility();
             OnEndAbilityEvent?.Invoke();
             Phase = AbilityPhase.Ended;
         }
 
-        public abstract void ApplySharedState(AbilitySharedState sharedState);
+        public virtual void ApplySharedState(AbilitySharedState sharedState)
+        {
+            if (sharedState.IsFloorActive == 1) StartCooldown(_cooldown);
+        }
     }
 
     /// <summary>
@@ -206,7 +207,6 @@ namespace InGame.Player.Ability
 
         public void Tick(float deltaTime)
         {
-            Debug.Log($"Ticking cooldown: {_cooldownTimer} seconds remaining.");
             if (!CurrentCooldownState.Equals(CooldownState.CountDowning))
                 return;
 

@@ -21,24 +21,22 @@ namespace September.Lobby
         
         public override void Spawned()
         {
-            Runner.AddCallbacks(this);
             _roomNameText.text = Runner.SessionInfo.Name;
-            AddPlayerData(Runner.LocalPlayer);
-            var players = Runner.ActivePlayers.Reverse();
-            foreach (var playerRef in players)
+            Runner.AddCallbacks(this);
+            PlayerDatabase.Instance.AddPlayerData(Runner.LocalPlayer);
+            foreach (var pr in Runner.ActivePlayers.Reverse())
             {
-                AddContents(playerRef);
+                AddContents(pr);
             }
-
             if (Runner.IsServer)
             {
-                _startButton.onClick.AddListener(() => GameLauncher.Instance.StartGame().Forget());
+                _startButton.onClick.AddListener(() => NetworkManager.Instance.StartGame().Forget());
             }
             else
             {
                 _startButton.gameObject.SetActive(false);
             }
-            _quitButton.onClick.AddListener(() => GameLauncher.Instance.QuitLobby().Forget());
+            _quitButton.onClick.AddListener(() => NetworkManager.Instance.QuitLobby().Forget());
             PlayerDatabase.Instance.ChangedDataAction += ChangeLobbyPlayerUI;
         }
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -46,25 +44,13 @@ namespace September.Lobby
             Runner.RemoveCallbacks(this);
             PlayerDatabase.Instance.ChangedDataAction -= ChangeLobbyPlayerUI;
         }
-
-        void AddPlayerData(PlayerRef playerRef)
-        {
-            if (Runner.LocalPlayer != playerRef) return;
-            
-            var playerData = new PlayerData
-            {
-                NickName = PlayerNetworkSettings.NickName,
-                CharacterType = CharacterType.OkabeWright
-            };
-            PlayerDatabase.Instance.Rpc_SetPlayerData(playerRef, playerData);
-        }
+        
         void AddContents(PlayerRef playerRef)
         {
             if (_lobbyPlayerUIDic.ContainsKey(playerRef)) return;
             if (Runner.LocalPlayer == playerRef)
             {
                 _lobbyPlayerUIDic.Add(playerRef, Instantiate(_selfUIPrefab, _contentTransform));
-                _lobbyPlayerUIDic[playerRef].NameText.text = PlayerNetworkSettings.NickName;
                 _lobbyPlayerUIDic[playerRef].Dropdown.onValueChanged
                     .AddListener(num =>
                     {
@@ -91,27 +77,25 @@ namespace September.Lobby
             if (HasStateAuthority) PlayerDatabase.Instance.PlayerDataDic.Remove(player);
         }
         
-        void ChangeLobbyPlayerUI(PlayerRef playerRef, PlayerData playerData)
+        void ChangeLobbyPlayerUI(NetworkDictionary<PlayerRef, SessionPlayerData> dictionary)
         {
-            if (!_lobbyPlayerUIDic.TryGetValue(playerRef, out var value)) return;
-            value.NameText.text = playerData.NickName.Value;
-            if (value.JobText) value.JobText.text = CharacterDataContainer.Instance.GetCharacterData(playerData.CharacterType).DisplayName;
+            foreach (var kv in dictionary)
+            {
+                if (!_lobbyPlayerUIDic.TryGetValue(kv.Key, out var value)) return;
+                value.NameText.text = kv.Value.DisplayNickName;
+                if (value.JobText) value.JobText.text = CharacterDataContainer.Instance.GetCharacterData(kv.Value.CharacterType).DisplayName;
+            }
         }
-        
-        #region 使わない
-        public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
-        {
-    
-        }
-        public void OnConnectedToServer(NetworkRunner runner)
-        {
 
-        }
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
         {
         }
 
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
+        {
+        }
+        
+        public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
         }
 
@@ -147,6 +131,10 @@ namespace September.Lobby
         {
         }
 
+        public void OnConnectedToServer(NetworkRunner runner)
+        {
+        }
+
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
         {
         }
@@ -166,6 +154,5 @@ namespace September.Lobby
         public void OnSceneLoadStart(NetworkRunner runner)
         {
         }
-        #endregion
     }
 }

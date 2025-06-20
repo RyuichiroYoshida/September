@@ -6,23 +6,20 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/01_Title.unity
-    guid: 068bee0271ef7d84cbe6c333a6733498
+    path: Assets/Scenes/NetworkMock/Title.unity
+    guid: 937e5083d8f462c4d88a95b995d49dbc
   - enabled: 1
-    path: Assets/Scenes/02_InGame.unity
-    guid: d8f8ac74b0099c247abdc2249550bddb
+    path: Assets/Scenes/NetworkMock/InGameMock.unity
+    guid: 41bc177a3815d694c9753c8e79acda82
   - enabled: 1
     path: Assets/Scenes/03_Result.unity
     guid: d30fbb1209be87e47a8ac5b6026d21bc
   - enabled: 1
-    path: Assets/Scenes/NetworkMock/TitleMock.unity
-    guid: 937e5083d8f462c4d88a95b995d49dbc
-  - enabled: 1
     path: Assets/Scenes/NetworkMock/Lobby.unity
     guid: 6a8a1e02f6e06b745b60399e1fa33c1a
   - enabled: 1
-    path: Assets/Scenes/NetworkMock/InGameMock.unity
-    guid: 41bc177a3815d694c9753c8e79acda82
+    path: Assets/Scenes/NetworkMock/Result.unity
+    guid: 107e36559bf111947a773090b3babf2b
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: f6cb3f85ebbf85c45b9274aa20555b46, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

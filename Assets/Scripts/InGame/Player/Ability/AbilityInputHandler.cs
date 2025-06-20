@@ -155,6 +155,7 @@ namespace InGame.Player.Ability
         None,
         クリエイトフロア,
         チャージショット,
+        通常攻撃,
         クリエイトシールド,
         全てのアビリティ,
     }
