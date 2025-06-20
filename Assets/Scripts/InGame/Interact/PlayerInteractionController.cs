@@ -18,6 +18,8 @@ namespace InGame.Interact
         [SerializeField] private float _ogreInteractMultiplier = 1.0f;
         [SerializeField] private CharacterType _characterType = CharacterType.OkabeWright;
         [SerializeField] private float _interactResponseTimeout = 3f;
+        [SerializeField] private float _interactAngleBuffer = 10f; // 角度に+10°
+        [SerializeField] private float _interactRadiusBuffer = 0.3f; // 距離に+0.3m
         
         private bool _isWaitingForResponse = false;
         private float _interactWaitTimer = 0f;
@@ -84,7 +86,7 @@ namespace InGame.Interact
             // 現在の focusedObj がまだ有効な範囲内かチェック
             if (_focusedObj != null)
             {
-                if (!IsInInteractRange(_focusedObj.transform.position))
+                if (!IsInInteractRange(_focusedObj.transform.position, InteractRangeCheckMode.Buffered))
                 {
                     _focusedObj = null;
                 }
@@ -133,16 +135,31 @@ namespace InGame.Interact
         /// <summary>
         /// 指定されたワールド座標が、インタラクトの有効範囲内（前方角度・距離）にあるかチェック
         /// </summary>
-        private bool IsInInteractRange(Vector3 targetPosition)
+        private enum InteractRangeCheckMode
+        {
+            Strict, // 通常判定
+            Buffered // バッファ許容
+        }
+
+        private bool IsInInteractRange(Vector3 targetPosition, InteractRangeCheckMode mode = InteractRangeCheckMode.Strict)
         {
             Vector3 toTarget = targetPosition - _interactOrigin.position;
+            float radius = mode == InteractRangeCheckMode.Strict
+                ? _interactRadius
+                : _interactRadius + _interactRadiusBuffer;
 
-            if (toTarget.sqrMagnitude > _interactRadius * _interactRadius)
+            float angleLimit = mode == InteractRangeCheckMode.Strict
+                ? _interactAngle
+                : _interactAngle + _interactAngleBuffer;
+
+            return toTarget.sqrMagnitude <= radius * radius;
+            if (toTarget.sqrMagnitude > radius * radius)
                 return false;
 
             float angle = Vector3.Angle(_interactOrigin.forward, toTarget);
-            return angle <= _interactAngle;
+            return angle <= angleLimit;
         }
+
 
 
         private void TryStartInteraction()
