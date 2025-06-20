@@ -17,17 +17,16 @@ namespace InGame.Interact
         [SerializeField] private float _baseInteractTime = 1.0f;
         [SerializeField] private float _ogreInteractMultiplier = 1.0f;
         [SerializeField] private CharacterType _characterType = CharacterType.OkabeWright;
-
+        [SerializeField] private float _interactResponseTimeout = 3f;
+        
+        private bool _isWaitingForResponse = false;
+        private float _interactWaitTimer = 0f;
         private readonly Collider[] _hitBuffer = new Collider[32];
         private InteractableBase _focusedInteractable;
         private GameObject _focusedObj;
-
         private bool _isInteracting = false;
         private float _currentInteractTime = 0f;
         private float _requiredInteractTime = 1.0f;
-
-        public bool IsInteracting => _isInteracting;
-        public float CurrentInteractTime => _currentInteractTime;
 
         private void Awake()
         {
@@ -41,6 +40,18 @@ namespace InGame.Interact
             if (!GetInput(out PlayerInput input)) return;
 
             UpdateFocusedInteractable();
+
+            if (_isWaitingForResponse)
+            {
+                _interactWaitTimer += Runner.DeltaTime;
+                if (_interactWaitTimer >= _interactResponseTimeout)
+                {
+                    Debug.LogWarning("インタラクト応答タイムアウト: ロック解除");
+                    _isWaitingForResponse = false;
+                    _interactWaitTimer = 0f;
+                }
+                return; // 応答待ち中は入力処理を無視
+            }
 
             bool isHolding = input.Buttons.IsSet(PlayerButtons.Interact);
 
@@ -177,8 +188,12 @@ namespace InGame.Interact
             else
             {
                 if (!_focusedObj) return;
-                RPC_RequestInteract(context.Interactor, _focusedObj.GetComponent<NetworkObject>(),
-                    context.RequiredInteractTime);
+
+                // 応答待ちモードに入る
+                _isWaitingForResponse = true;
+                _interactWaitTimer = 0f;
+
+                RPC_RequestInteract(context.Interactor, _focusedObj.GetComponent<NetworkObject>(), context.RequiredInteractTime);
             }
         }
 
