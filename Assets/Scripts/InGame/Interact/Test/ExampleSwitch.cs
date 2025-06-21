@@ -17,8 +17,7 @@ namespace InGame.Interact.Test
         protected override void OnInteract(IInteractableContext context)
         {
             _isInUse = true;
-            Debug.Log($"[ExampleSwitch] {context.Interactor} がインタラクトしました（{context.RequiredInteractTime:F2}秒）");
-
+            Debug.Log($"[ExampleSwitch] {context.Interactor} がインタラクトしました");
             // 実処理...
         }
     }

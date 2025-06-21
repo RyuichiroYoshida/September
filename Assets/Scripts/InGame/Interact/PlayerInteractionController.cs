@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using September.Common;
@@ -25,9 +26,10 @@ namespace InGame.Interact
         private float _interactWaitTimer = 0f;
         private readonly Collider[] _hitBuffer = new Collider[32];
         private InteractableBase _focusedObj;
-        private bool _isInteracting = false;
+        private bool _isExecutingInteraction = false;
         private float _currentInteractTime = 0f;
         private float _requiredInteractTime = 1.0f;
+        private bool isHoldingInteract = false;
 
         private void Awake()
         {
@@ -41,10 +43,26 @@ namespace InGame.Interact
 
             // ローカルでインタラクト対象を毎フレーム検出（カメラ向きで変化するため）
             UpdateFocusedInteractable();
-
-            if (_isInteracting)
+            
+            if (isHoldingInteract)
             {
-                UIController.I.SetInteractProgress(Mathf.Clamp01(_currentInteractTime / _requiredInteractTime));
+                if (!_isExecutingInteraction)
+                    TryStartInteraction();
+
+                if (_isExecutingInteraction)
+                {
+                    _currentInteractTime += Runner.DeltaTime;
+                    if (_currentInteractTime >= _requiredInteractTime)
+                    {
+                        CompleteInteraction();
+                        UIController.I.ShowInteractUI(false); // 終了時に消すだけならここでもOK
+                    }
+                    UIController.I.SetInteractProgress(Mathf.Clamp01(_currentInteractTime / _requiredInteractTime));
+                }
+            }
+            else
+            {
+                CancelInteraction();
             }
         }
 
@@ -66,27 +84,7 @@ namespace InGame.Interact
                 return;
             }
 
-            bool isHolding = input.Buttons.IsSet(PlayerButtons.Interact);
-
-            if (isHolding)
-            {
-                if (!_isInteracting)
-                    TryStartInteraction();
-
-                if (_isInteracting)
-                {
-                    _currentInteractTime += Runner.DeltaTime;
-                    if (_currentInteractTime >= _requiredInteractTime)
-                    {
-                        CompleteInteraction();
-                        UIController.I.ShowInteractUI(false); // 終了時に消すだけならここでもOK
-                    }
-                }
-            }
-            else
-            {
-                CancelInteraction();
-            }
+            isHoldingInteract = input.Buttons.IsSet(PlayerButtons.Interact);
         }
 
         private void UpdateFocusedInteractable()
@@ -108,7 +106,7 @@ namespace InGame.Interact
 
             for (int i = 0; i < count; i++)
             {
-                GameObject go = _hitBuffer[i].gameObject;
+                var go = _hitBuffer[i].gameObject;
                 var interactable = go.GetComponentInParent<InteractableBase>()
                                    ?? go.GetComponent<InteractableBase>()
                                    ?? go.GetComponentInChildren<InteractableBase>();
@@ -127,7 +125,11 @@ namespace InGame.Interact
 
             if (_focusedObj)
             {
-                UIController.I.ShowInteractUI(!_focusedObj.IsInCooldown(), _focusedObj?.gameObject);
+                var context = new InteractableContext
+                {
+                    Interactor = Object.InputAuthority.RawEncoded,
+                };
+                UIController.I.ShowInteractUI(_focusedObj.ValidateInteraction(context), _focusedObj?.gameObject);
             }
             else
             {
@@ -166,11 +168,20 @@ namespace InGame.Interact
 
         private void TryStartInteraction()
         {
-            if (!_focusedObj || _focusedObj.IsInCooldown()) return;
+            if (!_focusedObj) return;
             
             _requiredInteractTime = GetRequireInteractTime();
+            var context = new InteractableContext
+            {
+                Interactor = Object.InputAuthority.RawEncoded,
+            };
+            if (!_focusedObj.ValidateInteraction(context))
+            {
+                return;
+            }
+            
             _currentInteractTime = 0f;
-            _isInteracting = true;
+            _isExecutingInteraction = true;
         }
 
         private float GetRequireInteractTime()
@@ -190,13 +201,11 @@ namespace InGame.Interact
 
         private void CompleteInteraction()
         {
-            _isInteracting = false;
+            _isExecutingInteraction = false;
 
             var context = new InteractableContext
             {
                 Interactor = Object.InputAuthority.RawEncoded,
-                WorldPosition = _interactOrigin.position,
-                RequiredInteractTime = _requiredInteractTime
             };
 
             if (HasStateAuthority)
@@ -223,19 +232,19 @@ namespace InGame.Interact
                 _interactWaitTimer = 0f;
 
                 Debug.Log($"[Client] RPC_RequestInteract 送信: {context.Interactor} -> {_focusedObj.name} NetObj is null? {!netObj}");
-                RPC_RequestInteract(context.Interactor, netObj, context.RequiredInteractTime);
+                RPC_RequestInteract(context.Interactor, netObj);
             }
         }
 
         private void CancelInteraction()
         {
-            _isInteracting = false;
+            _isExecutingInteraction = false;
             _currentInteractTime = 0f;
             UIController.I.SetInteractProgress(0f);
         }
 
         [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-        private void RPC_RequestInteract(int interactor, NetworkObject target, float interactTime)
+        private void RPC_RequestInteract(int interactor, NetworkObject target)
         {
             Debug.Log($"[PlayerInteractionController] <UNK>: {interactor} -> {target.name}");
             if (target && target.TryGetComponent(out InteractableBase interactable))
@@ -243,8 +252,6 @@ namespace InGame.Interact
                 var context = new InteractableContext
                 {
                     Interactor = interactor,
-                    WorldPosition = transform.position,
-                    RequiredInteractTime = interactTime
                 };
 
                 interactable.Interact(context);
