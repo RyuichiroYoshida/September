@@ -91,14 +91,7 @@ namespace InGame.Interact
         {
             var currentTime = Runner ? Runner.SimulationTime : Time.time;
             float timeSinceLast = currentTime - LastInteractTime;
-            if (timeSinceLast < LastUsedCooldownTime)
-            {
-                float remaining = LastUsedCooldownTime - timeSinceLast;
-                Debug.Log($"[InteractableBase] クールダウン中: 残り {remaining:F2} 秒");
-                return true;
-            }
-
-            return false;
+            return timeSinceLast < LastUsedCooldownTime;
         }
 
     }

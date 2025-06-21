@@ -148,12 +148,12 @@ MonoBehaviour:
     keys: 0000000001000000
     values:
     - 1
-    - 1
+    - 5
   _cooldownTimeDictionary:
     keys: 0000000001000000
     values:
     - 1
-    - 1
+    - 5
   _warpDestination: {fileID: 0}
   _warpRotation: 180
   _warpDuration: 0.5
