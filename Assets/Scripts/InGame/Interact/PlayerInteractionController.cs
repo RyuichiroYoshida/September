@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using September.Common;
@@ -24,16 +25,45 @@ namespace InGame.Interact
         private bool _isWaitingForResponse = false;
         private float _interactWaitTimer = 0f;
         private readonly Collider[] _hitBuffer = new Collider[32];
-        private InteractableBase _focusedInteractable;
-        private GameObject _focusedObj;
-        private bool _isInteracting = false;
+        private InteractableBase _focusedObj;
+        private bool _isExecutingInteraction = false;
         private float _currentInteractTime = 0f;
         private float _requiredInteractTime = 1.0f;
+        private bool isHoldingInteract = false;
 
         private void Awake()
         {
             if (!_interactOrigin)
                 _interactOrigin = transform;
+        }
+        
+        private void Update()
+        {
+            if (!HasInputAuthority) return;
+
+            // ローカルでインタラクト対象を毎フレーム検出（カメラ向きで変化するため）
+            UpdateFocusedInteractable();
+            
+            if (isHoldingInteract)
+            {
+                if (!_isExecutingInteraction)
+                    TryStartInteraction();
+
+                if (_isExecutingInteraction)
+                {
+                    _currentInteractTime += Runner.DeltaTime;
+                    if (_currentInteractTime >= _requiredInteractTime)
+                    {
+                        CompleteInteraction();
+                        UIController.I.ShowInteractUI(false); // 終了時に消すだけならここでもOK
+                    }
+                    UIController.I.SetInteractProgress(Mathf.Clamp01(_currentInteractTime / _requiredInteractTime));
+                }
+            }
+            else
+            {
+                CancelInteraction();
+            }
         }
 
         public override void FixedUpdateNetwork()
@@ -41,8 +71,7 @@ namespace InGame.Interact
             if (!HasInputAuthority) return;
             if (!GetInput(out PlayerInput input)) return;
 
-            UpdateFocusedInteractable();
-
+            // Fusionのシミュレーション内でのみ行う処理
             if (_isWaitingForResponse)
             {
                 _interactWaitTimer += Runner.DeltaTime;
@@ -52,64 +81,32 @@ namespace InGame.Interact
                     _isWaitingForResponse = false;
                     _interactWaitTimer = 0f;
                 }
-                return; // 応答待ち中は入力処理を無視
+                return;
             }
 
-            bool isHolding = input.Buttons.IsSet(PlayerButtons.Interact);
-
-            if (isHolding)
-            {
-                if (!_isInteracting)
-                    TryStartInteraction();
-
-                if (_isInteracting)
-                {
-                    _currentInteractTime += Runner.DeltaTime;
-                    UIController.I.SetInteractProgress(Mathf.Clamp01(_currentInteractTime / _requiredInteractTime));
-                    if (_currentInteractTime >= _requiredInteractTime)
-                    {
-                        CompleteInteraction();
-                        UIController.I.ShowInteractUI(false);
-                    }
-                }
-            }
-            else
-            {
-                CancelInteraction();
-            }
+            isHoldingInteract = input.Buttons.IsSet(PlayerButtons.Interact);
         }
 
         private void UpdateFocusedInteractable()
         {
-            _focusedInteractable = null;
-
             // 現在の focusedObj がまだ有効な範囲内かチェック
-            if (_focusedObj != null)
+            if (_focusedObj)
             {
                 if (!IsInInteractRange(_focusedObj.transform.position, InteractRangeCheckMode.Buffered))
                 {
                     _focusedObj = null;
-                }
-                else
-                {
-                    _focusedInteractable = _focusedObj.GetComponentInParent<InteractableBase>()
-                                           ?? _focusedObj.GetComponent<InteractableBase>()
-                                           ?? _focusedObj.GetComponentInChildren<InteractableBase>();
                 }
             }
 
             // より近い候補があれば差し替え
             int count = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRadius, _hitBuffer,
                 _interactMask);
-            float closestDistanceSqr = _focusedObj != null
-                ? (_focusedObj.transform.position - _interactOrigin.position).sqrMagnitude
+            float closestDistanceSqr = _focusedObj? (_focusedObj.transform.position - _interactOrigin.position).sqrMagnitude
                 : float.MaxValue;
 
             for (int i = 0; i < count; i++)
             {
-                GameObject go = _hitBuffer[i].gameObject;
-                if (go == _focusedObj) continue;
-
+                var go = _hitBuffer[i].gameObject;
                 var interactable = go.GetComponentInParent<InteractableBase>()
                                    ?? go.GetComponent<InteractableBase>()
                                    ?? go.GetComponentInChildren<InteractableBase>();
@@ -122,14 +119,23 @@ namespace InGame.Interact
                 if (distanceSqr < closestDistanceSqr)
                 {
                     closestDistanceSqr = distanceSqr;
-                    _focusedObj = interactable.gameObject;
-                    _focusedInteractable = interactable;
+                    _focusedObj = interactable;
                 }
             }
 
-            // UI更新
-            UIController.I.ShowInteractUI(_focusedObj, _focusedObj);
-            if (Runner.IsClient) Debug.Log(_focusedObj is not null);
+            if (_focusedObj)
+            {
+                var context = new InteractableContext
+                {
+                    Interactor = Object.InputAuthority.RawEncoded,
+                };
+                UIController.I.ShowInteractUI(_focusedObj.ValidateInteraction(context), _focusedObj?.gameObject);
+            }
+            else
+            {
+                UIController.I.ShowInteractUI(false, _focusedObj?.gameObject);
+            }
+            //if (Runner.IsClient) Debug.Log(_focusedObj is not null);
         }
 
         /// <summary>
@@ -160,23 +166,29 @@ namespace InGame.Interact
             return angle <= angleLimit;
         }
 
-
-
         private void TryStartInteraction()
         {
-            if (!_focusedInteractable || !_focusedObj)
-                return;
-
+            if (!_focusedObj) return;
+            
             _requiredInteractTime = GetRequireInteractTime();
+            var context = new InteractableContext
+            {
+                Interactor = Object.InputAuthority.RawEncoded,
+            };
+            if (!_focusedObj.ValidateInteraction(context))
+            {
+                return;
+            }
+            
             _currentInteractTime = 0f;
-            _isInteracting = true;
+            _isExecutingInteraction = true;
         }
 
         private float GetRequireInteractTime()
         {
-            if (!_focusedInteractable)
+            if (!_focusedObj)
                 return _baseInteractTime;
-            float baseTime = _focusedInteractable.RequiredInteractTimeDictionary.Dictionary
+            float baseTime = _focusedObj.RequiredInteractTimeDictionary.Dictionary
                 .GetValueOrDefault(_characterType, _baseInteractTime);
 
             float multiplier = 1f;
@@ -189,48 +201,57 @@ namespace InGame.Interact
 
         private void CompleteInteraction()
         {
-            _isInteracting = false;
+            _isExecutingInteraction = false;
 
             var context = new InteractableContext
             {
                 Interactor = Object.InputAuthority.RawEncoded,
-                WorldPosition = _interactOrigin.position,
-                RequiredInteractTime = _requiredInteractTime
             };
 
             if (HasStateAuthority)
             {
-                _focusedInteractable?.Interact(context);
+                _focusedObj?.Interact(context);
             }
             else
             {
-                if (!_focusedObj) return;
+                if (!_focusedObj)
+                {
+                    Debug.LogWarning("[Interact] _focusedObj is null");
+                    return;
+                }
+
+                var netObj = _focusedObj.GetComponent<NetworkObject>();
+                if (!netObj)
+                {
+                    Debug.LogWarning($"[Interact] {_focusedObj.name} に NetworkObject が存在しません");
+                    return;
+                }
 
                 // 応答待ちモードに入る
                 _isWaitingForResponse = true;
                 _interactWaitTimer = 0f;
 
-                RPC_RequestInteract(context.Interactor, _focusedObj.GetComponent<NetworkObject>(), context.RequiredInteractTime);
+                Debug.Log($"[Client] RPC_RequestInteract 送信: {context.Interactor} -> {_focusedObj.name} NetObj is null? {!netObj}");
+                RPC_RequestInteract(context.Interactor, netObj);
             }
         }
 
         private void CancelInteraction()
         {
-            _isInteracting = false;
+            _isExecutingInteraction = false;
             _currentInteractTime = 0f;
             UIController.I.SetInteractProgress(0f);
         }
 
         [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-        private void RPC_RequestInteract(int interactor, NetworkObject target, float interactTime)
+        private void RPC_RequestInteract(int interactor, NetworkObject target)
         {
+            Debug.Log($"[PlayerInteractionController] <UNK>: {interactor} -> {target.name}");
             if (target && target.TryGetComponent(out InteractableBase interactable))
             {
                 var context = new InteractableContext
                 {
                     Interactor = interactor,
-                    WorldPosition = transform.position,
-                    RequiredInteractTime = interactTime
                 };
 
                 interactable.Interact(context);
@@ -264,10 +285,10 @@ namespace InGame.Interact
             }
 
             // 現在の選択対象を表示
-            if (_focusedInteractable != null)
+            if (_focusedObj)
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawSphere(_focusedInteractable.transform.position, 0.2f);
+                Gizmos.DrawSphere(_focusedObj.transform.position, 0.2f);
             }
         }
 #endif
