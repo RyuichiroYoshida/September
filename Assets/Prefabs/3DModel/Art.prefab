@@ -154,6 +154,9 @@ MonoBehaviour:
     values:
     - 1
     - 5
+  _allowInteractDictionary:
+    keys: 000000000100000002000000
+    values: 000101
   _warpDestination: {fileID: 0}
   _warpRotation: 180
   _warpDuration: 0.5

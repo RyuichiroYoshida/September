@@ -135,7 +135,6 @@ namespace InGame.Interact
             {
                 UIController.I.ShowInteractUI(false, _focusedObj?.gameObject);
             }
-            //if (Runner.IsClient) Debug.Log(_focusedObj is not null);
         }
 
         /// <summary>
