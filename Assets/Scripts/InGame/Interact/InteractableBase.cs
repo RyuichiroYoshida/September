@@ -14,27 +14,44 @@ namespace InGame.Interact
         [SerializeField]
         private SerializableDictionary<CharacterType, float> _cooldownTimeDictionary = new();
 
-        private readonly Dictionary<int, float> _lastInteractTimePerPlayer = new();
+        private float _lastInteractTime = -9999f;
+        private float _lastUsedCooldownTime = 0f;
 
         public SerializableDictionary<CharacterType, float> RequiredInteractTimeDictionary => _requiredInteractTimeDictionary;
-        public SerializableDictionary<CharacterType, float> CooldownTimeDictionary => _cooldownTimeDictionary;
 
         public void Interact(IInteractableContext context)
         {
-            if (!ValidateInteraction(context))
+            if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(context.Interactor), out var data))
             {
-                Debug.LogWarning($"[InteractableBase] インタラクト拒否: {context.Interactor}");
+                Debug.LogWarning("[InteractableBase] インタラクト実行者のデータが見つかりません: " + context.Interactor);
                 return;
             }
 
+            var charaType = data.CharacterType;
+            if (!Object.isActiveAndEnabled)
+            {
+                Debug.Log($"[InteractableBase] オブジェクトが非アクティブです: {context.Interactor}");
+                return;
+            }
+
+            if (!ValidateInteraction(context))
+            {
+                Debug.Log($"[InteractableBase] OnValidateInteraction により拒否: {context.Interactor}");
+                return;
+            }
+
+            // 実行
             OnInteract(context);
-            _lastInteractTimePerPlayer[context.Interactor] = Runner ? Runner.SimulationTime : Time.time;
+
+            // クールダウン登録
+            _lastInteractTime = Runner ? Runner.SimulationTime : Time.time;
+            _lastUsedCooldownTime = _cooldownTimeDictionary.Dictionary.GetValueOrDefault(charaType, 0f);
         }
 
         /// <summary>
         /// 共通のバリデーション（null, クールダウン）
         /// </summary>
-        public virtual bool ValidateInteraction(IInteractableContext context)
+        private bool ValidateInteraction(IInteractableContext context)
         {
             if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(context.Interactor), out var data))
             {
@@ -43,9 +60,9 @@ namespace InGame.Interact
             }
 
             var type = data.CharacterType;
-            if (IsInCooldown(context.Interactor, type))
+            if (IsInCooldown())
             {
-                Debug.Log($"[InteractableBase] クールダウン中: {context.Interactor}");
+                Debug.Log($"[InteractableBase] クールダウン中で拒否: {context.Interactor}");
                 return false;
             }
 
@@ -61,18 +78,27 @@ namespace InGame.Interact
         /// <summary>
         /// 派生クラスでの個別条件（ロック中、所有者チェックなど）
         /// </summary>
-        protected abstract bool OnValidateInteraction(IInteractableContext context, CharacterType charaType);
+        protected virtual bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
+        {
+            return true;
+        }
         
         protected abstract void OnInteract(IInteractableContext context);
 
-        private bool IsInCooldown(int interactor, CharacterType type)
+        public bool IsInCooldown()
         {
-            if (!_lastInteractTimePerPlayer.TryGetValue(interactor, out var lastTime)) return false;
-
             var currentTime = Runner ? Runner.SimulationTime : Time.time;
-            var cooldown = CooldownTimeDictionary.Dictionary.GetValueOrDefault(type, 0f);
-            return currentTime - lastTime < cooldown;
+            float timeSinceLast = currentTime - _lastInteractTime;
+            if (timeSinceLast < _lastUsedCooldownTime)
+            {
+                float remaining = _lastUsedCooldownTime - timeSinceLast;
+                Debug.Log($"[InteractableBase] クールダウン中: 残り {remaining:F2} 秒");
+                return true;
+            }
+
+            return false;
         }
+
     }
 
     public interface IInteractableContext
