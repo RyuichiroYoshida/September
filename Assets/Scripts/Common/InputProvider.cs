@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace September.Common
 {
@@ -27,15 +29,12 @@ namespace September.Common
     /// </summary>
     public class InputProvider : SimulationBehaviour, INetworkRunnerCallbacks
     {
-        GameInput _playerInput;
         Camera _mainCamera;
         
         private void Awake()
         {
             // InputSystemを有効にする
-            _playerInput = new GameInput();
-            _playerInput.Enable();
-            _playerInput.Player.Enable();
+            GameInput.I.Enable();
             
             _mainCamera = Camera.main;
         }
@@ -46,7 +45,7 @@ namespace September.Common
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
             var playerInput = new PlayerInput();
-            var playerActions = _playerInput.Player;
+            var playerActions = GameInput.I.Player;
             //  Input Actionからデータを取り出してネットワークに登録する
             playerInput.Buttons.Set(PlayerButtons.Jump, playerActions.Jump.IsPressed());
             playerInput.Buttons.Set(PlayerButtons.Dash, playerActions.Dash.IsPressed());
@@ -66,7 +65,8 @@ namespace September.Common
             playerInput.CameraYaw = _mainCamera.transform.rotation.eulerAngles.y;
             input.Set(playerInput);
         }
-        
+
+        #region CallbackEvents
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
@@ -89,5 +89,6 @@ namespace September.Common
             _mainCamera = Camera.main;
         }
         public void OnSceneLoadStart(NetworkRunner runner) { }
+        #endregion
     }
 }
