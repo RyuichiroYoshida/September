@@ -22,6 +22,20 @@ namespace InGame.Player
         PlayerHealth _playerHealth;
         PlayerControlState _playerControlState = PlayerControlState.Normal;
         TickTimer _stunTickTimer;
+
+        private bool _shouldWarp = false;
+        private Vector3 _targetPosition;
+        private Quaternion _targetRotation;
+
+        public void SetWarpTarget(Vector3 targetPosition,Quaternion targetRotation)
+        {
+            if(!HasStateAuthority)
+                return;
+            
+            _targetPosition = targetPosition;
+            _targetRotation = targetRotation;
+            _shouldWarp = true;
+        }
         
         public bool IsLocalPlayer => HasInputAuthority;
         public PlayerParameter PlayerParameter => _playerParameter;
@@ -87,6 +101,14 @@ namespace InGame.Player
                 // player movement に入力を与えて更新する
                 _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
                     input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
+            }
+
+            if (_shouldWarp)
+            {
+                transform.position = _targetPosition;
+                transform.rotation = _targetRotation;
+                _cameraController.CameraReset();
+                _shouldWarp = false;
             }
         }
 

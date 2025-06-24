@@ -14,38 +14,56 @@ namespace InGame.Interact
         [SerializeField]
         private SerializableDictionary<CharacterType, float> _cooldownTimeDictionary = new();
 
-        private readonly Dictionary<int, float> _lastInteractTimePerPlayer = new();
+        [Networked]
+        private float LastInteractTime { get; set; } = -9999f;
+        
+        [Networked]
+        private float LastUsedCooldownTime { get; set; } = 0f;
 
         public SerializableDictionary<CharacterType, float> RequiredInteractTimeDictionary => _requiredInteractTimeDictionary;
-        public SerializableDictionary<CharacterType, float> CooldownTimeDictionary => _cooldownTimeDictionary;
 
         public void Interact(IInteractableContext context)
         {
+            if (GetSessionPlayerData(context.Interactor, out var data)) return;
+
+            var charaType = data.CharacterType;
+
             if (!ValidateInteraction(context))
             {
-                Debug.LogWarning($"[InteractableBase] インタラクト拒否: {context.Interactor}");
+                Debug.Log($"[InteractableBase] OnValidateInteraction により拒否: {context.Interactor}");
                 return;
             }
 
+            // 実行
             OnInteract(context);
-            _lastInteractTimePerPlayer[context.Interactor] = Runner ? Runner.SimulationTime : Time.time;
+
+            // クールダウン登録
+            LastInteractTime = Runner ? Runner.SimulationTime : Time.time;
+            LastUsedCooldownTime = _cooldownTimeDictionary.Dictionary.GetValueOrDefault(charaType, 0f);
+        }
+
+        private static bool GetSessionPlayerData(int interactor, out SessionPlayerData data)
+        {
+            if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(interactor), out data))
+            {
+                Debug.LogWarning("[InteractableBase] インタラクト実行者のデータが見つかりません: " + interactor);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
         /// 共通のバリデーション（null, クールダウン）
+        /// インタラクト可能なときは true を返す
         /// </summary>
-        public virtual bool ValidateInteraction(IInteractableContext context)
+        public bool ValidateInteraction(IInteractableContext context)
         {
-            if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(context.Interactor), out var data))
-            {
-                Debug.LogWarning("[InteractableBase] インタラクト実行者のデータが見つかりません: " + context.Interactor);
-                return false;
-            }
+            if (GetSessionPlayerData(context.Interactor, out var data)) return false;
 
             var type = data.CharacterType;
-            if (IsInCooldown(context.Interactor, type))
+            if (IsInCooldown())
             {
-                Debug.Log($"[InteractableBase] クールダウン中: {context.Interactor}");
                 return false;
             }
 
@@ -60,32 +78,32 @@ namespace InGame.Interact
 
         /// <summary>
         /// 派生クラスでの個別条件（ロック中、所有者チェックなど）
+        /// インタラクト可能ならTrueを返す
         /// </summary>
-        protected abstract bool OnValidateInteraction(IInteractableContext context, CharacterType charaType);
+        protected virtual bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
+        {
+            return true;
+        }
         
         protected abstract void OnInteract(IInteractableContext context);
 
-        private bool IsInCooldown(int interactor, CharacterType type)
+        protected bool IsInCooldown()
         {
-            if (!_lastInteractTimePerPlayer.TryGetValue(interactor, out var lastTime)) return false;
-
             var currentTime = Runner ? Runner.SimulationTime : Time.time;
-            var cooldown = CooldownTimeDictionary.Dictionary.GetValueOrDefault(type, 0f);
-            return currentTime - lastTime < cooldown;
+            float timeSinceLast = currentTime - LastInteractTime;
+            return timeSinceLast < LastUsedCooldownTime;
         }
+
     }
 
     public interface IInteractableContext
     {
         int Interactor { get; }
-        Vector3 WorldPosition { get; }
-        float RequiredInteractTime { get; }
     }
 
-    public class InteractableContext : IInteractableContext
+    // シンプルな実装例。必要に合わせて情報は追加してください
+    public struct InteractableContext : IInteractableContext
     {
         public int Interactor { get; set; }
-        public Vector3 WorldPosition { get; set; }
-        public float RequiredInteractTime { get; set; }
     }
 }

@@ -26,12 +26,11 @@ namespace September.InGame.Common
         
         private readonly Dictionary<PlayerRef, NetworkObject> _playerDataDic = new();
         public IReadOnlyDictionary<PlayerRef, NetworkObject> PlayerDataDic => _playerDataDic;
-
+        
         [Header("他Playerを気絶させたときに得られるスコア")] [SerializeField]
         private int _addScore;
         
         private UIController _uiController;
-        
         public GameState CurrentState { get; private set; }
 
         private CancellationTokenSource _cts;
@@ -52,7 +51,7 @@ namespace September.InGame.Common
             {
                 RPC_SetUpUI();
             }
-            ChooseOgre();
+            HideCursor();
         }
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetUpUI()
@@ -82,7 +81,6 @@ namespace September.InGame.Common
             }
             Register(StaticServiceLocator.Instance);
             StartTimer();
-            HideCursor();
         }
 
 
@@ -91,24 +89,36 @@ namespace September.InGame.Common
         /// </summary>
         private void OnPlayerKilled(HitData data)
         {
-            if (!Runner.IsServer) return; // サーバー側でのみ実行可能
-            
+            if (!HasStateAuthority) return;
             var killerData = PlayerDatabase.Instance.PlayerDataDic.Get(data.ExecutorRef); //DataBaseから該当Playerの情報取得
-            killerData.IsOgre = false;
-            PlayerDatabase.Instance.PlayerDataDic.Set(data.ExecutorRef, killerData); //DataBase更新 
-
             var killedData = PlayerDatabase.Instance.PlayerDataDic.Get(data.TargetRef);
-            killedData.IsOgre = false;
-            PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
+            if (killerData.IsOgre)
+            {
+                killerData.IsOgre = false;
+                killedData.IsOgre = true;
+                RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
+                Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
+            }
             killerData.Score += _addScore;
-            Debug.Log($"鬼が{data.ExecutorRef}から{data.TargetRef}に変更された");
-            RPC_SetOgreUI(data.ExecutorRef,data.TargetRef);
+            PlayerDatabase.Instance.PlayerDataDic.Set(data.ExecutorRef, killerData); //DataBase更新 
+            PlayerDatabase.Instance.PlayerDataDic.Set(data.TargetRef, killedData);
+            var pData = PlayerDatabase.Instance.PlayerDataDic;
+            foreach (var pair in pData)
+            {
+                Debug.Log(pair.Value.DisplayNickName + "が"+pair.Value.Score+"点");
+            }
         }
 
         void HideCursor()
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        void ShowCursor()
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
 
         private async UniTask StartTimer()
@@ -122,16 +132,27 @@ namespace September.InGame.Common
             CurrentState = GameState.Waiting;
             await UniTask.Delay(TimeSpan.FromSeconds(_timerData.AfterReadyDelay), cancellationToken: _cts.Token);
             //Start!
+            ChooseOgre();
             CurrentState = GameState.Playing;
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
         }
 
-        private void GameEnded()
+        private async UniTaskVoid GameEnded()
         {
             CurrentState = GameState.GameEnded;
             GetScore();
+            await UniTask.Delay(TimeSpan.FromSeconds(_timerData.EndGameDelay), cancellationToken: _cts.Token);
+            _cts.Cancel();
+            _cts.Dispose();
+            RPC_ShowCursor();
+            await NetworkManager.Instance.QuitInGame();
         }
 
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_ShowCursor()
+        {
+            ShowCursor();
+        }
         // 鬼変更時のUI更新通知
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetOgreUI(PlayerRef executor, PlayerRef targetRef)
@@ -144,31 +165,34 @@ namespace September.InGame.Common
                 _uiController.ShowOgreLamp(true);
         }
 
-        public IEnumerable<(PlayerRef, int score)> GetScore()
+        public void GetScore()
         {
-            List<(PlayerRef player, int score)> scores = new();
+            List<(string playerName,int score,bool isOgre)> data = new List<(string,int,bool)>();
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
-                scores.Add((pair.Key, pair.Value.Score));
+                data.Add((pair.Value.DisplayNickName, pair.Value.Score,pair.Value.IsOgre));
             }
-
-            var ordered = scores.OrderByDescending(x => x.score).ToList();
-            for (int i = 0; i < ordered.Count(); i++)
-            {
-                Debug.Log($"{i + 1} 位は{ordered[i].player}でスコアは{ordered[i].score}点");
-            }
-
-            return ordered;
+            var ordered = data.OrderBy(x => x.isOgre ? 1 : 0)
+                                                      .ThenByDescending(x => x.score)
+                                                      .ToList();
+            var names = ordered.Select(x => x.playerName).ToArray();
+            var scores = ordered.Select(x => x.score).ToArray();
+            RPC_SetRankingData(names,scores);
         }
-
+        
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SetRankingData(string[] names, int[] scores)
+        {
+            Debug.Log("SetRankingData");
+            RankingDataHolder.Instance.SetData(names, scores);
+        }
+        
         public override void FixedUpdateNetwork()
         {
             if (_tickTimer.Expired(Runner))
             {
-                GameEnded();
                 _tickTimer = TickTimer.None;
-                _cts.Cancel();
-                _cts.Dispose();
+                GameEnded();
             }
         }
         
@@ -195,8 +219,6 @@ namespace September.InGame.Common
             if(ogreRef == Runner.LocalPlayer)
                 _uiController.ShowOgreLamp(true);
         }
-        
-        
 
         public void Register(ServiceLocator locator)
         {
