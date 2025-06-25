@@ -124,4 +124,3 @@ MonoBehaviour:
   _mainCanvas: {fileID: 7210923779761148261}
   _optionCanvas: {fileID: 0}
   _timerData: {fileID: 11400000, guid: e2ca3e11eb6f46047839bebd36fd3c24, type: 2}
-  _ogreUIPosition: {x: 10, y: 10}
