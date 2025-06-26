@@ -61,12 +61,13 @@ MonoBehaviour:
       data:
         _abilityName: 3
         _cooldown: 0
-        _attackRadius: 3.44
+        _attackRadius: 1
         _attackDamage: 10
         _attackDuration: 1
         _hitMask:
           serializedVersion: 2
           m_Bits: 4294967295
+        _attackAnimationClip: {fileID: 1827226128182048838, guid: c51825af470896f4fb4def9482b406b6, type: 3}
 --- !u!114 &-427035151656462817
 MonoBehaviour:
   m_ObjectHideFlags: 0
