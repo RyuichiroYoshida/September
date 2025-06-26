@@ -63,7 +63,7 @@ MonoBehaviour:
         _cooldown: 0
         _attackRadius: 3.44
         _attackDamage: 10
-        _attackDuration: 0.01
+        _attackDuration: 1
         _hitMask:
           serializedVersion: 2
           m_Bits: 4294967295
