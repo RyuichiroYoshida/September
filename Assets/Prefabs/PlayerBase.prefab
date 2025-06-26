@@ -4975,9 +4975,9 @@ MonoBehaviour:
   Animator: {fileID: 2525442923973757293}
   ApplyTiming: 2
   SyncSettings: 79
-  StateHashes: 000000000d286c404e865f43
+  StateHashes: 000000000cdf50fb5e852fd2325a708301e955b4
   TriggerHashes: 00000000
-  TotalWords: 0
+  TotalWords: 2
 --- !u!114 &-4668177863944640257
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4992,7 +4992,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerParameter: {fileID: 11400000, guid: 5ca879c9eaa06b04ebbd2aa1af5da9cd, type: 2}
   _colliderObj: {fileID: 2287520664147054077}
-  _meshObj: {fileID: 0}
+  _meshObj: {fileID: 452327865224659618}
   _stunTime: 3
   _IsStun:
     _value: 0
@@ -5811,103 +5811,107 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3123461579334557059, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3123461579334557059, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3123461579334557059, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 684.99994
       objectReference: {fileID: 0}
     - target: {fileID: 3123461579334557059, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -321.25
       objectReference: {fileID: 0}
     - target: {fileID: 5200145663793421511, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5200145663793421511, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5200145663793421511, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 684.99994
       objectReference: {fileID: 0}
     - target: {fileID: 5200145663793421511, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -404.25
       objectReference: {fileID: 0}
     - target: {fileID: 5369910233705991475, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_Name
       value: DebugPlayer
       objectReference: {fileID: 0}
-    - target: {fileID: 5956344042485951231, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
-      propertyPath: m_AnchorMax.y
+    - target: {fileID: 5369910233705991475, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5956344042485951231, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5956344042485951231, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5956344042485951231, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 684.99994
       objectReference: {fileID: 0}
     - target: {fileID: 5956344042485951231, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -383.5
       objectReference: {fileID: 0}
     - target: {fileID: 6763895382972224720, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6763895382972224720, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6763895382972224720, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 684.99994
       objectReference: {fileID: 0}
     - target: {fileID: 6763895382972224720, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -342
       objectReference: {fileID: 0}
     - target: {fileID: 6994937518203037051, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6994937518203037051, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6994937518203037051, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 684.99994
       objectReference: {fileID: 0}
     - target: {fileID: 6994937518203037051, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -425
       objectReference: {fileID: 0}
     - target: {fileID: 7692717275068320965, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7692717275068320965, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7692717275068320965, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 684.99994
       objectReference: {fileID: 0}
     - target: {fileID: 7692717275068320965, guid: b26439f0b380320429dc3175fc091eb3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -362.75
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
