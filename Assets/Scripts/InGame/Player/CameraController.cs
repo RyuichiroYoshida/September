@@ -63,6 +63,17 @@ namespace InGame.Player
             
             _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
         }
+        
+        /// <summary>
+        /// カメラの水平方向（XZ）を返す
+        /// </summary>
+        public Vector3 GetCameraForward() => _cameraTf.forward.normalized;
+
+        /// <summary>
+        /// カメラの右方向（XZ）を返す
+        /// </summary>
+        public Vector3 GetCameraRight() => _cameraTf.right.normalized;
+
 
         /// <summary> 障害物に応じてカメラの距離を変える </summary>
         void CheckCameraDistance()
