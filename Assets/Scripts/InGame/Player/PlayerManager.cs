@@ -1,4 +1,6 @@
+using System;
 using Fusion;
+using InGame.Common;
 using InGame.Health;
 using September.Common;
 using UnityEngine;
@@ -69,6 +71,11 @@ namespace InGame.Player
                 health.Init(_playerParameter.Health);
                 health.OnDeath += OnDeath;
             }
+
+            if (TryGetComponent(out PlayerAnimBase playerAnimBase))
+            {
+                playerAnimBase.Init(this);
+            }
         }
 
         private void LateUpdate()
@@ -101,6 +108,8 @@ namespace InGame.Player
                 // player movement に入力を与えて更新する
                 _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
                     input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
+                
+                if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump)) _playerMovement.AddForce(Vector3.up * 10);
             }
 
             if (_shouldWarp)
@@ -161,6 +170,22 @@ namespace InGame.Player
             Normal,
             InputLocked,
             ForcedControl
+        }
+
+        [SerializeField] private AnimationClip _clip;
+        AnimationClipPlayer _clipPlayer;
+
+        private void Start()
+        {
+            _clipPlayer = GetComponent<AnimationClipPlayer>();
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                _clipPlayer.PlayClip(_clip);
+            }
         }
     }
 }

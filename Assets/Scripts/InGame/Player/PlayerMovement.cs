@@ -42,6 +42,7 @@ namespace InGame.Player
         private Vector3 _moveVelocity;
         private Vector3 _rotationDirection;
         private bool _isGround;
+        private Vector3 _groundNormal = Vector3.up;
         // スタミナ消費量
         private float _staminaConsumption;
         // スタミナ回復量
@@ -59,8 +60,9 @@ namespace InGame.Player
         private List<CapsuleCastData> _capsuleCastData = new();
 
         public readonly BehaviorSubject<float> OnStaminaChanged = new(0);
-        public bool IsGround => _isGround;
         public Vector3 MoveVelocity => _moveVelocity;
+        public bool IsGround => _isGround;
+        public Vector3 GroundNormal => _groundNormal;
         
         [Networked, OnChangedRender(nameof(OnChangedStamina))] private float Stamina { get; set; }
         private void OnChangedStamina() => OnStaminaChanged.OnNext(Stamina);
@@ -92,6 +94,7 @@ namespace InGame.Player
             if (_doingVault) UpdateVault(deltaTime);
             else
             {
+                ApplyGrav(deltaTime);
                 Move(moveDirection, isDash, cameraYaw, deltaTime);
                 ApplyVelocity(deltaTime);
             }
@@ -104,6 +107,7 @@ namespace InGame.Player
             
             // is ground のリセット
             _isGround = false;
+            _groundNormal = Vector3.up;
         }
 
         /// <summary> カメラ視点の移動入力を取得 </summary>
@@ -175,8 +179,9 @@ namespace InGame.Player
                     moveVelocity2 = targetVelocity;
                 }
 
-                _moveVelocity.x = moveVelocity2.x;
-                _moveVelocity.z = moveVelocity2.y;
+                Vector3 localVelocity = new Vector3(moveVelocity2.x, 0, moveVelocity2.y);
+                float yMag = _moveVelocity.y;
+                _moveVelocity = Vector3.ProjectOnPlane(localVelocity, _groundNormal).normalized * localVelocity.magnitude + Vector3.up * yMag;
             }
             else // 入力がなかった場合
             {
@@ -188,6 +193,20 @@ namespace InGame.Player
             }
         }
 
+        void ApplyGrav(float deltaTime)
+        {
+            if (_isGround) _moveVelocity.y = 0;
+            else _moveVelocity.y -= _gravity * deltaTime;
+        }
+
+        private void ApplyVelocity(float deltaTime)
+        {
+            // 速度の代入
+            _rb.linearVelocity = _moveVelocity;
+            // 回転の向きを代入
+            _rotationDirection = _moveVelocity;
+        }
+
         /// <summary> 指定方向に回転する </summary>
         private void RotationByDirection(Vector3 direction, float deltaTime)
         {
@@ -196,17 +215,6 @@ namespace InGame.Player
             if (direction == Vector3.zero) return;
 
             transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(direction), _rotationSpeed * deltaTime);
-        }
-
-        private void ApplyVelocity(float deltaTime)
-        {
-            // 重力
-            if (_isGround) _moveVelocity.y = 0;
-            else _moveVelocity.y -= _gravity * deltaTime;
-            // 速度の代入
-            _rb.linearVelocity = _moveVelocity;
-            // 回転の向きを代入
-            _rotationDirection = _moveVelocity;
         }
 
         /// <summary> 条件付きでスタミナを回復させる </summary>
@@ -350,7 +358,7 @@ namespace InGame.Player
         public void AddForce(Vector3 force)
         {
             _moveVelocity += force;
-            if (_moveVelocity.y > 0) _isGround = false;
+            if (Vector3.Angle(_moveVelocity, _groundNormal) < 89) _isGround = false;
         }
 
         /// <summary> 速度ベクトルを0にする </summary>
@@ -359,17 +367,25 @@ namespace InGame.Player
             _moveVelocity = Vector3.zero;
         }
 
+        public float GetSpeedOnPlane()
+        {
+            Quaternion normalRot = Quaternion.FromToRotation(_groundNormal, Vector3.up);
+            Vector3 onPlaneVec = normalRot * _moveVelocity;
+            onPlaneVec.y = 0;
+            return onPlaneVec.magnitude;
+        }
+
         private void CheckGround(Collision collision)
         {
-            // 上昇中なら終了
-            if (_moveVelocity.y > 0) return;
-                
             // 接触面が地面か
             foreach (var contact in collision.contacts)
             {
-                if (Vector3.Angle(Vector3.up, contact.normal) <= _groundSlopeThreshold)
+                Debug.Log(Vector3.Angle(_moveVelocity, contact.normal));
+                // 接地できる角度か & 接地面に対して離れる velocity で無いか
+                if (Vector3.Angle(Vector3.up, contact.normal) <= _groundSlopeThreshold && (Vector3.Angle(_moveVelocity, contact.normal) >= 89 || _moveVelocity == Vector3.zero))
                 {
                     _isGround = true;
+                    _groundNormal = contact.normal;
                     return;
                 }
             }
