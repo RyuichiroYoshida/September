@@ -9,6 +9,7 @@ namespace InGame.Player
     public class CameraController : MonoBehaviour
     {
         [SerializeField] private float _sens;
+        [SerializeField] private float _padSens;
         [SerializeField] private Transform _characterTf;
         [SerializeField] private Transform _cameraPivot;
         [SerializeField] private Transform _cameraTf;
@@ -53,10 +54,11 @@ namespace InGame.Player
             // 他で回転中なら
             if (_isInRotation) return;
             
+            float sens = GameInput.I.UseDeviceType == GameInput.DeviceType.KeyboardMouse ? _sens : _padSens;
             float deltaX = mouseInput.y, deltaY = mouseInput.x;
-            _cameraPitch -= deltaX * deltaTime * _sens;
+            _cameraPitch -= deltaX * deltaTime * sens;
             _cameraPitch = Mathf.Clamp(_cameraPitch, -90, 90);
-            _cameraYaw += deltaY * _sens * deltaTime;
+            _cameraYaw += deltaY * sens * deltaTime;
             _cameraYaw = ToAngle(_cameraYaw);
             
             _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);

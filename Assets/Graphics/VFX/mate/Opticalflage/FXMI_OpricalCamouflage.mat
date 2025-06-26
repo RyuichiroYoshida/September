@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-3930401103311814070
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FXMI_OpricalCamouflage
+  m_Shader: {fileID: -6465566751694194690, guid: 3d6c155e0c1483d4d92308ed19c92a73, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _SURFACE_TYPE_TRANSPARENT
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _PowerTex:
+        m_Texture: {fileID: 2800000, guid: 208cb18fe0cc22b48a5dd1d79f005c45, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_0cc9ac07ffeb4690838a1875debbece8_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: c5bb34aa071cb43489501659640a8778, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_46b4abec602a4be8a79df11d3ab22425_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 0cf32d6fa1179184689cb1c86b9e2b6d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_79f7a52f43214db683470f384c400537_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 6842f924a57842245830275133dae6f3, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_82b46d67f5a243fa82fd58f334f99479_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 9339cd8f1076c7d45874767c80afb80e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f2d24a6a1dc74ea88802f49183b0fc93_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 9339cd8f1076c7d45874767c80afb80e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f6f0251aabc8484db2c6e3fe00d637c6_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: c5bb34aa071cb43489501659640a8778, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _apha_texture:
+        m_Texture: {fileID: 2800000, guid: 1ecc2b86a537988499816c0c62a9527c, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _main:
+        m_Texture: {fileID: 2800000, guid: e85ba8d4e6eb7c244a576f256a96b321, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
+    - _Blend: 0
+    - _CastShadows: 1
+    - _Cull: 2
+    - _DstBlend: 10
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _SrcBlend: 5
+    - _Surface: 1
+    - _ZTest: 4
+    - _ZWrite: 0
+    - _ZWriteControl: 0
+    - _edge_width: 0.9
+    - _emi_edge: 0.99
+    - _power: 0.1
+    - _power_1: 0.26
+    - _scroll: 0.76
+    - _speed: 0.6
+    - _timespeed: 3
+    - _warpintensity: 0.92
+    - _world_bounds: 150
+    m_Colors:
+    - _Color: {r: 0, g: 0.44963115, b: 14.313285, a: 1}
+    - _of: {r: 0, g: 0, b: 0, a: 0}
+    - _scrollxy: {r: 0.02, g: 0, b: 0, a: 0}
+    - _xyz: {r: 0, g: 1, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

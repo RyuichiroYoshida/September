@@ -16,28 +16,30 @@ public class WarpInteractable : InteractableBase
     [SerializeField,Label("Duration")] private float _warpDuration = 0.5f;
     
     private WarpObject _warpObject;
+    private WarpInteractable _warpDestinationInteractable;
     private CancellationTokenSource _cts;
 
     private void Start()
     {
         _warpObject = GetComponent<WarpObject>();
+        _warpDestinationInteractable = _warpDestination.GetComponent<WarpInteractable>();
         _cts = new CancellationTokenSource();
     }
 
     protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
     {
-        return true;
+        return !_warpDestinationInteractable.IsInCooldown();
     }
 
     protected override void OnInteract(IInteractableContext context)
     {
-        if (Runner == null)
+        if (!Runner)
         {
             Debug.LogError("Runner is null");
             return;
         }
 
-        if (_warpDestination == null)
+        if (!_warpDestination)
         {
             Debug.LogError("Warp先（_warpDestination）が設定されていません");
             return;
@@ -46,7 +48,7 @@ public class WarpInteractable : InteractableBase
         PlayerRef playerRef = PlayerRef.FromEncoded(context.Interactor);
         NetworkObject player = Runner.GetPlayerObject(playerRef);
 
-        if (player == null)
+        if (!player)
         {
             Debug.LogError("Player NetworkObject が見つかりません");
             return;

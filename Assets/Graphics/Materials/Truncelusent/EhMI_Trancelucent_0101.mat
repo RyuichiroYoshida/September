@@ -28,6 +28,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _EmissiveTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MetallicSmoothnessTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -47,11 +51,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alpha: 0.5
+    - _EmissivePower: 0
     - _MetallicPower: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _SmoothnessPower: 0
-    m_Colors: []
+    - _USE_BASETEXTURE: 0
+    - _USE_METALLICSMOOTHNESSTEXTURE: 0
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
+    - _EmissiveColor: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &6076353202692630284

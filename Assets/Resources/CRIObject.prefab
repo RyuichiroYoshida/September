@@ -187,6 +187,10 @@ MonoBehaviour:
     acbFile: Warp.acb
     awbFile: 
     loaderStatus: 0
+  - name: BGM
+    acbFile: BGM.acb
+    awbFile: 
+    loaderStatus: 0
   dspBusSetting: 
   dontDestroyOnLoad: 1
   dontRemoveExistsCueSheet: 0
