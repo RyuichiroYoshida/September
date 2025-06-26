@@ -1,6 +1,8 @@
+using CRISound;
 using Fusion;
 using InGame.Interact;
 using InGame.Player;
+using NaughtyAttributes;
 using September.Common;
 using September.InGame.Common;
 using UnityEngine;
@@ -23,6 +25,8 @@ namespace InGame.Exhibit
         private Animator _animator;
         private PlayerRef _ownerPlayerRef;
         private PlayerManager _ownerPlayerManager;
+        private bool _isFlying;
+        [SerializeField,Label("アニメーション最低値")]private float _targetBlendValue = 0.01f;
 
         #region AnimationHash
 
@@ -37,18 +41,25 @@ namespace InGame.Exhibit
             if(_animator is null)
                 Debug.LogError("Animator is null");
             
-            _rigidbody = GetComponent<Rigidbody>();
+            _rigidbody = GetComponentInChildren<Rigidbody>();
             _cameraController.Init(true);
 
             _gameInput = new GameInput();
             _gameInput.Enable();
+            _isFlying = false;
         }
 
         public override void FixedUpdateNetwork()
         {
-            if (GetInput<PlayerInput>(out var input))
+            if(!_isFlying)
+                return;
+
+            if (HasStateAuthority)
             {
-                Move(input.MoveDirection);
+                if (GetInput<PlayerInput>(out var input))
+                {
+                    Move(input.MoveDirection);
+                }
             }
         }
 
@@ -71,9 +82,14 @@ namespace InGame.Exhibit
 
         protected override void OnInteract(IInteractableContext context)
         {
+            if(!HasStateAuthority)
+                return;
+            
+            var requester = PlayerRef.FromEncoded(context.Interactor);
+            
             if (_ownerPlayerRef == PlayerRef.None)
-                GetOn(PlayerRef.FromEncoded(context.Interactor));
-            else if (_ownerPlayerRef == PlayerRef.FromEncoded(context.Interactor))
+                GetOn(requester);
+            else if (_ownerPlayerRef == requester)
                 GetOff();
         }
 
@@ -82,11 +98,15 @@ namespace InGame.Exhibit
         // 動き周り
         private void Move(Vector2 moveDirection)
         {
+            if (_currentBlendValue < 0.01)
+            {
+                _currentBlendValue = _targetBlendValue;
+            }
             Vector3 cameraForward = _cameraController.GetCameraForward();
             Vector3 cameraRight = _cameraController.GetCameraRight();
             
             // 方向キーの入力値とカメラの向きから、移動方向を決定
-            Vector3 moveDir = (cameraForward * moveDirection.y + cameraRight * moveDirection.x).normalized;
+            Vector3 moveDir = (cameraForward * moveDirection.y + cameraRight * moveDirection.x);
             
             // 移動方向にスピードをかける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
             _rigidbody.linearVelocity = moveDir * _moveSpeed;
@@ -112,14 +132,16 @@ namespace InGame.Exhibit
 
             _ownerPlayerRef = ownerPlayerRef;
             Object.AssignInputAuthority(_ownerPlayerRef);
+            CRIAudio.PlaySE("Pteranodon","Pteranodon_cry");
 
             _cameraController.SetCameraPriority(15);
 
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>()
                 .PlayerDataDic[_ownerPlayerRef].GetComponent<PlayerManager>();
-            _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedMovement);
+            _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
             _ownerPlayerManager.RPC_SetMeshActive(false);
+            _isFlying = true;
         }
 
         private void GetOff()
@@ -136,6 +158,13 @@ namespace InGame.Exhibit
             _ownerPlayerManager.RPC_SetColliderActive(true);
             _ownerPlayerManager.RPC_SetMeshActive(true);
             _ownerPlayerManager.transform.position = _getOffPoint.position;
+            _isFlying = false;
+        }
+
+        // ToDo Animationつける
+        public void OnPlaySE()
+        {
+            CRIAudio.PlaySE("Pteranodon", "Pteranodon_Flapping_1");
         }
     }
 }

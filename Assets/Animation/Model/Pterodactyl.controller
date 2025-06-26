@@ -85,7 +85,7 @@ BlendTree:
   m_Name: Blend Tree
   m_Childs:
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: ac9bf7bf7dd70e24f82bcf8396fbf996, type: 2}
+    m_Motion: {fileID: 7400000, guid: ee6e65071f92d7740a25f11f9fccfdba, type: 2}
     m_Threshold: 0
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
@@ -93,16 +93,16 @@ BlendTree:
     m_DirectBlendParameter: FlyStateBlend
     m_Mirror: 0
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: 9af029ff1740a244d849e1f3f12759c9, type: 2}
-    m_Threshold: 0.5
+    m_Motion: {fileID: 7400000, guid: 6b0dae798a106124cb8e54f1ddd7a76f, type: 2}
+    m_Threshold: 0.01
     m_Position: {x: 0, y: 0}
-    m_TimeScale: 0.5
+    m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: FlyStateBlend
     m_Mirror: 0
   - serializedVersion: 2
-    m_Motion: {fileID: 7400000, guid: f4b08f95339783c4e8fc504e1f724fc4, type: 2}
-    m_Threshold: 1
+    m_Motion: {fileID: 7400000, guid: caa64c651027c6040b00f2e92d5b5ae7, type: 2}
+    m_Threshold: 0.8
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
@@ -111,7 +111,7 @@ BlendTree:
   m_BlendParameter: FlyStateBlend
   m_BlendParameterY: FlyStateBlend
   m_MinThreshold: 0
-  m_MaxThreshold: 1
+  m_MaxThreshold: 0.8
   m_UseAutomaticThresholds: 0
   m_NormalizedBlendValues: 0
   m_BlendType: 0
