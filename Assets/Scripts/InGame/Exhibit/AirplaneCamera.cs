@@ -1,12 +1,11 @@
 using Cinemachine;
 using DG.Tweening;
-using Unity.Mathematics;
 using UnityEngine;
 
-namespace InGame.Player
+namespace InGame.Exhibit
 {
     /// <summary> プレイヤーのカメラ操作 </summary>
-    public class CameraController : MonoBehaviour
+    public class AirplaneCamera : MonoBehaviour
     {
         [SerializeField] private float _sens;
         [SerializeField] private float _padSens;
@@ -22,24 +21,20 @@ namespace InGame.Player
         [SerializeField] private Ease _motionEase;
         
         // camera rotation
-        Quaternion _defaultRotation;
+        private float _defaultPitch;
         private float _cameraPitch;
         private float _cameraYaw;
         private bool _isInRotation;
         Tweener _cameraTweener;
+        private bool _isOperated;
         
         // camera position
-        private CameraSettings _cameraSettings;
         private CameraSettings _defaultCameraSettings;
 
-        public void Init(bool use)
+        void Start()
         {
-            _cameraPivot.gameObject.SetActive(use);
-            if (!use) return;
-
             // Prefabの初期状態をデフォルトとして保存
-            _defaultRotation = _cameraPivot.localRotation;
-            _cameraSettings = new CameraSettings(_cameraTf.localPosition);
+            _defaultPitch = _cameraPivot.rotation.eulerAngles.x;
             _defaultCameraSettings = new CameraSettings(_cameraTf.localPosition);
         }
 
@@ -49,26 +44,49 @@ namespace InGame.Player
         }
 
         /// <summary> 入力からカメラを回転させる </summary>
-        public void RotateCamera(Vector2 mouseInput, float deltaTime)
+        public void InputToCamera(Vector2 mouseInput, float deltaTime)
         {
-            // 他で回転中なら
-            if (_isInRotation) return;
+            if (mouseInput == Vector2.zero)
+            {
+                if (_isOperated) CameraReset();
+                if (!_isInRotation) DefaultRotateCamera(deltaTime);
+                _isOperated = false;
+            }
+            else
+            {
+                if (_isInRotation)
+                {
+                    _isInRotation = false;
+                    _cameraTweener?.Kill();
+                }
+
+                _isOperated = true;
+                RotateCamera(mouseInput, deltaTime);
+            }
             
+            _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
+        }
+
+        void DefaultRotateCamera(float deltaTime)
+        {
+            _cameraYaw = _characterTf.rotation.eulerAngles.y;
+        }
+
+        void RotateCamera(Vector2 mouseInput, float deltaTime)
+        {
             float sens = GameInput.I.UseDeviceType == GameInput.DeviceType.KeyboardMouse ? _sens : _padSens;
             float deltaX = mouseInput.y, deltaY = mouseInput.x;
             _cameraPitch -= deltaX * deltaTime * sens;
             _cameraPitch = Mathf.Clamp(_cameraPitch, -90, 90);
             _cameraYaw += deltaY * sens * deltaTime;
             _cameraYaw = ToAngle(_cameraYaw);
-            
-            _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
         }
 
         /// <summary> 障害物に応じてカメラの距離を変える </summary>
         void CheckCameraDistance()
         {
             var isHit = Physics.SphereCast(_cameraPivot.position, _cameraRadius, 
-                _cameraTf.position - _cameraPivot.position, out var hit, _cameraSettings.MaxDistance, _collideAgainst);
+                _cameraTf.position - _cameraPivot.position, out var hit, _defaultCameraSettings.MaxDistance, _collideAgainst);
             
             if (isHit)
             {
@@ -77,12 +95,12 @@ namespace InGame.Player
             }
             else
             {
-                _cameraTf.localPosition = _cameraSettings.DefaultPosition;
+                _cameraTf.localPosition = _defaultCameraSettings.DefaultPosition;
             }
         }
 
-        /// <summary> カメラを指定方向に回転させる </summary>
-        void SmoothRotateCameraTo(Quaternion targetWorldRotation)
+        /// <summary> デフォルト位置にリセットする </summary>
+        void CameraReset()
         {
             _isInRotation = true;
 
@@ -91,43 +109,32 @@ namespace InGame.Player
             {
                 _cameraTweener.Kill();
             }
-            
-            Quaternion endRotation = Quaternion.LookRotation(targetWorldRotation * Vector3.forward, transform.up);
 
             // 現在のRotationとendRotationを入力のFloatにする
-            float targetPitch = endRotation.eulerAngles.x,
-                startPitch = _cameraPitch,
-                targetYaw = endRotation.eulerAngles.y,
+            float startPitch = _cameraPitch,
                 startYaw = _cameraYaw;
 
             // 移動Tweenの発火
             _cameraTweener =　DOTween.To(
-                () => 0f,
-                n =>
-                {
-                    _cameraPivot.rotation = Quaternion.Euler(math.lerp(startPitch, targetPitch, n), Mathf.LerpAngle(startYaw, targetYaw, n), 0);
-                },
-                1f,
-                _motionDuration
+                    () => 0f,
+                    n =>
+                    {
+                        _cameraPitch = Mathf.Lerp(startPitch, _defaultPitch, n);
+                        _cameraYaw = Mathf.LerpAngle(startYaw, _characterTf.eulerAngles.y, n);
+                    },
+                    1f,
+                    _motionDuration
                 )
                 .OnComplete(() =>
                 {
-                    _cameraPitch = _cameraPivot.rotation.eulerAngles.x;
-                    _cameraYaw = _cameraPivot.rotation.eulerAngles.y;
+                    _cameraPitch = _defaultPitch;
+                    _cameraYaw = _characterTf.eulerAngles.y;
                     _isInRotation = false;
                     
                     CheckCameraDistance();
                 })
                 .SetUpdate(UpdateType.Late)
                 .SetEase(_motionEase);
-        }
-
-        /// <summary> デフォルト位置にリセットする </summary>
-        public void CameraReset()
-        {
-            // デフォルトのLocalQuaternionをWorldにする
-            Quaternion relativeRotation = _characterTf.rotation * _defaultRotation;
-            SmoothRotateCameraTo(relativeRotation);
         }
 
         public void SetCameraPriority(int priority)
