@@ -380,7 +380,6 @@ namespace InGame.Player
             // 接触面が地面か
             foreach (var contact in collision.contacts)
             {
-                Debug.Log(Vector3.Angle(_moveVelocity, contact.normal));
                 // 接地できる角度か & 接地面に対して離れる velocity で無いか
                 if (Vector3.Angle(Vector3.up, contact.normal) <= _groundSlopeThreshold && (Vector3.Angle(_moveVelocity, contact.normal) >= 89 || _moveVelocity == Vector3.zero))
                 {

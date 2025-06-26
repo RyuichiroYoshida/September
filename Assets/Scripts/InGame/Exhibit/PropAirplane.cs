@@ -243,7 +243,11 @@ namespace InGame.Exhibit
             euler.z = euler.z % 360f < 0 ? euler.z % 360f + 360f : euler.z % 360f;
             _prop.eulerAngles = euler;
             
-            // debug
+            DisplayDebug();
+        }
+
+        void DisplayDebug()
+        {
             if (_velocityText) _velocityText.text = "velocity : " + _rb.linearVelocity.ToString();
             if (_forwardSpeedText)
             {
