@@ -489,6 +489,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sens: 10
+  _padSens: 100
   _characterTf: {fileID: 8736522266100138394}
   _cameraPivot: {fileID: 8156254438002643843}
   _cameraTf: {fileID: 339817392409267713}
@@ -588,6 +589,7 @@ MonoBehaviour:
   _interactMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  _interactAngle: 90
   _interactOrigin: {fileID: 0}
   _baseInteractTime: 1
   _ogreInteractMultiplier: 1
