@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: EhMI_Trancelucent_0101
-  m_Shader: {fileID: -6465566751694194690, guid: 5c71a129d80420a43ac55ab3cac3d332, type: 3}
+  m_Name: Shader Graphs_ChM_Basic
+  m_Shader: {fileID: -6465566751694194690, guid: 3420db4e59df590449480903d224029f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -24,15 +24,19 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _BaseColorTxture:
-        m_Texture: {fileID: 0}
+    - _BaseTexture:
+        m_Texture: {fileID: 2800000, guid: ff28d9db68d7ab64abaeadf69a33572b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _EmissiveTex:
-        m_Texture: {fileID: 0}
+    - _MetallicTexture:
+        m_Texture: {fileID: 2800000, guid: 9527a47350122ba429fe7261312a6aea, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MetallicSmoothnessTexture:
+    - _NormalTexture:
+        m_Texture: {fileID: 2800000, guid: fcb49929f97193647bfcd44f5197f5f1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SmoothnessTexture:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -50,20 +54,18 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Alpha: 0.5
-    - _EmissivePower: 0
-    - _MetallicPower: 0
+    - _BrightnessIntensity: 5
+    - _MetallicPower: 1
+    - _NormalPower: 1
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _SmoothnessPower: 0
-    - _USE_BASETEXTURE: 0
-    - _USE_METALLICSMOOTHNESSTEXTURE: 0
+    - _RoughnessPower: 1
+    - _SaturationIntesity: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 0}
-    - _EmissiveColor: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColorMultioly: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &6076353202692630284
+--- !u!114 &1026619408255749539
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
