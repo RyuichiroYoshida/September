@@ -44,7 +44,7 @@ namespace InGame.Exhibit
         [SerializeField] private TMP_Text _isUpText;
 
         private Rigidbody _rb;
-        private CameraController _cameraController;
+        private AirplaneCamera _cameraController;
         private PlayerRef _ownerPlayerRef;
         private PlayerManager _ownerPlayerManager;
         // move
@@ -60,8 +60,7 @@ namespace InGame.Exhibit
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            _cameraController = GetComponent<CameraController>();
-            _cameraController.Init(true);
+            _cameraController = GetComponent<AirplaneCamera>();
         }
 
         public override void FixedUpdateNetwork()
@@ -179,25 +178,26 @@ namespace InGame.Exhibit
                         torque.z = _rotSpeedRoll * forwardSpeed * Mathf.DeltaAngle(eulerZ, 180) / 90;
                     }
                 }
-                else if (moveDir.x < 0 && Mathf.Abs(90 - eulerZ) > 10)
+                else if (moveDir.x < 0 && Mathf.Abs(80 - eulerZ) > 10)
                 {
-                    torque.z = moveDir.x * _rotSpeedRoll * forwardSpeed * (isUp ? -1 : 1) * Mathf.Abs(Mathf.DeltaAngle(eulerZ, 90) / 90);
+                    torque.z = moveDir.x * _rotSpeedRoll * forwardSpeed * (isUp ? -1 : 1) * Mathf.Abs(Mathf.DeltaAngle(eulerZ, 80) / 90);
                 }
-                else if (moveDir.x > 0 && Mathf.Abs(270 - eulerZ) > 10)
+                else if (moveDir.x > 0 && Mathf.Abs(280 - eulerZ) > 10)
                 {
-                    torque.z = moveDir.x * _rotSpeedRoll * forwardSpeed * (isUp ? -1 : 1) * Mathf.Abs(Mathf.DeltaAngle(eulerZ, 270) / 90);
+                    torque.z = moveDir.x * _rotSpeedRoll * forwardSpeed * (isUp ? -1 : 1) * Mathf.Abs(Mathf.DeltaAngle(eulerZ, 280) / 90);
                 }
                 
                 torque = transform.TransformDirection(torque);
                 // yaw は world 回転
-                torque.y = moveDir.x * _rotSpeedYaw * forwardSpeed;
+                torque.y += moveDir.x * _rotSpeedYaw * forwardSpeed;
+                //torque += moveDir.x * _rotSpeedYaw * forwardSpeed * (Quaternion.Euler(transform.eulerAngles.x, 0, 0) * Vector3.up);
                 _rb.AddTorque(torque * PhysicsCoefficient, ForceMode.Acceleration);
             }
         }
 
         void GetOn(PlayerRef ownerPlayerRef)
         {
-            // 既に誰か乗っていたら乗れない
+            // 既に誰か乗っていたら乗れないよん
             if (!Runner.IsServer || _ownerPlayerRef != PlayerRef.None) return;
             
             // set input authority 
@@ -221,7 +221,7 @@ namespace InGame.Exhibit
             Object.RemoveInputAuthority();
             // camera の切り替え
             _cameraController.SetCameraPriority(5);
-            // playerの状態切り替え
+            // playerの状態切り替えよ💛
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _ownerPlayerManager.RPC_SetColliderActive(true);
             _ownerPlayerManager.RPC_SetMeshActive(true);
@@ -234,12 +234,7 @@ namespace InGame.Exhibit
             // camera 操作
             if (HasInputAuthority)
             {
-                if (GameInput.I.Player.Aim.triggered)
-                {
-                    _cameraController.CameraReset();
-                }
-            
-                _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
+                _cameraController.InputToCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
             
             // rotate prop
