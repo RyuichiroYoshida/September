@@ -29,7 +29,8 @@ namespace InGame.Interact
         private bool _isExecutingInteraction = false;
         private float _currentInteractTime = 0f;
         private float _requiredInteractTime = 1.0f;
-        private bool isHoldingInteract = false;
+        [SerializeField] private bool _isHoldingInteract = false;
+        private bool _hasCompletedInteraction = false;
 
         private void Awake()
         {
@@ -44,7 +45,7 @@ namespace InGame.Interact
             // ローカルでインタラクト対象を毎フレーム検出（カメラ向きで変化するため）
             UpdateFocusedInteractable();
             
-            if (isHoldingInteract)
+            if (_isHoldingInteract)
             {
                 if (!_isExecutingInteraction)
                     TryStartInteraction();
@@ -54,6 +55,7 @@ namespace InGame.Interact
                     _currentInteractTime += Runner.DeltaTime;
                     if (_currentInteractTime >= _requiredInteractTime)
                     {
+                        _hasCompletedInteraction = true;
                         CompleteInteraction();
                         UIController.I.ShowInteractUI(false); // 終了時に消すだけならここでもOK
                     }
@@ -84,7 +86,7 @@ namespace InGame.Interact
                 return;
             }
 
-            isHoldingInteract = input.Buttons.IsSet(PlayerButtons.Interact);
+            _isHoldingInteract = input.Buttons.IsSet(PlayerButtons.Interact);
         }
 
         private void UpdateFocusedInteractable()
@@ -182,6 +184,7 @@ namespace InGame.Interact
             
             _currentInteractTime = 0f;
             _isExecutingInteraction = true;
+            _hasCompletedInteraction = false;
         }
 
         private float GetRequireInteractTime()
