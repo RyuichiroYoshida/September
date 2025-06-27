@@ -16,17 +16,14 @@ public class WarpInteractable : InteractableBase
     [SerializeField, Label("ワープ先の向き")] private float _warpRotation = 180f;
     [SerializeField,Label("Duration")] private float _warpDuration = 0.5f;
     
-    private WarpObject _warpObject;
     private WarpInteractable _warpDestinationInteractable;
     private CancellationTokenSource _cts;
     private EffectSpawner _effectSpawner;
 
     private void Start()
     {
-        _warpObject = GetComponent<WarpObject>();
         _warpDestinationInteractable = _warpDestination.GetComponent<WarpInteractable>();
         _cts = new CancellationTokenSource();
-        _effectSpawner = GameObject.FindFirstObjectByType<EffectSpawner>();
     }
 
     protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
@@ -63,11 +60,11 @@ public class WarpInteractable : InteractableBase
 
     private async UniTaskVoid HandleWarpAsync(NetworkObject player)
     {
+         _effectSpawner ??= StaticServiceLocator.Instance.Get<EffectSpawner>();
+        
         // エフェクト再生
-        ParticleSystem startEffect = _warpObject.GetWarpEffect();
         Vector3 effectPos = player.transform.position + Vector3.up * 1.0f;
-        startEffect.transform.position = effectPos;
-        _effectSpawner.RequestPlayOneShotEffect(EffectType.Warp, effectPos, Quaternion.identity);
+        _effectSpawner?.RequestPlayOneShotEffect(EffectType.Warp, effectPos, Quaternion.identity);
         CRIAudio.PlaySE("Warp", _warpDestination.SoundName());
 
         // Playerを透明化
@@ -88,9 +85,7 @@ public class WarpInteractable : InteractableBase
         await UniTask.Delay(TimeSpan.FromSeconds(_warpDuration));
 
         // ゴール側エフェクト再生
-        ParticleSystem goalEffect = _warpDestination.GetWarpEffect();
-        goalEffect.transform.position = targetPos;
-        _effectSpawner.RequestPlayOneShotEffect(EffectType.Warp, targetPos, Quaternion.identity);
+        _effectSpawner?.RequestPlayOneShotEffect(EffectType.Warp, targetPos, Quaternion.identity);
         // 表示とSE
         SetPlayerVisible(player, true);
         CRIAudio.PlaySE("Warp", _warpDestination.SoundName());
