@@ -11,8 +11,7 @@ using September.Common;
 using September.InGame.UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using CRISound;
-using CriWare;
+
 
 namespace September.InGame.Common
 {
@@ -35,10 +34,6 @@ namespace September.InGame.Common
         public GameState CurrentState { get; private set; }
 
         private CancellationTokenSource _cts;
-        
-        CriAtomSource _criAtomSource;
-        [SerializeField]
-        private string _currentCueName;
         public override void Spawned()
         {
             _cts = new CancellationTokenSource();
@@ -139,22 +134,7 @@ namespace September.InGame.Common
             //Start!
             ChooseOgre();
             CurrentState = GameState.Playing;
-            InGame_PlayBGM(_currentCueName);
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
-        }
-
-        private void InGame_PlayBGM(string newCueName)
-        {
-            if(!string.IsNullOrEmpty(_currentCueName))
-            {
-                CRIAudio.StopBGM("BGM", _currentCueName);
-            }
-            
-            if(!string.IsNullOrEmpty(newCueName))
-            {
-                CRIAudio.PlayBGM("BGM", newCueName);
-                _currentCueName = newCueName;
-            }
         }
 
         private async UniTaskVoid GameEnded()
@@ -165,7 +145,6 @@ namespace September.InGame.Common
             _cts.Cancel();
             _cts.Dispose();
             RPC_ShowCursor();
-            CRIAudio.StopBGM("BGM", _currentCueName);
             await NetworkManager.Instance.QuitInGame();
         }
 
@@ -214,7 +193,6 @@ namespace September.InGame.Common
             {
                 _tickTimer = TickTimer.None;
                 GameEnded();
-                //Serverでのみ呼ばれる
             }
         }
         
