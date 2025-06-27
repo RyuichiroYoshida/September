@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace InGame.Exhibit
 {
-    public class PterodactylObject : InteractableBase
+    public class PterodactylInteractable : InteractableBase
     {
         [Header("Flight Settings")] 
         [SerializeField] private Transform _getOffPoint;
@@ -27,10 +27,15 @@ namespace InGame.Exhibit
         private PlayerManager _ownerPlayerManager;
         private bool _isFlying;
         [SerializeField,Label("アニメーション最低値")]private float _targetBlendValue = 0.01f;
+        private float _currentBlendValue = 0.01f;
 
         #region AnimationHash
 
         private static readonly int _flyStateBlend = Animator.StringToHash("FlyStateBlend");
+        [Networked]
+        public NetworkButtons PreviousButtons { get; set; }
+        private float _suppressOffTime = 0f;
+        private bool _waitForRelease = false;
 
         #endregion
         
@@ -51,14 +56,28 @@ namespace InGame.Exhibit
 
         public override void FixedUpdateNetwork()
         {
-            if(!_isFlying)
-                return;
+            if(!_isFlying || !HasInputAuthority) return;
 
-            if (HasStateAuthority)
+            if (_suppressOffTime > 0f)
+                _suppressOffTime -= Runner.DeltaTime;
+
+            if (GetInput<PlayerInput>(out var input))
             {
-                if (GetInput<PlayerInput>(out var input))
+                Move(input.MoveDirection);
+                
+                if (_waitForRelease)
                 {
-                    Move(input.MoveDirection);
+                    if (!input.Buttons.IsSet(PlayerButtons.Interact))
+                    {
+                        _waitForRelease = false;
+                    }
+                    else if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact))
+                    {
+                        GetOff();
+                        _waitForRelease = true;
+                    }
+                    
+                    PreviousButtons = input.Buttons;
                 }
             }
         }
@@ -89,11 +108,7 @@ namespace InGame.Exhibit
             
             if (_ownerPlayerRef == PlayerRef.None)
                 GetOn(requester);
-            else if (_ownerPlayerRef == requester)
-                GetOff();
         }
-
-        private float _currentBlendValue = 0.01f;
         
         // 動き周り
         private void Move(Vector2 moveDirection)
@@ -106,7 +121,7 @@ namespace InGame.Exhibit
             Vector3 cameraRight = _cameraController.GetCameraRight();
             
             // 方向キーの入力値とカメラの向きから、移動方向を決定
-            Vector3 moveDir = (cameraForward * moveDirection.y + cameraRight * moveDirection.x);
+            Vector3 moveDir = cameraForward * moveDirection.y + cameraRight * moveDirection.x;
             
             // 移動方向にスピードをかける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
             _rigidbody.linearVelocity = moveDir * _moveSpeed;
@@ -138,9 +153,15 @@ namespace InGame.Exhibit
 
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>()
                 .PlayerDataDic[_ownerPlayerRef].GetComponent<PlayerManager>();
+            
+            if (_ownerPlayerManager == null)
+                Debug.LogError("PlayerManager is null");
+            
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
             _ownerPlayerManager.RPC_SetMeshActive(false);
+            var floatOffset = Vector3.up * 0.3f;
+            transform.position += floatOffset;
             _isFlying = true;
         }
 
@@ -161,7 +182,7 @@ namespace InGame.Exhibit
             _isFlying = false;
         }
 
-        // ToDo Animationつける
+        // ToDo Position指定
         public void OnPlaySE()
         {
             CRIAudio.PlaySE("Pteranodon", "Pteranodon_Flapping_1");
