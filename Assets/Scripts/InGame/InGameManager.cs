@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using CRISound;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
@@ -10,6 +11,7 @@ using NaughtyAttributes;
 using September.Common;
 using September.InGame.UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 
@@ -34,6 +36,8 @@ namespace September.InGame.Common
         public GameState CurrentState { get; private set; }
 
         private CancellationTokenSource _cts;
+
+        [FormerlySerializedAs("_inGameCueName")] [FormerlySerializedAs("_currentCueName")] [SerializeField] private string _inGameBGMCueName;
         public override void Spawned()
         {
             _cts = new CancellationTokenSource();
@@ -132,9 +136,24 @@ namespace September.InGame.Common
             CurrentState = GameState.Waiting;
             await UniTask.Delay(TimeSpan.FromSeconds(_timerData.AfterReadyDelay), cancellationToken: _cts.Token);
             //Start!
+            InGame_PlayBGM(_inGameBGMCueName);
             ChooseOgre();
             CurrentState = GameState.Playing;
             _tickTimer = TickTimer.CreateFromSeconds(Runner, _timerData.GameTime);
+        }
+
+        private void InGame_PlayBGM(string newCueName)
+        {
+            if(!string.IsNullOrEmpty(_inGameBGMCueName))
+            {
+                CRIAudio.StopBGM("BGM", _inGameBGMCueName);
+            }
+            
+            if(!string.IsNullOrEmpty(newCueName))
+            {
+                CRIAudio.PlayBGM("BGM", newCueName);
+                _inGameBGMCueName = newCueName;
+            }
         }
 
         private async UniTaskVoid GameEnded()
@@ -145,6 +164,7 @@ namespace September.InGame.Common
             _cts.Cancel();
             _cts.Dispose();
             RPC_ShowCursor();
+            CRIAudio.StopBGM("BGM", _inGameBGMCueName);
             await NetworkManager.Instance.QuitInGame();
         }
 
