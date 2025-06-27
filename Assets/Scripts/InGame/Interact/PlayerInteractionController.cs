@@ -70,6 +70,8 @@ namespace InGame.Interact
 
         public override void FixedUpdateNetwork()
         {
+            _isHoldingInteract = false; // 毎フレームリセット
+            
             if (!HasInputAuthority) return;
             if (!GetInput(out PlayerInput input)) return;
 
