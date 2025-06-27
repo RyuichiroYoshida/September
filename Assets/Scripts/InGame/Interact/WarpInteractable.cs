@@ -7,6 +7,7 @@ using InGame.Interact;
 using InGame.Player;
 using NaughtyAttributes;
 using September.Common;
+using September.InGame.Effect;
 using UnityEngine;
 
 public class WarpInteractable : InteractableBase
@@ -18,12 +19,14 @@ public class WarpInteractable : InteractableBase
     private WarpObject _warpObject;
     private WarpInteractable _warpDestinationInteractable;
     private CancellationTokenSource _cts;
+    private EffectSpawner _effectSpawner;
 
     private void Start()
     {
         _warpObject = GetComponent<WarpObject>();
         _warpDestinationInteractable = _warpDestination.GetComponent<WarpInteractable>();
         _cts = new CancellationTokenSource();
+        _effectSpawner = GameObject.FindFirstObjectByType<EffectSpawner>();
     }
 
     protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
@@ -64,7 +67,7 @@ public class WarpInteractable : InteractableBase
         ParticleSystem startEffect = _warpObject.GetWarpEffect();
         Vector3 effectPos = player.transform.position + Vector3.up * 1.0f;
         startEffect.transform.position = effectPos;
-        startEffect.Play();
+        _effectSpawner.RequestPlayOneShotEffect(EffectType.Warp, effectPos, Quaternion.identity);
         CRIAudio.PlaySE("Warp", _warpDestination.SoundName());
 
         // Playerを透明化
@@ -87,7 +90,7 @@ public class WarpInteractable : InteractableBase
         // ゴール側エフェクト再生
         ParticleSystem goalEffect = _warpDestination.GetWarpEffect();
         goalEffect.transform.position = targetPos;
-        goalEffect.Play();
+        _effectSpawner.RequestPlayOneShotEffect(EffectType.Warp, targetPos, Quaternion.identity);
         // 表示とSE
         SetPlayerVisible(player, true);
         CRIAudio.PlaySE("Warp", _warpDestination.SoundName());
