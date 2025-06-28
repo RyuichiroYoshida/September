@@ -43,6 +43,16 @@ namespace InGame.Common
         {
             //Debug.Log($"Play clip : {clip.name}");
             // スキル用 AnimationClipPlayable を作成
+            if (!clip)
+            {
+                Debug.LogError("AnimationClip is null");
+                return;
+            }
+            if (_graph.IsValid() == false)
+            {
+                Debug.LogError("PlayableGraph is not valid");
+                return;
+            }
             var skillPlayable = AnimationClipPlayable.Create(_graph, clip);
             skillPlayable.SetApplyFootIK(true);
             //skillPlayable.SetTime(0);
@@ -73,7 +83,7 @@ namespace InGame.Common
         }
 
         void OnDestroy()
-        {
+        { 
             _graph.Destroy();
         }
     }
