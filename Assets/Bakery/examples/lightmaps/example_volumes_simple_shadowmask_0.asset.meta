@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 473f4b88df6e17246a938ecad2217d7f
+timeCreated: 1605977032
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: -1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 122218
+  packageName: Bakery - GPU Lightmapper
+  packageVersion: 1.96
+  assetPath: Assets/Bakery/examples/lightmaps/example_volumes_simple_shadowmask_0.asset
+  uploadId: 641446

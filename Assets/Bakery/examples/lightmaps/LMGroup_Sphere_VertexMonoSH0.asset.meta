@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 07337c7ace55a574fbbf11d581ced9a2
+timeCreated: 1704638408
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 4300000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 122218
+  packageName: Bakery - GPU Lightmapper
+  packageVersion: 1.96
+  assetPath: Assets/Bakery/examples/lightmaps/LMGroup_Sphere_VertexMonoSH0.asset
+  uploadId: 641446
