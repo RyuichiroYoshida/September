@@ -119,50 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &167597
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec0b4dd729a12d046982652f834580a2, type: 3}
-  m_Name: Field_LMA2
-  m_EditorClassIdentifier: 
-  resolution: 4096
-  bitmask: 1
-  id: 2
-  sortingID: 2
-  isImplicit: 1
-  area: 0
-  totalVertexCount: 0
-  vertexCounter: 0
-  sceneLodLevel: -1
-  autoResolution: 0
-  sceneName: 
-  tag: -1
-  containsTerrains: 0
-  probes: 0
-  mode: 1
-  renderMode: 1000
-  renderDirMode: 1000
-  atlasPacker: 1000
-  holeFilling: 0
-  computeSSS: 0
-  sssSamples: 16
-  sssDensity: 10
-  sssColor: {r: 1, g: 1, b: 1, a: 1}
-  sssScale: 1
-  fakeShadowBias: 0
-  transparentSelfShadow: 0
-  flipNormal: 0
-  parentName: 
-  overridePath: 
-  fixPos3D: 0
-  voxelSize: {x: 1, y: 1, z: 1}
-  passedFilter: 0
 --- !u!1 &1859234
 GameObject:
   m_ObjectHideFlags: 0
@@ -3746,7 +3702,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 248257790}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -26.78787, y: 10.366881, z: 34.17078}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3833,7 +3789,7 @@ Transform:
   - {fileID: 1887515264}
   - {fileID: 551957532}
   - {fileID: 374256414}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1590583278}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &251674698
 PrefabInstance:
@@ -6251,12 +6207,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 382083567}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -46.6, y: -3.580741, z: -0.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1590583278}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &382213901
 PrefabInstance:
@@ -14599,50 +14555,6 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: da8a11777d2ab984791166dc9239220d, type: 3}
   m_PrefabInstance: {fileID: 900378332}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &920498986
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec0b4dd729a12d046982652f834580a2, type: 3}
-  m_Name: Field_LMA1
-  m_EditorClassIdentifier: 
-  resolution: 4096
-  bitmask: 1
-  id: 1
-  sortingID: 1
-  isImplicit: 1
-  area: 0
-  totalVertexCount: 0
-  vertexCounter: 0
-  sceneLodLevel: -1
-  autoResolution: 0
-  sceneName: 
-  tag: -1
-  containsTerrains: 0
-  probes: 0
-  mode: 1
-  renderMode: 1000
-  renderDirMode: 1000
-  atlasPacker: 1000
-  holeFilling: 0
-  computeSSS: 0
-  sssSamples: 16
-  sssDensity: 10
-  sssColor: {r: 1, g: 1, b: 1, a: 1}
-  sssScale: 1
-  fakeShadowBias: 0
-  transparentSelfShadow: 0
-  flipNormal: 0
-  parentName: 
-  overridePath: 
-  fixPos3D: 0
-  voxelSize: {x: 1, y: 1, z: 1}
-  passedFilter: 0
 --- !u!1 &924001618
 GameObject:
   m_ObjectHideFlags: 0
@@ -18084,7 +17996,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1590583278}
   m_LocalEulerAnglesHint: {x: 84.534, y: -12.149, z: -7.223}
 --- !u!114 &1044510708
 MonoBehaviour:
@@ -21838,7 +21750,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1208995027}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -27.98488, y: 3.2869792, z: 31.256561}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -21872,7 +21784,7 @@ Transform:
   - {fileID: 1119913286}
   - {fileID: 362679667}
   - {fileID: 844760602}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1590583278}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1220294750
 GameObject:
@@ -24098,7 +24010,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1322304641}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -30.11639, y: 2.2588248, z: 30.035088}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -24107,7 +24019,7 @@ Transform:
   - {fileID: 1826331900}
   - {fileID: 1581027991}
   - {fileID: 1372885037}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1590583278}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1327107836
 PrefabInstance:
@@ -27205,6 +27117,43 @@ MonoBehaviour:
   shadowmaskGroupID: 0
   directionMode: 0
   maskChannel: -1
+--- !u!1 &1590583277
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1590583278}
+  m_Layer: 0
+  m_Name: Model
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1590583278
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590583277}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 32.6, y: -10.38, z: -2.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1322304642}
+  - {fileID: 1208995028}
+  - {fileID: 248257791}
+  - {fileID: 543450652461692192}
+  - {fileID: 1044510707}
+  - {fileID: 382083569}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1593738251
 GameObject:
   m_ObjectHideFlags: 0
@@ -35343,205 +35292,205 @@ MonoBehaviour:
     angle: 30
     UID: 120
   implicitGroups:
-  - {fileID: 2128715196}
-  - {fileID: 920498986}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 920498986}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 167597}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 920498986}
-  - {fileID: 920498986}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 920498986}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 167597}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
-  - {fileID: 2128715196}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   implicitGroupedObjects:
   - {fileID: 1697345113}
   - {fileID: 969625711}
@@ -38936,7 +38885,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &1882683131
 AudioListener:
   m_ObjectHideFlags: 0
@@ -39005,7 +38954,7 @@ Transform:
   m_GameObject: {fileID: 1882683130}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: -28.3, y: 1, z: 5.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -42077,50 +42026,6 @@ MonoBehaviour:
   shadowmaskGroupID: 0
   directionMode: 0
   maskChannel: -1
---- !u!114 &2128715196
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec0b4dd729a12d046982652f834580a2, type: 3}
-  m_Name: Field_LM0
-  m_EditorClassIdentifier: 
-  resolution: 4096
-  bitmask: 1
-  id: 0
-  sortingID: 0
-  isImplicit: 1
-  area: 78225.13
-  totalVertexCount: 0
-  vertexCounter: 0
-  sceneLodLevel: -1
-  autoResolution: 0
-  sceneName: 
-  tag: -1
-  containsTerrains: 0
-  probes: 0
-  mode: 1
-  renderMode: 1000
-  renderDirMode: 1000
-  atlasPacker: 1000
-  holeFilling: 0
-  computeSSS: 0
-  sssSamples: 16
-  sssDensity: 10
-  sssColor: {r: 1, g: 1, b: 1, a: 1}
-  sssScale: 1
-  fakeShadowBias: 0
-  transparentSelfShadow: 0
-  flipNormal: 0
-  parentName: 
-  overridePath: 
-  fixPos3D: 0
-  voxelSize: {x: 1, y: 1, z: 1}
-  passedFilter: 0
 --- !u!1 &2138577335
 GameObject:
   m_ObjectHideFlags: 0
@@ -42443,7 +42348,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132148254814106}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -42456,7 +42361,7 @@ Transform:
   - {fileID: 3632417141538629198}
   - {fileID: 2123972018320685676}
   - {fileID: 359340987}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1590583278}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &919132148254814106
 GameObject:
@@ -42709,11 +42614,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1882683133}
-  - {fileID: 1044510707}
-  - {fileID: 382083569}
   - {fileID: 40719685}
-  - {fileID: 543450652461692192}
   - {fileID: 1791308097}
-  - {fileID: 248257791}
-  - {fileID: 1322304642}
-  - {fileID: 1208995028}
+  - {fileID: 1590583278}
