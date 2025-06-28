@@ -12,6 +12,14 @@ namespace InGame.Combat
         public int startFrame;
         public int endFrame;
         [NonSerialized] public bool IsActive;
+    
+        // 🔽 追加：このアクションで既にヒットしたコライダー
+        [NonSerialized] public HashSet<Collider> AlreadyHitColliders = new();
+
+        public void ResetHitCache()
+        {
+            AlreadyHitColliders.Clear();
+        }
     }
 
     [Serializable]
@@ -35,6 +43,13 @@ namespace InGame.Combat
             if (action == null) return;
 
             bool inRange = currentFrame >= action.startFrame && currentFrame <= action.endFrame;
+
+            // 開始した瞬間だけリセット
+            if (!action.IsActive && inRange)
+            {
+                action.ResetHitCache();
+            }
+
             action.IsActive = inRange;
 
             if (inRange)

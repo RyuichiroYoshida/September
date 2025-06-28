@@ -78,7 +78,13 @@ namespace InGame.Combat
                     for (int h = 0; h < hitCount; h++)
                     {
                         var hit = _capsuleHitBuffer[h];
-                        Debug.Log($"Hit {hit.collider.name} with capsule from {p0.name} to {p1.name}");
+                        var collider = hit.collider;
+
+                        // 🔽 既にヒットしていたらスキップ
+                        if (action.AlreadyHitColliders.Contains(collider)) continue;
+
+                        action.AlreadyHitColliders.Add(collider);
+                        Debug.Log($"Hit {collider.name} with capsule from {p0.name} to {p1.name}");
                     }
                 }
             }
@@ -91,7 +97,13 @@ namespace InGame.Combat
                 int hitCount = Physics.OverlapSphereNonAlloc(last.position, radius, _sphereHitBuffer);
                 for (int i = 0; i < hitCount; i++)
                 {
-                    Debug.Log($"Hit {_sphereHitBuffer[i].name} with sphere at {last.name}");
+                    var collider = _sphereHitBuffer[i];
+
+                    // 🔽 既にヒットしていたらスキップ
+                    if (action.AlreadyHitColliders.Contains(collider)) continue;
+
+                    action.AlreadyHitColliders.Add(collider);
+                    Debug.Log($"Hit {collider.name} with sphere at {last.name}");
                 }
             }
         }
