@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace InGame.Combat
+namespace InGame.Common
 {
     public class HitboxManager : MonoBehaviour
     {
@@ -78,13 +78,12 @@ namespace InGame.Combat
                     for (int h = 0; h < hitCount; h++)
                     {
                         var hit = _capsuleHitBuffer[h];
-                        var collider = hit.collider;
+                        var hitCollider = hit.collider;
 
                         // 🔽 既にヒットしていたらスキップ
-                        if (action.AlreadyHitColliders.Contains(collider)) continue;
+                        if (!action.AlreadyHitColliders.Add(hitCollider)) continue;
 
-                        action.AlreadyHitColliders.Add(collider);
-                        Debug.Log($"Hit {collider.name} with capsule from {p0.name} to {p1.name}");
+                        Debug.Log($"Hit {hitCollider.name} with capsule from {p0.name} to {p1.name}");
                     }
                 }
             }
