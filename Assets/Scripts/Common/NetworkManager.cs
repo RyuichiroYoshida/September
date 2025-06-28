@@ -92,9 +92,10 @@ namespace September.Common
             if (!_networkRunner.IsServer) return;
             _networkRunner.SessionInfo.IsOpen = false;
             
-            SceneManager.LoadSceneAsync("Field", LoadSceneMode.Additive);
             await _networkRunner.LoadScene(_gameSceneName);
         }
+        
+        
         public async UniTask QuitInGame()
         {
             if (!_networkRunner.IsServer) return;
@@ -102,11 +103,10 @@ namespace September.Common
             
             if (!SceneManager.GetSceneByName("Field").isLoaded)
             {
-                Debug.LogError("Field scene not found");
                 return;
             }
             
-            SceneManager.UnloadSceneAsync("Field");
+            await _networkRunner.UnloadScene("Field"); 
             await _networkRunner.LoadScene(_resultSceneName);
         }
     }
