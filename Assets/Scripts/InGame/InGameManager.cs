@@ -11,6 +11,7 @@ using NaughtyAttributes;
 using September.Common;
 using September.InGame.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
@@ -60,13 +61,13 @@ namespace September.InGame.Common
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SetUpUI()
         {
-            Debug.Log("SetUpUI");
             _uiController.SetUpStartUI();
             _uiController.StartTimer();
         }
 
         private async UniTask Initialize()
         {
+            await _networkRunner.LoadScene("Field", LoadSceneMode.Additive);
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {
