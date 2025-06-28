@@ -208,9 +208,14 @@ namespace InGame.Interact
         {
             _isExecutingInteraction = false;
 
+            if (GetSessionPlayerData(Object.InputAuthority.RawEncoded, out var data))
+            {
+                return;
+            }
             var context = new InteractableContext
             {
                 Interactor = Object.InputAuthority.RawEncoded,
+                CharacterType = data.CharacterType,
             };
 
             if (HasStateAuthority)
@@ -261,6 +266,17 @@ namespace InGame.Interact
 
                 interactable.Interact(context);
             }
+        }
+        
+        private static bool GetSessionPlayerData(int interactor, out SessionPlayerData data)
+        {
+            if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(interactor), out data))
+            {
+                Debug.LogWarning("[InteractableBase] インタラクト実行者のデータが見つかりません: " + interactor);
+                return true;
+            }
+
+            return false;
         }
 
 #if UNITY_EDITOR

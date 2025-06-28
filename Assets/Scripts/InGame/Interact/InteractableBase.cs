@@ -24,9 +24,7 @@ namespace InGame.Interact
 
         public void Interact(IInteractableContext context)
         {
-            if (GetSessionPlayerData(context.Interactor, out var data)) return;
-
-            var charaType = data.CharacterType;
+            var charaType = context.CharacterType;
 
             if (!ValidateInteraction(context))
             {
@@ -42,16 +40,7 @@ namespace InGame.Interact
             LastUsedCooldownTime = _cooldownTimeDictionary.Dictionary.GetValueOrDefault(charaType, 0f);
         }
 
-        private static bool GetSessionPlayerData(int interactor, out SessionPlayerData data)
-        {
-            if (!PlayerDatabase.Instance.PlayerDataDic.TryGet(PlayerRef.FromEncoded(interactor), out data))
-            {
-                Debug.LogWarning("[InteractableBase] インタラクト実行者のデータが見つかりません: " + interactor);
-                return true;
-            }
-
-            return false;
-        }
+        
 
         /// <summary>
         /// 共通のバリデーション（null, クールダウン）
@@ -59,9 +48,7 @@ namespace InGame.Interact
         /// </summary>
         public bool ValidateInteraction(IInteractableContext context)
         {
-            if (GetSessionPlayerData(context.Interactor, out var data)) return false;
-
-            var type = data.CharacterType;
+            var type = context.CharacterType;
             if (IsInCooldown())
             {
                 return false;
@@ -99,11 +86,13 @@ namespace InGame.Interact
     public interface IInteractableContext
     {
         int Interactor { get; }
+        CharacterType CharacterType { get; set; }
     }
 
     // シンプルな実装例。必要に合わせて情報は追加してください
     public struct InteractableContext : IInteractableContext
     {
         public int Interactor { get; set; }
+        public CharacterType CharacterType { get; set; }
     }
 }
