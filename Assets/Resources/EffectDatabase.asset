@@ -17,5 +17,5 @@ MonoBehaviour:
     Guid: 32c307019e5388a48abe7e97d1760341
     Prefab: {fileID: 978753161540760816, guid: 32c307019e5388a48abe7e97d1760341, type: 3}
   - EffectType: 1
-    Guid: 32c307019e5388a48abe7e97d1760341
-    Prefab: {fileID: 978753161540760816, guid: 32c307019e5388a48abe7e97d1760341, type: 3}
+    Guid: 44377882acfef6d4192e55ae4c8f67c3
+    Prefab: {fileID: 9156133491186058588, guid: 44377882acfef6d4192e55ae4c8f67c3, type: 3}
