@@ -15594,7 +15594,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 66e690378fae4464c80ac134d246a953, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -24671,6 +24671,10 @@ PrefabInstance:
       value: EhMD_Art_Mi_0101 (1)
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -30970,6 +30974,10 @@ PrefabInstance:
       value: Pterodactyl_01
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 54cdbd83ad7084a478239646a1752e89, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 54cdbd83ad7084a478239646a1752e89, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -31112,6 +31120,10 @@ PrefabInstance:
     - target: {fileID: 7185474100883909031, guid: 54cdbd83ad7084a478239646a1752e89, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 7481099117994292624, guid: 54cdbd83ad7084a478239646a1752e89, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7481099117994292624, guid: 54cdbd83ad7084a478239646a1752e89, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -41687,6 +41699,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
       propertyPath: m_Name
       value: EhMD_Art_Mi_0101
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
       propertyPath: m_StaticEditorFlags
