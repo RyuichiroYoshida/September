@@ -1,4 +1,5 @@
 using InGame.Interact;
+using September.Common;
 using UnityEngine;
 
 namespace InGame.Interact
@@ -6,7 +7,13 @@ namespace InGame.Interact
     [System.Serializable]
     public abstract class CharacterInteractEffectBase
     {
-        public void OnInteractStart(IInteractableContext context, InteractableBase target) { }
+        protected CharacterInteractEffectBase () { }
+        
+        [SerializeField]
+        private CharacterType _characterType = CharacterType.All;
+
+        public CharacterType CharacterType => _characterType;
+        public abstract void OnInteractStart(IInteractableContext context, InteractableBase target);
         public virtual void OnInteractUpdate(float deltaTime) { }
         public virtual void OnInteractLateUpdate(float deltaTime) { }
         public virtual void OnInteractFixedUpdate() { }

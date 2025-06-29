@@ -1,7 +1,9 @@
+using System;
 using Fusion;
 using September.Common;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace InGame.Interact
 {
@@ -14,8 +16,9 @@ namespace InGame.Interact
         [SerializeField]
         private SerializableDictionary<CharacterType, float> _cooldownTimeDictionary = new();
         
-        [SerializeField]
-        private SerializableDictionary<CharacterType, CharacterInteractEffectBase> _characterEffects;  //キャラクターごとのインタラクト時の効果
+        [SerializeField, SerializeReference]
+        private List<CharacterInteractEffectBase> _characterEffects = new();
+
 
         [Networked]
         private float LastInteractTime { get; set; } = -9999f;
@@ -78,21 +81,20 @@ namespace InGame.Interact
         {
             var charaType = context.CharacterType;
 
-            if (_characterEffects.Dictionary.TryGetValue(CharacterType.All, out var effect))
+            // CharacterType に合う effect を先に探す（All優先）
+            var effect = _characterEffects
+                .FirstOrDefault(e => e != null && e.CharacterType == charaType) ?? _characterEffects
+                .FirstOrDefault(e => e is { CharacterType: CharacterType.All });
+
+            if (effect != null)
             {
                 _activeEffectBase = effect.Clone();
                 _activeEffectBase.OnInteractStart(context, this);
-                return;
             }
-
-            if (_characterEffects.Dictionary.TryGetValue(charaType, out effect))
+            else
             {
-                _activeEffectBase = effect.Clone();
-                _activeEffectBase.OnInteractStart(context, this);
-                return;
+                Debug.LogWarning($"[{name}] {charaType} のインタラクト効果が設定されていません");
             }
-
-            Debug.LogWarning($"[{name}] {charaType} のインタラクト効果が設定されていません");
         }
 
         protected bool IsInCooldown()
@@ -147,4 +149,15 @@ namespace InGame.Interact
         public int Interactor { get; set; }
         public CharacterType CharacterType { get; set; }
     }
+    
+    [Serializable]
+    public class InteractEffectEntry
+    {
+        public CharacterType character;
+
+        [SerializeReference]
+        [SubclassSelector]
+        public CharacterInteractEffectBase effect = new SimpleLogEffect();
+    }
+
 }
