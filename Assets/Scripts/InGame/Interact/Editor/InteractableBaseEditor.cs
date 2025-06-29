@@ -4,6 +4,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using InGame.Interact;
 
 [CustomEditor(typeof(InteractableBase), true)]
@@ -16,11 +17,23 @@ public class InteractableBaseEditor : Editor
     {
         serializedObject.Update();
 
-        DrawDefaultInspectorExcept("_characterEffects");
+        var prop = serializedObject.GetIterator();
+        bool enterChildren = true;
 
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Character Effects", EditorStyles.boldLabel);
-        _effectList.DoLayoutList();
+        while (prop.NextVisible(enterChildren))
+        {
+            enterChildren = false;
+
+            if (prop.name == "_characterEffects")
+            {
+                EditorGUILayout.Space(10);
+                _effectList.DoLayoutList();
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(prop, true);
+            }
+        }
 
         serializedObject.ApplyModifiedProperties();
     }
@@ -33,7 +46,7 @@ public class InteractableBaseEditor : Editor
 
         _effectList.drawHeaderCallback = rect =>
         {
-            EditorGUI.LabelField(rect, "Character Effects");
+            EditorGUI.LabelField(rect, "インタラクト時キャラ別効果");
         };
 
         _effectList.drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -108,18 +121,6 @@ public class InteractableBaseEditor : Editor
         }
 
         menu.ShowAsContext();
-    }
-
-    private void DrawDefaultInspectorExcept(params string[] exclude)
-    {
-        var prop = serializedObject.GetIterator();
-        bool enterChildren = true;
-        while (prop.NextVisible(enterChildren))
-        {
-            enterChildren = false;
-            if (exclude.Contains(prop.name)) continue;
-            EditorGUILayout.PropertyField(prop, true);
-        }
     }
 }
 #endif
