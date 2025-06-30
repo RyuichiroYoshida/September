@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using Fusion;
 using System.Collections.Generic;
+using InGame.Common;
+using September.Common;
 
 namespace September.InGame.Effect
 {
@@ -11,7 +13,8 @@ namespace September.InGame.Effect
         private EffectDatabase _effectDatabase;
         private Dictionary<string, GameObject> _activeEffects; //IDは呼び出し側に作ってもらう
 
-        private void Start()
+        
+        private void Awake()
         {
             _networkRunner = FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
@@ -42,6 +45,8 @@ namespace September.InGame.Effect
             
             if (_activeEffects == null)
                 _activeEffects = new Dictionary<string, GameObject>();
+            
+            StaticServiceLocator.Instance.Register<EffectSpawner>(this);
         }
 
         /// <summary>

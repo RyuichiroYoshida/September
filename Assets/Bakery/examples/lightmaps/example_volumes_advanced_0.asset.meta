@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: aa3bd126528a55844ab95cfe67769ff6
+timeCreated: 1605969881
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: -1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 122218
+  packageName: Bakery - GPU Lightmapper
+  packageVersion: 1.96
+  assetPath: Assets/Bakery/examples/lightmaps/example_volumes_advanced_0.asset
+  uploadId: 641446

@@ -10,6 +10,7 @@ public static class RuntimeManager
     {
         // ToDo : Addressableに変更
         GameObject prefab = Resources.Load<GameObject>("CRIObject");
+        //BGMManager.Initialize();
 
         if(GameObject.Find(prefab.name))
             return;

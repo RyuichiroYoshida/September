@@ -31,9 +31,7 @@ namespace InGame.Player
 
         private void FixedUpdate()
         {
-            Vector3 xzVelo = _playerMovement.MoveVelocity;
-            xzVelo.y = 0;
-            _speedText.text = $"velo:{_playerMovement.MoveVelocity}\nmag:{xzVelo.magnitude:F2}";
+            _speedText.text = $"velo:{_playerMovement.MoveVelocity}\non plane mag:{_playerMovement.GetSpeedOnPlane():F2}";
             _isGroundText.text = $"IsGround:{_playerMovement.IsGround}";
         }
     }
