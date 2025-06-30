@@ -10,6 +10,13 @@ using Newtonsoft.Json;
 using UnityEngine.Networking;
 using sepLog = September.Editor.Logger;
 
+public struct ProgressInfo
+{
+    public string Status { get; set; }
+    public float Progress { get; set; }
+    public string Detail { get; set; }
+}
+
 public class AssetsImporter
 {
     private const string ApiUrl = "https://asset-importer-538394701382.asia-northeast1.run.app";
@@ -20,6 +27,8 @@ public class AssetsImporter
     private readonly CancellationToken _defaultToken;
 
     public List<Release> Releases { get; private set; } = new();
+    
+    public event Action<ProgressInfo> OnProgressChanged;
 
     public AssetsImporter(bool enableLogger = true)
     {
@@ -88,24 +97,66 @@ public class AssetsImporter
     {
         var ct = token ?? _defaultToken;
         var urlReq = UnityWebRequest.Get($"{ApiUrl}/{route}?id={assetId}");
+        
+        OnProgressChanged?.Invoke(new ProgressInfo 
+        { 
+            Status = "ダウンロード開始", 
+            Progress = 0f, 
+            Detail = "アセットのダウンロードを開始しています..." 
+        });
+        
         try
         {
-            await urlReq.SendWebRequest().ToUniTask(cancellationToken: ct);
+            var operation = urlReq.SendWebRequest();
+            
+            while (!operation.isDone)
+            {
+                var progress = urlReq.downloadProgress;
+                OnProgressChanged?.Invoke(new ProgressInfo 
+                { 
+                    Status = "ダウンロード中", 
+                    Progress = progress, 
+                    Detail = $"ダウンロード進捗: {progress * 100:F1}%" 
+                });
+                
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+            }
+            
+            await operation.ToUniTask(cancellationToken: ct);
         }
         catch (Exception e)
         {
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "エラー", 
+                Progress = 0f, 
+                Detail = "ダウンロードエラー: " + e.Message 
+            });
             sepLog.Logger.LogError("GetAsset Error: " + e.Message);
             return "";
         }
 
         if (urlReq.result != UnityWebRequest.Result.Success)
         {
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "エラー", 
+                Progress = 0f, 
+                Detail = "ダウンロードエラー: " + urlReq.error 
+            });
             sepLog.Logger.LogError("Url Get Error: " + urlReq.error);
             return "";
         }
         
         try
         {
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "ファイル保存中", 
+                Progress = 1f, 
+                Detail = "ダウンロードしたファイルを保存しています..." 
+            });
+            
             var fileData = urlReq.downloadHandler.data;
 
             // アセット名を取得
@@ -128,10 +179,23 @@ public class AssetsImporter
             sepLog.Logger.LogInfo($"ファイルの保存先: {filePath}", _enableLogger);
             await ExtractZipFile(zipPath, filePath, ct);
 
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "完了", 
+                Progress = 1f, 
+                Detail = "アセットのダウンロードと解凍が完了しました" 
+            });
+
             return filePath;
         }
         catch (Exception e)
         {
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "エラー", 
+                Progress = 0f, 
+                Detail = "ファイル保存エラー: " + e.Message 
+            });
             sepLog.Logger.LogError($"ファイルの保存中にエラーが発生しました: {e.Message}");
             return "";
         }
@@ -147,14 +211,61 @@ public class AssetsImporter
     {
         try
         {
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "解凍開始", 
+                Progress = 0f, 
+                Detail = "ZIPファイルの解凍を開始しています..." 
+            });
+            
             Directory.CreateDirectory(filePath);
-            // ZIPファイルを解凍
-            await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, filePath), ct);
+            
+            // ZIPファイルの総エントリ数を取得して進捗を監視
+            await Task.Run(() =>
+            {
+                using var archive = ZipFile.OpenRead(zipPath);
+                var totalEntries = archive.Entries.Count;
+                var extractedEntries = 0;
+                
+                foreach (var entry in archive.Entries)
+                {
+                    if (ct.IsCancellationRequested)
+                        return;
+                        
+                    var destinationPath = Path.Combine(filePath, entry.FullName);
+                    
+                    if (entry.FullName.EndsWith("/"))
+                    {
+                        Directory.CreateDirectory(destinationPath);
+                    }
+                    else
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
+                        entry.ExtractToFile(destinationPath, true);
+                    }
+                    
+                    extractedEntries++;
+                    var progress = (float)extractedEntries / totalEntries;
+                    
+                    OnProgressChanged?.Invoke(new ProgressInfo 
+                    { 
+                        Status = "解凍中", 
+                        Progress = progress, 
+                        Detail = $"解凍進捗: {extractedEntries}/{totalEntries} ({progress * 100:F1}%)" 
+                    });
+                }
+            }, ct);
 
             sepLog.Logger.LogInfo($"ZIPファイルを解凍しました: {zipPath} -> {filePath}", _enableLogger);
         }
         catch (IOException e)
         {
+            OnProgressChanged?.Invoke(new ProgressInfo 
+            { 
+                Status = "エラー", 
+                Progress = 0f, 
+                Detail = "解凍エラー: " + e.Message 
+            });
             sepLog.Logger.LogError($"解凍中にIOエラーが発生しました: {e.Message}");
         }
         finally

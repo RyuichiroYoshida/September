@@ -26,6 +26,9 @@ public class EditorButton : EditorWindow
 
     private bool _isFileChecking;
     private bool _useLogger;
+    
+    private ProgressInfo _currentProgress;
+    private bool _isDownloading;
     // まめちしき
     // Unityには UnityEditor.AssetImporter というテクスチャ等のアセットを自動でインポートするやつがあるらしいわよ
     // https://light11.hatenadiary.com/entry/2018/04/05/194303
@@ -63,13 +66,35 @@ public class EditorButton : EditorWindow
 
         GUILayout.Space(10);
 
+        GUI.enabled = !_isDownloading;
         if (GUILayout.Button("アセットのインポート"))
         {
             _syncImportingText = "アセットインポート中";
-            _ = Import(result => _syncImportingText = result);
+            _isDownloading = true;
+            _ = Import(result => 
+            {
+                _syncImportingText = result;
+                _isDownloading = false;
+            });
         }
+        GUI.enabled = true;
 
         GUILayout.Label(_syncImportingText);
+        
+        // 進捗表示
+        if (_isDownloading)
+        {
+            GUILayout.Space(10);
+            
+            // ステータス表示
+            DrawColorLabel(_currentProgress.Status, Color.cyan);
+            
+            // プログレスバー
+            var rect = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
+            EditorGUI.ProgressBar(rect, _currentProgress.Progress, _currentProgress.Detail);
+            
+            GUILayout.Space(5);
+        }
 
         GUILayout.Space(50);
         GUILayout.Label("-----------------これより下はプログラマー用-----------------");
@@ -105,6 +130,9 @@ public class EditorButton : EditorWindow
     private void OnEnable()
     {
         _ct = _cts.Token;
+        
+        // UI更新の最適化のため、EditorApplicationの更新イベントに登録
+        EditorApplication.update += OnEditorUpdate;
 
         _ = Sync(result => _syncWaitingText = result);
     }
@@ -112,7 +140,15 @@ public class EditorButton : EditorWindow
     private void OnDisable()
     {
         _cts.Cancel();
-        _importer.Dispose();
+        
+        // EditorApplicationの更新イベントから削除
+        EditorApplication.update -= OnEditorUpdate;
+        
+        if (_importer != null)
+        {
+            _importer.OnProgressChanged -= OnProgressChanged;
+            _importer.Dispose();
+        }
     }
 
     private async UniTaskVoid Sync(Action<string> callback)
@@ -120,6 +156,10 @@ public class EditorButton : EditorWindow
         try
         {
             _importer = new AssetsImporter(_useLogger);
+            
+            // 進捗イベントの購読
+            _importer.OnProgressChanged += OnProgressChanged;
+            
             await _importer.GetReleases("releases", _ct);
             _releasesList.Clear();
             foreach (var release in _importer.Releases)
@@ -142,6 +182,14 @@ public class EditorButton : EditorWindow
             var id = _importer.Releases[_releasesSelectedIndex].Assets[0].ID;
 
             var filePath = await _importer.GetAsset("asset", id, _ct);
+            
+            _currentProgress = new ProgressInfo
+            {
+                Status = "インポート中",
+                Progress = 1f,
+                Detail = "UnityPackageをインポートしています..."
+            };
+            
             Download(filePath);
             callback("アセットのインポートが完了しました");
         }
@@ -205,5 +253,21 @@ public class EditorButton : EditorWindow
             textColor = _defaultLabelColor
         };
         style.normal = styleState2;
+    }
+    
+    private void OnProgressChanged(ProgressInfo progressInfo)
+    {
+        _currentProgress = progressInfo;
+        // メインスレッドで安全にRepaintを呼び出す
+        EditorApplication.delayCall += Repaint;
+    }
+    
+    private void OnEditorUpdate()
+    {
+        // ダウンロード中は定期的にRepaintを呼び出してUIをスムーズに更新
+        if (_isDownloading)
+        {
+            Repaint();
+        }
     }
 }
