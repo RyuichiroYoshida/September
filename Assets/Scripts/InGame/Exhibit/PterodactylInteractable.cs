@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace InGame.Exhibit
 {
-    public class PterodactylInteractable : InteractableBase
+    public class PterodactylInteractable : InteractableBase,IExhibitInteractionBehavior
     {
         [Header("Flight Settings")] 
         [SerializeField] private Transform _getOffPoint;
@@ -40,19 +40,24 @@ namespace InGame.Exhibit
         #endregion
         
        private void Awake()
-        {
+       {
             _cameraController = GetComponent<CameraController>();
             _animator = GetComponent<Animator>();
             if(_animator is null)
                 Debug.LogError("Animator is null");
             
-            _rigidbody = GetComponentInChildren<Rigidbody>();
+            _rigidbody = GetComponent<Rigidbody>();
             _cameraController.Init(true);
 
             _gameInput = new GameInput();
             _gameInput.Enable();
             _isFlying = false;
         }
+
+       private void Start()
+       {
+           _rigidbody.isKinematic = true;
+       }
 
         public override void FixedUpdateNetwork()
         {
@@ -96,9 +101,11 @@ namespace InGame.Exhibit
 
         protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
+            // すでにキャラクターが乗っていたらインタラクト不可能にする
             return _ownerPlayerRef == PlayerRef.None || _ownerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
         }
 
+        // キャラクターごとにスキルを変更する
         protected override void OnInteract(IInteractableContext context)
         {
             if(!HasStateAuthority)
@@ -139,7 +146,7 @@ namespace InGame.Exhibit
             
             _animator.SetFloat(_flyStateBlend, clampedBlend);
         }
-
+        
         private void GetOn(PlayerRef ownerPlayerRef)
         {
             if (!Runner.IsServer || _ownerPlayerRef != PlayerRef.None) 
@@ -163,6 +170,7 @@ namespace InGame.Exhibit
             var floatOffset = Vector3.up * 0.3f;
             transform.position += floatOffset;
             _isFlying = true;
+            _rigidbody.isKinematic = false;
         }
 
         private void GetOff()
@@ -181,11 +189,26 @@ namespace InGame.Exhibit
             _ownerPlayerManager.transform.position = _getOffPoint.position;
             _isFlying = false;
         }
-
+        
         // ToDo Position指定
         public void OnPlaySE()
         {
             CRIAudio.PlaySE("Pteranodon", "Pteranodon_Flapping_1");
+        }
+
+        public void OnSetBomb()
+        {
+            
+        }
+
+        public void OnDestroyAbility()
+        {
+            
+        }
+
+        public void OnFriend()
+        {
+            
         }
     }
 }
