@@ -60,6 +60,7 @@ Material:
     - _ZTest: 4
     - _ZWrite: 0
     - _ZWriteControl: 0
+    - _alpha: 1
     - _distortion_intesity: 0.5
     - _ofsetx: 0
     - _ofsety: -0.38

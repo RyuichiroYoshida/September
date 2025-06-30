@@ -15,6 +15,7 @@ namespace Common
         [SerializeField] NetworkRunner _runnerPrefab;
         [SerializeField] PlayerDatabase _playerDatabasePrefab;
         [SerializeField, Scene] string _inGameSceneName;
+        [SerializeField] string _roomName = "TestRoom";
         [SerializeField] int _playerCount = 1;
         [SerializeField] CharacterType _characterType;
         
@@ -38,12 +39,10 @@ namespace Common
             _runner.AddCallbacks(this);
             _runner.ProvideInput = true;
             
-            string roomName = "TestRoom";
-            
             var result = await _runner.StartGame(new StartGameArgs
             {
                 GameMode = GameMode.AutoHostOrClient,
-                SessionName = roomName,
+                SessionName = _roomName,
                 PlayerCount = _playerCount
             });
 

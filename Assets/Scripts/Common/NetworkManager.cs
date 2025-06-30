@@ -91,12 +91,22 @@ namespace September.Common
         {
             if (!_networkRunner.IsServer) return;
             _networkRunner.SessionInfo.IsOpen = false;
+            
             await _networkRunner.LoadScene(_gameSceneName);
         }
+        
+        
         public async UniTask QuitInGame()
         {
             if (!_networkRunner.IsServer) return;
             _networkRunner.SessionInfo.IsOpen = false;
+            
+            if (!SceneManager.GetSceneByName("Field").isLoaded)
+            {
+                return;
+            }
+            
+            await _networkRunner.UnloadScene("Field"); 
             await _networkRunner.LoadScene(_resultSceneName);
         }
     }

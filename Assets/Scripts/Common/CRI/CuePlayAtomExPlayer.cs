@@ -5,6 +5,7 @@ using static CriWare.CriAtomEx;
 using CriWare;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace CRISound
 {
@@ -69,15 +70,15 @@ namespace CRISound
         private async void LoadCueSheet()
         {
             // CRIAtomの処理
-            var criAtom = GameObject.FindObjectOfType<CriAtom>();
+            var criAtom = Object.FindObjectOfType<CriAtom>();
             // CRIが見つからなければ動的に生成する
             if (criAtom == null)
             {
                 _isReady = false;
                 // CRIのロード(あとでAddressableに変更)
                 var obj = Resources.Load<GameObject>("CRIObject");
-                GameObject.Instantiate(obj);
-                criAtom = GameObject.FindObjectOfType<CriAtom>();
+                Object.Instantiate(obj);
+                criAtom = Object.FindObjectOfType<CriAtom>();
             }
 
             if (_isReady)

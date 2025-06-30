@@ -1,7 +1,11 @@
+using System;
 using Fusion;
+using InGame.Common;
 using InGame.Health;
 using September.Common;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using PlayerInput = September.Common.PlayerInput;
 
 namespace InGame.Player
 {
@@ -18,7 +22,6 @@ namespace InGame.Player
         PlayerMovement _playerMovement;
         CameraController _cameraController;
         PlayerHealth _playerHealth;
-        GameInput _gameInput;
         PlayerControlState _playerControlState = PlayerControlState.Normal;
         TickTimer _stunTickTimer;
 
@@ -42,15 +45,6 @@ namespace InGame.Player
         [Networked] private NetworkButtons PreviousButtons { get; set; }
         [Networked, HideInInspector] public NetworkBool IsStun { get; private set; }
 
-        private void Start()
-        {
-            if (HasInputAuthority)
-            {
-                _gameInput = new GameInput();
-                _gameInput.Enable();
-            }
-        }
-
         public override void Spawned()
         {
             InitComponents();
@@ -67,7 +61,7 @@ namespace InGame.Player
 
             if (TryGetComponent(out CameraController cameraController))
             {
-                this._cameraController = cameraController;
+                _cameraController = cameraController;
                 cameraController.Init(IsLocalPlayer);
             }
 
@@ -77,6 +71,11 @@ namespace InGame.Player
                 health.Init(_playerParameter.Health);
                 health.OnDeath += OnDeath;
             }
+
+            if (TryGetComponent(out PlayerAnimBase playerAnimBase))
+            {
+                playerAnimBase.Init(this);
+            }
         }
 
         private void LateUpdate()
@@ -84,12 +83,12 @@ namespace InGame.Player
             // Localでの処理にInputを送る
             if (HasInputAuthority)
             {
-                if (_gameInput.Player.Aim.triggered)
+                if (GameInput.I.Player.Aim.triggered)
                 {
                     _cameraController.CameraReset();
                 }
-            
-                _cameraController.RotateCamera(_gameInput.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
+                
+                _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
         }
 
@@ -109,6 +108,8 @@ namespace InGame.Player
                 // player movement に入力を与えて更新する
                 _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
                     input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
+                
+                if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump)) _playerMovement.AddForce(Vector3.up * 10);
             }
 
             if (_shouldWarp)
@@ -143,7 +144,7 @@ namespace InGame.Player
         {
             _playerControlState = controlState;
 
-            if (_playerControlState == PlayerControlState.ForcedMovement)
+            if (_playerControlState == PlayerControlState.ForcedControl)
             {
                 _playerMovement.Stop();
             }
@@ -168,7 +169,23 @@ namespace InGame.Player
         {
             Normal,
             InputLocked,
-            ForcedMovement
+            ForcedControl
+        }
+
+        [SerializeField] private AnimationClip _clip;
+        AnimationClipPlayer _clipPlayer;
+
+        private void Start()
+        {
+            _clipPlayer = GetComponent<AnimationClipPlayer>();
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                _clipPlayer.PlayClip(_clip);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using InGame.Health;
 using UnityEngine;
 using Fusion;
+using InGame.Common;
 using NaughtyAttributes;
 using September.Common;
 using September.InGame.Common;
@@ -15,6 +16,7 @@ public class AbilityNormalAttack : AbilityBase
     [SerializeField, Label("攻撃力")] private int _attackDamage = 10;
     [SerializeField] private float _attackDuration = 1.0f;
     [SerializeField] private LayerMask _hitMask;
+    [SerializeField] private AnimationClip _attackAnimationClip;
 
     private readonly Collider[] _hitBuffer = new Collider[10];
     private static InGameManager _inGameManager;
@@ -34,6 +36,7 @@ public class AbilityNormalAttack : AbilityBase
         _attackDamage = original._attackDamage;
         _attackDuration = original._attackDuration;
         _hitMask = original._hitMask;
+        _attackAnimationClip = original._attackAnimationClip;
     }
     public override AbilityBase Clone(AbilityBase abilityReference) => new AbilityNormalAttack(this);
 
@@ -53,6 +56,8 @@ public class AbilityNormalAttack : AbilityBase
             return;
         }
 
+        var ownerAnimator = playerData.GetComponent<AnimationClipPlayer>();
+        if (ownerAnimator) ownerAnimator.PlayClip(_attackAnimationClip);
         _attackOrigin = playerData.transform.position;
         _remainingTime = _attackDuration;
         _alreadyHit.Clear();
