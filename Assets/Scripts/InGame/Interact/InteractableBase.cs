@@ -16,7 +16,7 @@ namespace InGame.Interact
         [SerializeField]
         private SerializableDictionary<CharacterType, float> _cooldownTimeDictionary = new();
         
-        [SerializeField, SerializeReference]
+        [SerializeReference, SubclassSelector]
         private List<CharacterInteractEffectBase> _characterEffects = new();
 
 

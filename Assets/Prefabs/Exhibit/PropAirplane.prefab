@@ -999,6 +999,8 @@ MonoBehaviour:
     values:
     - 1
     - 1
+  _characterEffects:
+  - rid: 5083283082934222954
   _getOffPoint: {fileID: 4664626561920155601}
   _grav: 6
   _drag: {x: 0.3, y: 0.3, z: 0.1}
@@ -1022,6 +1024,14 @@ MonoBehaviour:
   _currentAccelText: {fileID: 7986310020915403168}
   _angleText: {fileID: 3115068171291840454}
   _isUpText: {fileID: 6362518027200371173}
+  references:
+    version: 2
+    RefIds:
+    - rid: 5083283082934222954
+      type: {class: SimpleLogEffect, ns: InGame.Interact, asm: Scripts}
+      data:
+        _characterType: 3
+        effectName: "\u30C6\u30B9\u30C8\u30ED\u30B0"
 --- !u!114 &-5982283155467583323
 MonoBehaviour:
   m_ObjectHideFlags: 0
