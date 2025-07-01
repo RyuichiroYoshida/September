@@ -797,7 +797,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 238459436195814597}
-  - component: {fileID: 1550628498556491987}
+  - component: {fileID: 2167480726317732603}
   m_Layer: 0
   m_Name: okb_ReJoint:test_okb_Reference2
   m_TagString: Untagged
@@ -821,7 +821,7 @@ Transform:
   - {fileID: 8787300749745816901}
   m_Father: {fileID: 1920212954294529003}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1550628498556491987
+--- !u!114 &2167480726317732603
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -830,16 +830,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1563512875941514434}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03dc8cd7af5407f47af7bbaa26703aa9, type: 3}
+  m_Script: {fileID: 11500000, guid: 224c75cd33ef4d74f9cf5b541cc9b898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actions:
-  - name: NormalAttack
-    points:
-    - {fileID: 7675671486840686168}
-    - {fileID: 6141440101486108087}
-    startFrame: 0
-    endFrame: 30
+  _hitPoints:
+  - {fileID: 1227477625431791092}
+  - {fileID: 6141440101486108087}
 --- !u!1 &1569335473018215294
 GameObject:
   m_ObjectHideFlags: 0

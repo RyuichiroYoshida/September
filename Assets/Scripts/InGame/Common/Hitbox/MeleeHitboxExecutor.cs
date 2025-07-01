@@ -62,26 +62,22 @@ public class MeleeHitboxExecutor : IHitboxExecutor
                     externalOnHit?.Invoke(collider);
                 }
             }
+
+#if UNITY_EDITOR
+            DebugGizmo(start, end);
+#endif
         }
     }
 
 #if UNITY_EDITOR
-    public void DrawDebugGizmos()
+    public void DebugGizmo(Vector3 start, Vector3 end)
     {
-        if (!HitboxDebugUtility.IsDebugModeEnabled) return;
-
-        Gizmos.color = Color.red;
-
-        for (int i = 0; i < _points.Count - 1; i++)
+        if (HitboxDebugUtility.IsDebugModeEnabled)
         {
-            var p0 = _points[i];
-            var p1 = _points[i + 1];
-
-            if (p0 == null || p1 == null) continue;
-
-            Gizmos.DrawWireSphere(p0.position, _hitboxRadius);
-            Gizmos.DrawWireSphere(p1.position, _hitboxRadius);
-            Gizmos.DrawLine(p0.position, p1.position);
+            Debug.DrawLine(start, end, Color.red, 0.1f);
+            Debug.DrawRay(start, Vector3.up * 0.1f, Color.red, 0.1f); // optional: start marker
+            Debug.DrawRay(end, Vector3.up * 0.1f, Color.red, 0.1f); // optional: end marker
+            Debug.D
         }
     }
 #endif
