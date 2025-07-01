@@ -6,6 +6,8 @@ namespace InGame.Interact
     public class SimpleLogEffect : CharacterInteractEffectBase
     {
         public string effectName = "Default";
+        
+        public SimpleLogEffect() { }
 
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
         {
