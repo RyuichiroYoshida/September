@@ -24,7 +24,6 @@ public class AbilityNormalAttack : AbilityBase
     private float _remainingTime;
     private Vector3 _attackOrigin;
     private readonly HashSet<IDamageable> _alreadyHit = new();
-    private HitboxTimeline _ownerHitboxTimeline;
 
     public override bool RunLocal => false;
     public override string DisplayName => "通常攻撃";
@@ -59,7 +58,6 @@ public class AbilityNormalAttack : AbilityBase
 
         var ownerAnimator = playerData.GetComponent<AnimationClipPlayer>();
         if (ownerAnimator) ownerAnimator.PlayClip(_attackAnimationClip);
-        _ownerHitboxTimeline = playerData.GetComponentInChildren<HitboxTimeline>();
         _attackOrigin = playerData.transform.position;
         _remainingTime = _attackDuration;
         _alreadyHit.Clear();
