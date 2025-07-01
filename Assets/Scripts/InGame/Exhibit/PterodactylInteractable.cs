@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace InGame.Exhibit
 {
-    public class PterodactylInteractable : InteractableBase,IExhibitInteractionBehavior
+    public class PterodactylInteractable : InteractableBase
     {
         [Header("Flight Settings")] 
         [SerializeField] private Transform _getOffPoint;
@@ -35,8 +35,6 @@ namespace InGame.Exhibit
         [Networked]
         public NetworkButtons PreviousButtons { get; set; }
         private float _suppressOffTime = 0f;
-        private bool _waitForRelease = false;
-
         #endregion
         
        private void Awake()
@@ -61,7 +59,8 @@ namespace InGame.Exhibit
 
         public override void FixedUpdateNetwork()
         {
-            if(!_isFlying || !HasInputAuthority) return;
+            if(!_isFlying || !HasInputAuthority) 
+                return;
 
             if (_suppressOffTime > 0f)
                 _suppressOffTime -= Runner.DeltaTime;
@@ -70,20 +69,10 @@ namespace InGame.Exhibit
             {
                 Move(input.MoveDirection);
                 
-                if (_waitForRelease)
-                {
-                    if (!input.Buttons.IsSet(PlayerButtons.Interact))
-                    {
-                        _waitForRelease = false;
-                    }
-                    else if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact))
-                    {
-                        GetOff();
-                        _waitForRelease = true;
-                    }
-                    
-                    PreviousButtons = input.Buttons;
-                }
+                // if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact)) 
+                // {
+                //     GetOff();
+                // }
             }
         }
 
@@ -190,25 +179,15 @@ namespace InGame.Exhibit
             _isFlying = false;
         }
         
-        // ToDo Position指定
         public void OnPlaySE()
         {
-            CRIAudio.PlaySE("Pteranodon", "Pteranodon_Flapping_1");
+            RPC_PlaySE(transform.position, "Pteranodon_Flapping_1");
         }
 
-        public void OnSetBomb()
+        [Rpc(RpcSources.All,RpcTargets.All)]
+        private void RPC_PlaySE(Vector3 position, string cueName)
         {
-            
-        }
-
-        public void OnDestroyAbility()
-        {
-            
-        }
-
-        public void OnFriend()
-        {
-            
+            CRIAudio.PlaySE(position,"Pteranodon", cueName);
         }
     }
 }
