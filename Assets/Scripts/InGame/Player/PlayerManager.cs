@@ -182,10 +182,10 @@ namespace InGame.Player
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                _clipPlayer.PlayClip(_clip);
-            }
+            // if (Input.GetKeyDown(KeyCode.E))
+            // {
+            //     _clipPlayer.PlayClip(_clip);
+            // }
         }
     }
 }
