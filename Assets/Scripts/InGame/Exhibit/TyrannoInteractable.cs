@@ -17,9 +17,14 @@ namespace  InGame.Exhibit
         private Animator _animator;
         private Rigidbody _rigidbody;
         [SerializeField] private float _speed;
-        private void Start()
+        private GameInput _gameInput;
+        private void Awake()
         {
             _cameraController = GetComponent<CameraController>();
+            _rigidbody = GetComponent<Rigidbody>();
+            _cameraController.Init(true);
+            _gameInput = new GameInput();
+            _gameInput.Enable();
         }
         
         public override void FixedUpdateNetwork()
@@ -35,6 +40,18 @@ namespace  InGame.Exhibit
                 // {
                 //     GetOff();
                 // }
+            }
+        }
+        
+        private void LateUpdate()
+        {
+            if (HasInputAuthority)
+            {
+                if (_gameInput.Player.Aim.triggered)
+                {
+                    _cameraController.CameraReset();
+                }
+                _cameraController.RotateCamera(_gameInput.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
         }
 
@@ -82,8 +99,7 @@ namespace  InGame.Exhibit
             Vector3 moveDirection = cameraForward * inputMoveDirection.y + cameraRight * inputMoveDirection.x;
             moveDirection.y = 0;
             _rigidbody.linearVelocity = moveDirection * _speed;
-
-            if (inputMoveDirection.magnitude > 0)
+            if (moveDirection.magnitude > 0)
             {
                 var rot = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), 10f);
                 transform.rotation = rot;
