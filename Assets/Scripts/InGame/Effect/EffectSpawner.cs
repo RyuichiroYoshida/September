@@ -56,7 +56,15 @@ namespace September.InGame.Effect
         {
             RPC_PlayEffect(effectType, position, rotation, false, string.Empty);
         }
-        
+
+        /// <summary>
+        /// ループせずに生成するエフェクト（親オブジェクト指定）
+        /// </summary>
+        public void RequestPlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation, Transform parent)
+        {
+            RPC_PlayEffect(effectType, position, rotation, false, string.Empty, parent);
+        }
+
         /// <summary>
         /// 手動で削除するエフェクトのリクエスト
         /// </summary>
@@ -64,6 +72,15 @@ namespace September.InGame.Effect
         public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
         {
             RPC_PlayEffect(effectType, position, rotation, true, effectId);
+        }
+
+        /// <summary>
+        /// 手動で削除するエフェクトのリクエスト（親オブジェクト指定）
+        /// </summary>
+        /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
+        public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation, Transform parent)
+        {
+            RPC_PlayEffect(effectType, position, rotation, true, effectId, parent);
         }
 
         /// <summary>
@@ -83,7 +100,7 @@ namespace September.InGame.Effect
         /// <param name="isLoop">ループするかどうか</param>
         /// <param name="effectId">エフェクトID（ループエフェクトの場合のみ使用）</param>
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, string effectId)
+        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, string effectId, Transform parent = null)
         {
             if (_effectDatabase == null)
             {
@@ -97,9 +114,21 @@ namespace September.InGame.Effect
                 Debug.LogError($"'{effectType}' に対応するプレハブが見つかりません");
                 return;
             }
-            
-            GameObject effect = Instantiate(effectData.Prefab, position, rotation);
-            
+
+            GameObject effect;
+            if (parent != null)
+            {
+                // 親オブジェクトが指定されている場合、子オブジェクトとして生成
+                effect = Instantiate(effectData.Prefab, position, rotation, parent);
+                Debug.Log($"エフェクト '{effectType}' を親オブジェクト '{parent.name}' の子として生成");
+            }
+            else
+            {
+                // 親オブジェクトが指定されていない場合、通常通り生成
+                effect = Instantiate(effectData.Prefab, position, rotation);
+                Debug.Log($"エフェクト '{effectType}' を単独で生成");
+            }
+
             //パーティクルシステムの設定
             ParticleSystem system = effect.GetComponent<ParticleSystem>();
             if (system != null)
