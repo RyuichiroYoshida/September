@@ -48,7 +48,7 @@ public class MeleeHitboxExecutor : IHitboxExecutor
         }
     }
 
-    public void ExecuteHitCheck(Action<Collider> externalOnHit = null)
+    private void ExecuteHitCheck()
     {
         for (int i = 0; i < _points.Count - 1; i++)
         {
@@ -74,7 +74,6 @@ public class MeleeHitboxExecutor : IHitboxExecutor
                 if (_alreadyHit.Add(collider))
                 {
                     OnHit?.Invoke(collider);
-                    externalOnHit?.Invoke(collider);
                 }
             }
 

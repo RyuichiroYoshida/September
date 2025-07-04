@@ -12,7 +12,6 @@ namespace InGame.Player.Ability
     [System.Serializable]
     public class AbilityNormalAttack : AbilityBase
     {
-        [SerializeField] private float _attackRadius = 1.0f;
         [SerializeField, Label("攻撃力")] private int _attackDamage = 10;
         [SerializeField] private float _attackDuration = 1.0f;
         [SerializeField] private LayerMask _hitMask;
@@ -33,7 +32,6 @@ namespace InGame.Player.Ability
 
         public AbilityNormalAttack(AbilityNormalAttack original) : base(original)
         {
-            _attackRadius = original._attackRadius;
             _attackDamage = original._attackDamage;
             _attackDuration = original._attackDuration;
             _hitMask = original._hitMask;
@@ -65,7 +63,8 @@ namespace InGame.Player.Ability
             var points = resolver?.GetPoints();
             var start = resolver?.GetStartFrame();
             var end = resolver?.GetEndFrame();
-            _executor = new MeleeHitboxExecutor(points, _attackDuration, _attackRadius, _hitMask, start ?? 0, end ?? int.MaxValue)
+            var radius = resolver?.GetRadius() ?? 0.1f;
+            _executor = new MeleeHitboxExecutor(points, _attackDuration, radius, _hitMask, start ?? 0, end ?? int.MaxValue)
             {
                 OnHit = collider =>
                 {
@@ -90,7 +89,6 @@ namespace InGame.Player.Ability
             }
 
             _executor?.Tick(deltaTime);
-            _executor?.ExecuteHitCheck();
         }
     }
 }
