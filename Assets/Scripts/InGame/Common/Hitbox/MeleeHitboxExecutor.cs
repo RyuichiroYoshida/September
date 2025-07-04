@@ -9,8 +9,13 @@ public class MeleeHitboxExecutor : IHitboxExecutor
     private float _elapsed;
 
     private readonly float _hitboxRadius;
-    private readonly LayerMask _hitMask;
+    private readonly LayerMask _hitMask = default;
     private readonly HashSet<Collider> _alreadyHit = new();
+    private readonly RaycastHit[] _hitBuffer = new RaycastHit[32]; // バッファサイズは必要に応じて調整
+
+    private int _currentFrame;
+    private readonly int _startFrame;
+    private readonly int _endFrame;
 
     public bool IsFinished => _elapsed >= _duration;
     public Action<Collider> OnHit;
@@ -19,17 +24,28 @@ public class MeleeHitboxExecutor : IHitboxExecutor
         List<Transform> points,
         float duration,
         float hitboxRadius = 0.2f,
-        LayerMask hitMask = default)
+        LayerMask hitMask = default,
+        int startFrame = 0,
+        int endFrame = int.MaxValue)
     {
         _points = points;
         _duration = duration;
         _hitboxRadius = hitboxRadius;
         _hitMask = hitMask;
+        _startFrame = startFrame;
+        _endFrame = endFrame;
+        _currentFrame = 0;
     }
 
     public void Tick(float deltaTime)
     {
         _elapsed += deltaTime;
+        _currentFrame++;
+
+        if (_currentFrame >= _startFrame && _currentFrame <= _endFrame)
+        {
+            ExecuteHitCheck();
+        }
     }
 
     public void ExecuteHitCheck(Action<Collider> externalOnHit = null)
@@ -38,24 +54,23 @@ public class MeleeHitboxExecutor : IHitboxExecutor
         {
             var p0 = _points[i];
             var p1 = _points[i + 1];
-
             if (p0 == null || p1 == null) continue;
 
-            Vector3 start = p0.position;
-            Vector3 end = p1.position;
-            Vector3 direction = end - start;
-            float distance = direction.magnitude;
+            var start = p0.position;
+            var end = p1.position;
+            var direction = end - start;
+            var distance = direction.magnitude;
 
             if (distance <= 0.001f) continue;
 
-            var hits = Physics.CapsuleCastAll(
+            int hitCount = Physics.CapsuleCastNonAlloc(
                 start, end, _hitboxRadius,
-                direction.normalized, distance,
-                _hitMask, QueryTriggerInteraction.Ignore);
+                direction.normalized, _hitBuffer, distance,
+                _hitMask);
 
-            foreach (var hit in hits)
+            for (int j = 0; j < hitCount; j++)
             {
-                var collider = hit.collider;
+                var collider = _hitBuffer[j].collider;
                 if (_alreadyHit.Add(collider))
                 {
                     OnHit?.Invoke(collider);

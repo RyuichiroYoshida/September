@@ -18,11 +18,9 @@ namespace InGame.Player.Ability
         [SerializeField] private LayerMask _hitMask;
         [SerializeField] private AnimationClip _attackAnimationClip;
 
-        private readonly Collider[] _hitBuffer = new Collider[10];
         private static InGameManager _inGameManager;
 
         private float _remainingTime;
-        private Vector3 _attackOrigin;
         private MeleeHitboxExecutor _executor;
         private readonly HashSet<IDamageable> _alreadyHit = new();
 
@@ -65,7 +63,9 @@ namespace InGame.Player.Ability
             if (ownerAnimator) ownerAnimator.PlayClip(_attackAnimationClip);
             var resolver = playerData.GetComponentInChildren<HitPointResolver>();
             var points = resolver?.GetPoints();
-            _executor = new MeleeHitboxExecutor(points, _attackDuration, _attackRadius, _hitMask)
+            var start = resolver?.GetStartFrame();
+            var end = resolver?.GetEndFrame();
+            _executor = new MeleeHitboxExecutor(points, _attackDuration, _attackRadius, _hitMask, start ?? 0, end ?? int.MaxValue)
             {
                 OnHit = collider =>
                 {
@@ -76,13 +76,8 @@ namespace InGame.Player.Ability
                 }
             };
 
-            _attackOrigin = playerData.transform.position;
             _remainingTime = _attackDuration;
             _alreadyHit.Clear();
-
-// #if UNITY_EDITOR
-//             DebugDrawHelper.RegisterAttackPosition(_attackOrigin, _attackRadius, Color.red, _attackDuration);
-// #endif
         }
 
         protected override void OnUpdate(float deltaTime)
@@ -96,14 +91,6 @@ namespace InGame.Player.Ability
 
             _executor?.Tick(deltaTime);
             _executor?.ExecuteHitCheck();
-            // AttackHitUtility.OverlapDamageables(
-            //     _attackOrigin,
-            //     _attackRadius,
-            //     _hitBuffer,
-            //     _alreadyHit,
-            //     OwnerPlayerId,
-            //     _hitMask
-            // );
         }
     }
 }

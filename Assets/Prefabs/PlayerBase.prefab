@@ -836,6 +836,8 @@ MonoBehaviour:
   _hitPoints:
   - {fileID: 1227477625431791092}
   - {fileID: 6141440101486108087}
+  _startFrame: 7
+  _endFrame: 15
 --- !u!1 &1569335473018215294
 GameObject:
   m_ObjectHideFlags: 0
