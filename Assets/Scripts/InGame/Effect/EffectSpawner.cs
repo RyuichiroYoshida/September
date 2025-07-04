@@ -54,7 +54,7 @@ namespace September.InGame.Effect
         /// </summary>
         public void RequestPlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            RPC_PlayEffect(effectType, position, rotation, false, string.Empty);
+            RPC_PlayEffect(effectType, position, rotation, false, string.Empty, default(NetworkId));
         }
 
         /// <summary>
@@ -62,7 +62,17 @@ namespace September.InGame.Effect
         /// </summary>
         public void RequestPlayOneShotEffect(EffectType effectType, Vector3 position, Quaternion rotation, Transform parent)
         {
-            RPC_PlayEffect(effectType, position, rotation, false, string.Empty, parent);
+            NetworkId parentNetworkId = default(NetworkId);
+            if (parent != null)
+            {
+                var parentNetworkObject = parent.GetComponent<NetworkObject>();
+                if (parentNetworkObject != null)
+                {
+                    parentNetworkId = parentNetworkObject.Id;
+                }
+            }
+            
+            RPC_PlayEffect(effectType, position, rotation, false, string.Empty, parentNetworkId);
         }
 
         /// <summary>
@@ -71,7 +81,7 @@ namespace September.InGame.Effect
         /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
         public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            RPC_PlayEffect(effectType, position, rotation, true, effectId);
+            RPC_PlayEffect(effectType, position, rotation, true, effectId, default(NetworkId));
         }
 
         /// <summary>
@@ -80,7 +90,17 @@ namespace September.InGame.Effect
         /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
         public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation, Transform parent)
         {
-            RPC_PlayEffect(effectType, position, rotation, true, effectId, parent);
+            NetworkId parentNetworkId = default(NetworkId);
+            if (parent != null)
+            {
+                var parentNetworkObject = parent.GetComponent<NetworkObject>();
+                if (parentNetworkObject != null)
+                {
+                    parentNetworkId = parentNetworkObject.Id;
+                }
+            }
+            
+            RPC_PlayEffect(effectType, position, rotation, true, effectId, parentNetworkId);
         }
 
         /// <summary>
@@ -99,8 +119,9 @@ namespace September.InGame.Effect
         /// <param name="rotation">生成回転</param>
         /// <param name="isLoop">ループするかどうか</param>
         /// <param name="effectId">エフェクトID（ループエフェクトの場合のみ使用）</param>
+        /// <param name="parentNetworkId">親オブジェクトのNetworkID</param>
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, string effectId, Transform parent = null)
+        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, string effectId, NetworkId parentNetworkId)
         {
             if (_effectDatabase == null)
             {
@@ -113,6 +134,20 @@ namespace September.InGame.Effect
             {
                 Debug.LogError($"'{effectType}' に対応するプレハブが見つかりません");
                 return;
+            }
+
+            // 親オブジェクトの取得
+            Transform parent = null;
+            if (parentNetworkId != default(NetworkId))
+            {
+                if (_networkRunner.TryFindObject(parentNetworkId, out NetworkObject parentNetworkObject))
+                {
+                    parent = parentNetworkObject.transform;
+                }
+                else
+                {
+                    Debug.LogWarning($"親オブジェクト NetworkID '{parentNetworkId}' が見つかりません");
+                }
             }
 
             GameObject effect;
