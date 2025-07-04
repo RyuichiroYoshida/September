@@ -80,9 +80,9 @@ namespace InGame.Player.Ability
             _remainingTime = _attackDuration;
             _alreadyHit.Clear();
 
-#if UNITY_EDITOR
-            DebugDrawHelper.RegisterAttackPosition(_attackOrigin, _attackRadius, Color.red, _attackDuration);
-#endif
+// #if UNITY_EDITOR
+//             DebugDrawHelper.RegisterAttackPosition(_attackOrigin, _attackRadius, Color.red, _attackDuration);
+// #endif
         }
 
         protected override void OnUpdate(float deltaTime)

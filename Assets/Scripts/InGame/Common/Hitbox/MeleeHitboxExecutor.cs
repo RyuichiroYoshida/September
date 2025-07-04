@@ -74,9 +74,7 @@ public class MeleeHitboxExecutor : IHitboxExecutor
     {
         if (HitboxDebugUtility.IsDebugModeEnabled)
         {
-            Debug.DrawLine(start, end, Color.red, 0.1f);
-            Debug.DrawRay(start, Vector3.up * 0.1f, Color.red, 0.1f); // optional: start marker
-            Debug.DrawRay(end, Vector3.up * 0.1f, Color.red, 0.1f); // optional: end marker
+            DebugDrawUtility.DrawWireCapsule(start, end, _hitboxRadius, Color.red);
         }
     }
 #endif
