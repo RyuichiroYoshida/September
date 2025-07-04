@@ -99,9 +99,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7869641315205178847}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6945489453816807260}
   m_SourcePrefab: {fileID: 100100000, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
 --- !u!1 &3948263822443002454 stripped
 GameObject:
@@ -152,7 +149,6 @@ MonoBehaviour:
     - 1
     - 5
   _characterEffects: []
-  _warpDestination: {fileID: 0}
   _warpRotation: 180
   _warpDuration: 0.5
   references:
@@ -177,20 +173,6 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 6246774991400790084}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &6945489453816807260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3948263822443002454}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a78ffc34dd540f589dea969dcc7caaf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _warpPosition: {fileID: 3855226410729490456}
-  _soundName: Painting_Warp_In
 --- !u!4 &4431785762032050412 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}

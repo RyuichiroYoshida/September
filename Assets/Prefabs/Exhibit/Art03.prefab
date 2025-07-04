@@ -95,9 +95,6 @@ PrefabInstance:
       addedObject: {fileID: 7213811122250863834}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c392efa6fa9bdf24a9f876e57353bb54, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3000367813888856245}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c392efa6fa9bdf24a9f876e57353bb54, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 5663268743406376294}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c392efa6fa9bdf24a9f876e57353bb54, type: 3}
       insertIndex: -1
@@ -134,20 +131,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.95445436, y: 1.1510028, z: 0.05643752}
   m_Center: {x: 0.000000029802322, y: 0.5755014, z: 0}
---- !u!114 &3000367813888856245
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4264672226570498562}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a78ffc34dd540f589dea969dcc7caaf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _warpPosition: {fileID: 6458095848071322053}
-  _soundName: Painting_Warp_In
 --- !u!114 &5663268743406376294
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,7 +154,6 @@ MonoBehaviour:
     - 5
     - 5
   _characterEffects: []
-  _warpDestination: {fileID: 0}
   _warpRotation: 180
   _warpDuration: 0.5
   references:

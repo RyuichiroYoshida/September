@@ -143,7 +143,7 @@ namespace InGame.Exhibit
 
             _ownerPlayerRef = ownerPlayerRef;
             Object.AssignInputAuthority(_ownerPlayerRef);
-            CRIAudio.PlaySE("Pteranodon","Pteranodon_cry");
+            CRIAudio.PlaySE("Exhibit","Pteranodon_cry");
 
             _cameraController.SetCameraPriority(15);
 

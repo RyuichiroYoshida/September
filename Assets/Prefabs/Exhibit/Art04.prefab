@@ -107,9 +107,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c392efa6fa9bdf24a9f876e57353bb54, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6682784941042046876}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c392efa6fa9bdf24a9f876e57353bb54, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1077814484584667662}
   m_SourcePrefab: {fileID: 100100000, guid: c392efa6fa9bdf24a9f876e57353bb54, type: 3}
 --- !u!4 &343203895494176651 stripped
 Transform:
@@ -184,23 +181,8 @@ MonoBehaviour:
     - 5
     - 5
   _characterEffects: []
-  _warpDestination: {fileID: 0}
   _warpRotation: 180
   _warpDuration: 0.5
   references:
     version: 2
     RefIds: []
---- !u!114 &1077814484584667662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1119319001164789041}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a78ffc34dd540f589dea969dcc7caaf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _warpPosition: {fileID: 0}
-  _soundName: 
