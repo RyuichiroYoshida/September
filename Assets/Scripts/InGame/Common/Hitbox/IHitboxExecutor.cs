@@ -8,6 +8,6 @@ public interface IHitboxExecutor
     void ExecuteHitCheck(Action<Collider> onHit);
 
 #if UNITY_EDITOR
-    void DebugGizmo(Vector3 start, Vector3 end)
+    void DebugGizmo(Vector3 start, Vector3 end);
 #endif
 }
