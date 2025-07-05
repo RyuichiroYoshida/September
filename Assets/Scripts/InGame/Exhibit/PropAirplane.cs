@@ -1,3 +1,4 @@
+using System;
 using Fusion;
 using InGame.Interact;
 using InGame.Player;
@@ -15,7 +16,7 @@ namespace InGame.Exhibit
     {
         [Header("Ride")]
         [SerializeField] private Transform _getOffPoint;
-        [Header("Move")]
+        [Header("Flight")]
         [SerializeField] private float _grav;
         [SerializeField] private Vector3 _drag;
         [SerializeField] private float _jerk;
@@ -30,7 +31,8 @@ namespace InGame.Exhibit
         [SerializeField] private float _rotSpeedRoll;
         [SerializeField] private float _rotSpeedYaw;
         [SerializeField] private float _rotReturnSpeedRoll;
-        [Space]
+        [Header("Ground")]
+        [SerializeField] private float _groundDrag;
         [SerializeField] private float _angularGroundDrag;
         [SerializeField] private float _rotSpeedGroundYaw;
         [Header("Prop")]
@@ -45,7 +47,6 @@ namespace InGame.Exhibit
 
         private Rigidbody _rb;
         private AirplaneCamera _cameraController;
-        private PlayerRef _ownerPlayerRef;
         private PlayerManager _ownerPlayerManager;
         // move
         private bool _onGround;
@@ -54,7 +55,9 @@ namespace InGame.Exhibit
         private bool IsGround => _onGroundWheel;
         // FixedUpdateNetwork で AddForce するときの補正
         private float PhysicsCoefficient => Runner.DeltaTime / Time.fixedDeltaTime;
+        private bool _sendToHost;
         
+        [Networked, OnChangedRender(nameof(OnChangeOwnerPlayerRef))] private PlayerRef OwnerPlayerRef { get; set; }
         [Networked] private float CurrentAccel { get; set; }
 
         private void Awake()
@@ -198,15 +201,13 @@ namespace InGame.Exhibit
         void GetOn(PlayerRef ownerPlayerRef)
         {
             // 既に誰か乗っていたら乗れないよん
-            if (!Runner.IsServer || _ownerPlayerRef != PlayerRef.None) return;
+            if (!Runner.IsServer || OwnerPlayerRef != PlayerRef.None) return;
             
             // set input authority 
-            _ownerPlayerRef = ownerPlayerRef;
-            Object.AssignInputAuthority(_ownerPlayerRef);
-            // camera の切り替え
-            _cameraController.SetCameraPriority(15);
+            OwnerPlayerRef = ownerPlayerRef;
+            Object.AssignInputAuthority(ownerPlayerRef);
             // playerの状態切り替え
-            _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>().PlayerDataDic[_ownerPlayerRef].GetComponent<PlayerManager>();
+            _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>().PlayerDataDic[ownerPlayerRef].GetComponent<PlayerManager>();
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
             _ownerPlayerManager.RPC_SetMeshActive(false);
@@ -214,19 +215,29 @@ namespace InGame.Exhibit
 
         void GetOff()
         {
-            if (!Runner.IsServer || _ownerPlayerRef == PlayerRef.None) return;
+            if (!Runner.IsServer || OwnerPlayerRef == PlayerRef.None) return;
             
-            // set input authority 
-            _ownerPlayerRef = PlayerRef.None;
+            // Authority
+            OwnerPlayerRef = PlayerRef.None;
             Object.RemoveInputAuthority();
-            // camera の切り替え
-            _cameraController.SetCameraPriority(5);
-            // playerの状態切り替えよ💛
+            // playerの状態切り替えよん
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _ownerPlayerManager.RPC_SetColliderActive(true);
             _ownerPlayerManager.RPC_SetMeshActive(true);
             // 降りる場所にセット
             _ownerPlayerManager.transform.position = _getOffPoint.position;
+        }
+
+        void OnChangeOwnerPlayerRef()
+        {
+            if (OwnerPlayerRef == Runner.LocalPlayer)
+            {
+                _cameraController.SetCameraPriority(15);
+            }
+            else
+            {
+                _cameraController.SetCameraPriority(5);
+            }
         }
 
         private void LateUpdate()
@@ -261,13 +272,14 @@ namespace InGame.Exhibit
 
         protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
-            return _ownerPlayerRef == PlayerRef.None || _ownerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
+            Debug.Log(OwnerPlayerRef);
+            return OwnerPlayerRef == PlayerRef.None || OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
         }
 
         protected override void OnInteract(IInteractableContext context)
         {
-            if (_ownerPlayerRef == PlayerRef.None) GetOn(PlayerRef.FromEncoded(context.Interactor));
-            else if (_ownerPlayerRef == PlayerRef.FromEncoded(context.Interactor)) GetOff();
+            if (OwnerPlayerRef == PlayerRef.None) GetOn(PlayerRef.FromEncoded(context.Interactor));
+            else if (OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor)) GetOff();
         }
 
         private void OnCollisionStay(Collision other)

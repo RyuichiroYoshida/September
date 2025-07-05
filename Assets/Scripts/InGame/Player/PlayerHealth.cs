@@ -58,7 +58,8 @@ namespace InGame.Player
                 if (!IsAlive) OnDeath?.Invoke(hitData);
                 hitData.Executor?.HitExecution(hitData);
             }
-            RPC_HitDebug();
+            
+            RPC_HitDebug(hitData.HitActionType);
             Debug.Log(hitData + $"\nHealth:     {Health}");
         }
 
@@ -74,6 +75,10 @@ namespace InGame.Player
             {
                 hitData.Amount = TakeDamage(hitData.Amount);
             }
+            else if (hitData.HitActionType == HitActionType.Heal)
+            {
+                hitData.Amount = TakeHeal(hitData.Amount);
+            }
         }
 
         int TakeDamage(int damage)
@@ -84,18 +89,25 @@ namespace InGame.Player
             return previousHealth - Health;
         }
 
+        int TakeHeal(int heal)
+        {
+            if (IsInvincible) return 0;
+            int previousHealth = Health;
+            Health = Mathf.Clamp(Health + heal, 0, MaxHealth);
+            return Health - previousHealth;
+        }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_HitDebug()
+        private void RPC_HitDebug(HitActionType actionType)
         {
-            HitDebug().Forget();
+            HitDebug(actionType).Forget();
         }
         
 
-        private async UniTask HitDebug()
+        private async UniTask HitDebug(HitActionType actionType)
         {
             _renderer.GetPropertyBlock(_materialPropertyBlock);
-            _materialPropertyBlock.SetColor("_BaseColor", Color.red);
+            _materialPropertyBlock.SetColor("_BaseColor", actionType == HitActionType.Damage ? Color.red : Color.green);
             _renderer.SetPropertyBlock(_materialPropertyBlock);
             try
             {
