@@ -43,9 +43,11 @@ public class BuildCommand
                             ext = ".app";
                             break;
                         case "Android":
+                            profileName = "android";
                             ext = ".apk";
                             break;
                         case "Switch":
+                            profileName = "switch";
                             ext = "";
                             break;
                     }
@@ -55,9 +57,28 @@ public class BuildCommand
         }
 
         // プラットフォームの設定
-        var assetPath = "Assets/Settings/Build Profile/" + profileName + ".asset";
-        var buildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>(assetPath);
+        BuildProfile buildProfile = null;
+        if (!string.IsNullOrEmpty(profileName))
+        {
+            var assetPath = "Assets/Settings/Build Profile/" + profileName + ".asset";
+            buildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>(assetPath);
+
+            if (buildProfile == null)
+            {
+                Debug.LogWarning($"Build profile not found at path: {assetPath}");
+            }
+        }
+
+        // Build profileが見つからない場合、またはprofileNameが空の場合はアクティブなプロファイルを使用
         profile.buildProfile = buildProfile ?? BuildProfile.GetActiveBuildProfile();
+
+        // Build profileが有効かチェック
+        if (profile.buildProfile == null)
+        {
+            Debug.LogError("No valid build profile found. Please ensure a build profile is active or the specified profile exists.");
+            EditorApplication.Exit(1);
+            return;
+        }
 
         // ビルド成果物の出力パスを設定
         profile.locationPathName = outputPath + "\\" + exeName + ext;
