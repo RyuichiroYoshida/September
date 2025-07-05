@@ -6,7 +6,7 @@ namespace September.Editor.AssetImporter
     public class AssetImportWindow : EditorWindow
     {
         private AssetImportController _controller;
-        private ProgressInfo _currentProgress = new ProgressInfo { Progress = 0f, Status = "", Detail = "" };
+        private ProgressInfo _currentProgress = new() { Progress = 0f, Status = "", Detail = "" };
         private string _statusMessage = AssetImportConstants.Messages.ImportWaiting;
         private bool _isInitialized;
         private Color _defaultLabelColor;
@@ -53,11 +53,12 @@ namespace September.Editor.AssetImporter
             DrawImportSection();
             DrawProgressSection();
             DrawDeveloperSection();
+            
         }
 
         private void DrawHeader()
         {
-            if (_controller?.ReleaseNames.Count == 0)
+            if ((_controller?.ReleaseNames?.Count ?? 0) == 0)
             {
                 DrawColoredLabel(AssetImportConstants.Messages.Initializing, Color.red);
                 return;
@@ -68,9 +69,9 @@ namespace September.Editor.AssetImporter
 
         private void DrawReleaseSelection()
         {
-            if (_controller?.ReleaseNames.Count == 0) return;
+            if (_controller?.ReleaseNames?.Count == 0) return;
 
-            var releaseNames = _controller.ReleaseNames.ToArray();
+            var releaseNames = _controller.ReleaseNames?.ToArray() ?? new string[0];
             _controller.SelectedReleaseIndex = EditorGUILayout.Popup(
                 "パッケージバージョン",
                 _controller.SelectedReleaseIndex,
@@ -88,11 +89,12 @@ namespace September.Editor.AssetImporter
         {
             GUILayout.Space(10);
 
-            GUI.enabled = !_controller.IsImporting && _controller?.ReleaseNames.Count > 0;
+            GUI.enabled = !(_controller?.IsImporting ?? false) && (_controller?.ReleaseNames?.Count ?? 0) > 0;
 
             if (GUILayout.Button("アセットのインポート"))
             {
-                _ = _controller.ImportSelectedAssetAsync();
+                if (_controller != null)
+                    _ = _controller.ImportSelectedAssetAsync();
             }
 
             GUI.enabled = true;
@@ -102,7 +104,7 @@ namespace September.Editor.AssetImporter
 
         private void DrawProgressSection()
         {
-            if (!_controller?.IsImporting ?? true) return;
+            if (_controller?.IsImporting != true) return;
 
             GUILayout.Space(10);
             
@@ -135,6 +137,7 @@ namespace September.Editor.AssetImporter
             }
 
             GUILayout.Space(10);
+            
 
             // 設定UI
             var newShowImportWindow = GUILayout.Toggle(
