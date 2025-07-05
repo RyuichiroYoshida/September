@@ -14,7 +14,6 @@ namespace InGame.Player
     /// </summary>
     public class PlayerManager : NetworkBehaviour, IAfterTick
     {
-        [SerializeField] PlayerParameter _playerParameter;
         [SerializeField] GameObject _colliderObj;
         [SerializeField] GameObject _meshObj;
         [SerializeField] private float _stunTime; // PlayerParameter に入れるべきか
@@ -40,7 +39,6 @@ namespace InGame.Player
         }
         
         public bool IsLocalPlayer => HasInputAuthority;
-        public PlayerParameter PlayerParameter => _playerParameter;
         
         [Networked] private NetworkButtons PreviousButtons { get; set; }
         [Networked, HideInInspector] public NetworkBool IsStun { get; private set; }
@@ -53,11 +51,7 @@ namespace InGame.Player
         /// <summary> Player関連コンポーネントの初期化 </summary>
         void InitComponents()
         {
-            if (TryGetComponent(out PlayerMovement movement))
-            {
-                _playerMovement = movement;
-                movement.Init(_playerParameter.Stamina, _playerParameter.StaminaConsumption, _playerParameter.StaminaRegen);
-            }
+            _playerMovement = GetComponent<PlayerMovement>();
 
             if (TryGetComponent(out CameraController cameraController))
             {
@@ -68,7 +62,6 @@ namespace InGame.Player
             if (TryGetComponent(out PlayerHealth health))
             {
                 _playerHealth = health;
-                health.Init(_playerParameter.Health);
                 health.OnDeath += OnDeath;
             }
 
