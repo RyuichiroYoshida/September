@@ -5027,6 +5027,7 @@ MonoBehaviour:
   - {fileID: -4668177863944640257}
   - {fileID: 3242880713039265549}
   - {fileID: 5358505061852357365}
+  - {fileID: -3905644752378878134}
   - {fileID: 958249503331897705}
   - {fileID: 7710838205980989238}
   ForceRemoteRenderTimeframe: 0
@@ -5083,10 +5084,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82df9dd14a0794b429f808e8d246e3c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerParameter: {fileID: 11400000, guid: 5ca879c9eaa06b04ebbd2aa1af5da9cd, type: 2}
   _colliderObj: {fileID: 2287520664147054077}
-  _meshObj: {fileID: 0}
+  _meshObj: {fileID: 6419492589774123438}
   _stunTime: 3
+  _IsStun:
+    _value: 0
 --- !u!114 &3242880713039265549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5099,10 +5101,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 587e83a63041ba6409720410fb73af1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveCapsuleCollider: {fileID: 3128034714514688337}
+  _moveCapsuleCollider: {fileID: 0}
   _gravity: 30
-  _acceleration: 70
-  _maxMoveSpeed: 10
+  _acceleration: 20
+  _maxMoveSpeed: 1.8
   _airAcceleration: 4
   _friction: 30
   _airFriction: 0.2
@@ -5110,9 +5112,10 @@ MonoBehaviour:
   _groundLayer:
     serializedVersion: 2
     m_Bits: 31
-  _dashAcceleration: 100
-  _maxDashSpeed: 13
+  _dashAcceleration: 40
+  _maxDashSpeed: 7
   _dashCooldown: 3
+  _staminaConsumption: 20
   _rotationSpeed: 720
   _maxLedgeHeight: 1.5
   _minLedgeHeight: 0.5
@@ -5181,6 +5184,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a48bc921e4c1add42b1038c5e786fbc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _IsInvincible:
+    _value: 0
 --- !u!114 &-3905644752378878134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5193,6 +5198,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a97fa1f5e591252438ae6f1ea8b0742b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _param: {fileID: 11400000, guid: 5ca879c9eaa06b04ebbd2aa1af5da9cd, type: 2}
+  _CurrentHealth: 0
+  _CurrentStamina: 0
 --- !u!114 &958249503331897705
 MonoBehaviour:
   m_ObjectHideFlags: 0

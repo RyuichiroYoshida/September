@@ -10,36 +10,28 @@ namespace InGame.Player
 {
     public class PlayerHealth : NetworkBehaviour, IDamageable
     {
-        public bool IsAlive => Health > 0;
-        public readonly BehaviorSubject<int> OnHealthChanged = new(0);
+        PlayerStatus _status;
+        private CancellationTokenSource _cts;
+        Renderer _renderer;
+        MaterialPropertyBlock _materialPropertyBlock;
+        
+        public bool IsAlive => _status.CurrentHealth > 0;
         public PlayerRef OwnerPlayerRef => Object.InputAuthority;
         
         // event
         public event Action<HitData> OnHitTaken;
         public event Action<HitData> OnDeath;
 
-        [Networked, OnChangedRender(nameof(OnChangeHealth))] private int Health { get; set; }
-        void OnChangeHealth() => OnHealthChanged.OnNext(Health);
-        [Networked, HideInInspector] public int MaxHealth { get; private set; }
         /// <summary> 無敵 </summary> 無敵の set が　public なのどうなん
         [Networked, HideInInspector] public NetworkBool IsInvincible { get; set; }
 
-        private CancellationTokenSource _cts;
-        
-        Renderer _renderer;
-        MaterialPropertyBlock _materialPropertyBlock;
-
-        public void Init(int health)
+        public override void Spawned()
         {
             if (HasStateAuthority)
             {
-                Health = health;
-                MaxHealth = health;
-            
-                OnHealthChanged.OnNext(Health);
-
                 OnDeath += Death;
             }
+            
             _cts = new CancellationTokenSource();
             _renderer = GetComponentInChildren<Renderer>();
             _materialPropertyBlock = new MaterialPropertyBlock();
@@ -60,7 +52,7 @@ namespace InGame.Player
             }
             
             RPC_HitDebug(hitData.HitActionType);
-            Debug.Log(hitData + $"\nHealth:     {Health}");
+            Debug.Log(hitData + $"\nHealth:     {_status.CurrentHealth}");
         }
 
         void ApplyHit(ref HitData hitData)
@@ -84,17 +76,17 @@ namespace InGame.Player
         int TakeDamage(int damage)
         {
             if (IsInvincible) return 0;
-            int previousHealth = Health;
-            Health  = Mathf.Clamp(Health - damage, 0, MaxHealth);
-            return previousHealth - Health;
+            int previousHealth = _status.CurrentHealth;
+            _status.CurrentHealth = Mathf.Clamp(_status.CurrentHealth - damage, 0, _status.MaxHealth);
+            return previousHealth - _status.CurrentHealth;
         }
 
         int TakeHeal(int heal)
         {
             if (IsInvincible) return 0;
-            int previousHealth = Health;
-            Health = Mathf.Clamp(Health + heal, 0, MaxHealth);
-            return Health - previousHealth;
+            int previousHealth = _status.CurrentHealth;
+            _status.CurrentHealth = Mathf.Clamp(_status.CurrentHealth + heal, 0, _status.MaxHealth);
+            return _status.CurrentHealth - previousHealth;
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -122,7 +114,7 @@ namespace InGame.Player
         /// <summary> 死んだとき </summary>
         void Death(HitData lastHitData)
         {
-            Health = MaxHealth;
+            _status.CurrentHealth = _status.MaxHealth;
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
