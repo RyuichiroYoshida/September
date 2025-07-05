@@ -28,7 +28,7 @@ public class MeleeHitboxExecutor : IHitboxExecutor
         int startFrame = 0,
         int endFrame = int.MaxValue)
     {
-        _points = points;
+        _points = points ?? new List<Transform>();
         _duration = duration;
         _hitboxRadius = hitboxRadius;
         _hitMask = hitMask;

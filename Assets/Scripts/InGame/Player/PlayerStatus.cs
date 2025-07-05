@@ -1,46 +1,45 @@
-using System;
+using Fusion;
 using UniRx;
 using UnityEngine;
 
 namespace InGame.Player
 {
-    // いろんなPlayerのデータの中継
-    [RequireComponent(typeof(PlayerManager))]
-    [RequireComponent(typeof(PlayerHealth))]
-    [RequireComponent(typeof(PlayerMovement))]
-    public class PlayerStatus : MonoBehaviour
+    public class PlayerStatus : NetworkBehaviour
     {
-        PlayerManager _playerManager;
+        [SerializeField] PlayerParameter _param;
         
         public int MaxHealth { get; private set; }
+        [Networked, HideInInspector, OnChangedRender(nameof(OnChangeHealth))] public int CurrentHealth { get; set; }
+        private void OnChangeHealth() => _currentHealth.Value = CurrentHealth;
         public float MaxStamina { get; private set; }
-        public int AttackDamage { get; private set; }
-        public int AttackDamageOgre { get; private set; }
-        
-        public bool ISLocalPlayer => _playerManager && _playerManager.IsLocalPlayer;
-        
+        public float MaxSpeedRate { get; set; } = 1;
+        [Networked, HideInInspector, OnChangedRender(nameof(OnChangeStamina))] public float CurrentStamina { get; set; }
+        private void OnChangeStamina() => _currentStamina.Value = CurrentStamina;
+        public float StaminaRegen { get; private set; }
+        public int AttackDamage { get; set; }
         
         #region Events
 
         private readonly ReactiveProperty<int> _currentHealth = new(0);
         private readonly ReactiveProperty<float> _currentStamina = new(0);
-        public ReadOnlyReactiveProperty<int> CurrentHealth => _currentHealth.ToReadOnlyReactiveProperty();
-        public ReadOnlyReactiveProperty<float> CurrentStamina => _currentStamina.ToReadOnlyReactiveProperty();
+        public ReadOnlyReactiveProperty<int> ReactiveCurrentHealth => _currentHealth.ToReadOnlyReactiveProperty();
+        public ReadOnlyReactiveProperty<float> ReactiveCurrentStamina => _currentStamina.ToReadOnlyReactiveProperty();
         
         #endregion
 
-        private void Start()
+        public override void Spawned()
         {
-            _playerManager = GetComponent<PlayerManager>();
-            AttackDamage = _playerManager.PlayerParameter.AttackDamage;
-            
-            var health = GetComponent<PlayerHealth>();
-            MaxHealth = _playerManager.PlayerParameter.Health;
-            health.OnHealthChanged.Subscribe(hp => _currentHealth.Value = hp).AddTo(this);
-            
-            var movement = GetComponent<PlayerMovement>();
-            MaxStamina = _playerManager.PlayerParameter.Stamina;
-            movement.OnStaminaChanged.Subscribe(stamina => _currentStamina.Value = stamina).AddTo(this);
+            InitStatus();
+        }
+
+        void InitStatus()
+        {
+            MaxHealth = _param.Health;
+            CurrentHealth = MaxHealth;
+            MaxStamina = _param.Stamina;
+            CurrentStamina = _param.Stamina;
+            StaminaRegen = _param.StaminaRegen;
+            AttackDamage = _param.AttackDamage;
         }
     }
 }

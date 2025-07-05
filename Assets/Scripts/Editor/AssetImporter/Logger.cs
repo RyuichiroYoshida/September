@@ -8,14 +8,14 @@ namespace September.Editor.Logger
         public static void LogDebug(string message, bool useFlag = true)
         {
             if (!useFlag) return;
-            
+
             Debug.Log($"[Debug] {message}");
         }
 
         public static void LogInfo(string message, bool useFlag = true)
         {
             if (!useFlag) return;
-            
+
             Debug.Log($"[Info] {message}");
         }
 
