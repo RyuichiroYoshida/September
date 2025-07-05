@@ -16,7 +16,7 @@ namespace InGame.Interact
         [SerializeField]
         private SerializableDictionary<CharacterType, float> _cooldownTimeDictionary = new();
         
-        [SerializeField, SerializeReference]
+        [SerializeReference, SubclassSelector]
         private List<CharacterInteractEffectBase> _characterEffects = new();
 
 
@@ -31,6 +31,7 @@ namespace InGame.Interact
 
         public void Interact(IInteractableContext context)
         {
+            if (!HasStateAuthority) return;
             var charaType = context.CharacterType;
 
             if (!ValidateInteraction(context))
@@ -106,26 +107,31 @@ namespace InGame.Interact
 
         private void Update()
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractUpdate(Time.deltaTime);
         }
 
         private void LateUpdate()
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractLateUpdate(Time.deltaTime);
         }
 
         private void FixedUpdate()
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractFixedUpdate();
         }
 
         public override void FixedUpdateNetwork()
         {
-            _activeEffectBase?.OnInteractFixedNetworkUpdate();
+            GetInput(out PlayerInput input);
+            _activeEffectBase?.OnInteractFixedNetworkUpdate(input);
         }
 
         private void OnCollisionStay(Collision collision)
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractCollisionStay(collision);
         }
 

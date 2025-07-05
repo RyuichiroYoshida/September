@@ -23,7 +23,7 @@ namespace InGame.Exhibit
         private CameraController _cameraController;
 
         private Animator _animator;
-        private PlayerRef _ownerPlayerRef;
+        [Networked, OnChangedRender(nameof(OnChangeOwnerRef))] private PlayerRef OwnerPlayerRef { get; set; }
         private PlayerManager _ownerPlayerManager;
         private bool _isFlying;
         [SerializeField,Label("アニメーション最低値")]private float _targetBlendValue = 0.01f;
@@ -35,18 +35,16 @@ namespace InGame.Exhibit
         [Networked]
         public NetworkButtons PreviousButtons { get; set; }
         private float _suppressOffTime = 0f;
-        private bool _waitForRelease = false;
-
         #endregion
         
        private void Awake()
-        {
+       {
             _cameraController = GetComponent<CameraController>();
             _animator = GetComponent<Animator>();
             if(_animator is null)
                 Debug.LogError("Animator is null");
             
-            _rigidbody = GetComponentInChildren<Rigidbody>();
+            _rigidbody = GetComponent<Rigidbody>();
             _cameraController.Init(true);
 
             _gameInput = new GameInput();
@@ -54,9 +52,15 @@ namespace InGame.Exhibit
             _isFlying = false;
         }
 
+       private void Start()
+       {
+           _rigidbody.isKinematic = true;
+       }
+
         public override void FixedUpdateNetwork()
         {
-            if(!_isFlying || !HasInputAuthority) return;
+            if(!_isFlying || !HasInputAuthority) 
+                return;
 
             if (_suppressOffTime > 0f)
                 _suppressOffTime -= Runner.DeltaTime;
@@ -65,20 +69,10 @@ namespace InGame.Exhibit
             {
                 Move(input.MoveDirection);
                 
-                if (_waitForRelease)
-                {
-                    if (!input.Buttons.IsSet(PlayerButtons.Interact))
-                    {
-                        _waitForRelease = false;
-                    }
-                    else if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact))
-                    {
-                        GetOff();
-                        _waitForRelease = true;
-                    }
-                    
-                    PreviousButtons = input.Buttons;
-                }
+                // if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact)) 
+                // {
+                //     GetOff();
+                // }
             }
         }
 
@@ -96,9 +90,11 @@ namespace InGame.Exhibit
 
         protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
-            return _ownerPlayerRef == PlayerRef.None || _ownerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
+            // すでにキャラクターが乗っていたらインタラクト不可能にする
+            return OwnerPlayerRef == PlayerRef.None || OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
         }
 
+        // キャラクターごとにスキルを変更する
         protected override void OnInteract(IInteractableContext context)
         {
             if(!HasStateAuthority)
@@ -106,7 +102,7 @@ namespace InGame.Exhibit
             
             var requester = PlayerRef.FromEncoded(context.Interactor);
             
-            if (_ownerPlayerRef == PlayerRef.None)
+            if (OwnerPlayerRef == PlayerRef.None)
                 GetOn(requester);
         }
         
@@ -139,20 +135,18 @@ namespace InGame.Exhibit
             
             _animator.SetFloat(_flyStateBlend, clampedBlend);
         }
-
+        
         private void GetOn(PlayerRef ownerPlayerRef)
         {
-            if (!Runner.IsServer || _ownerPlayerRef != PlayerRef.None) 
+            if (!Runner.IsServer || OwnerPlayerRef != PlayerRef.None) 
                 return;
 
-            _ownerPlayerRef = ownerPlayerRef;
-            Object.AssignInputAuthority(_ownerPlayerRef);
+            OwnerPlayerRef = ownerPlayerRef;
+            Object.AssignInputAuthority(OwnerPlayerRef);
             CRIAudio.PlaySE("Pteranodon","Pteranodon_cry");
 
-            _cameraController.SetCameraPriority(15);
-
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>()
-                .PlayerDataDic[_ownerPlayerRef].GetComponent<PlayerManager>();
+                .PlayerDataDic[OwnerPlayerRef].GetComponent<PlayerManager>();
             
             if (_ownerPlayerManager == null)
                 Debug.LogError("PlayerManager is null");
@@ -163,17 +157,16 @@ namespace InGame.Exhibit
             var floatOffset = Vector3.up * 0.3f;
             transform.position += floatOffset;
             _isFlying = true;
+            _rigidbody.isKinematic = false;
         }
 
         private void GetOff()
         {
-            if (!Runner.IsServer || _ownerPlayerRef == PlayerRef.None) 
+            if (!Runner.IsServer || OwnerPlayerRef == PlayerRef.None) 
                 return;
 
-            _ownerPlayerRef = PlayerRef.None;
+            OwnerPlayerRef = PlayerRef.None;
             Object.RemoveInputAuthority();
-
-            _cameraController.SetCameraPriority(5);
 
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _ownerPlayerManager.RPC_SetColliderActive(true);
@@ -182,10 +175,27 @@ namespace InGame.Exhibit
             _isFlying = false;
         }
 
-        // ToDo Position指定
+        private void OnChangeOwnerRef()
+        {
+            if (OwnerPlayerRef == Runner.LocalPlayer)
+            {
+                _cameraController.SetCameraPriority(15);
+            }
+            else
+            {
+                _cameraController.SetCameraPriority(5);
+            }
+        }
+        
         public void OnPlaySE()
         {
-            CRIAudio.PlaySE("Pteranodon", "Pteranodon_Flapping_1");
+            RPC_PlaySE(transform.position, "Pteranodon_Flapping_1");
+        }
+
+        [Rpc(RpcSources.All,RpcTargets.All)]
+        private void RPC_PlaySE(Vector3 position, string cueName)
+        {
+            CRIAudio.PlaySE(position,"Pteranodon", cueName);
         }
     }
 }

@@ -14,7 +14,6 @@ namespace InGame.Player
     /// </summary>
     public class PlayerManager : NetworkBehaviour, IAfterTick
     {
-        [SerializeField] PlayerParameter _playerParameter;
         [SerializeField] GameObject _colliderObj;
         [SerializeField] GameObject _meshObj;
         [SerializeField] private float _stunTime; // PlayerParameter に入れるべきか
@@ -40,7 +39,6 @@ namespace InGame.Player
         }
         
         public bool IsLocalPlayer => HasInputAuthority;
-        public PlayerParameter PlayerParameter => _playerParameter;
         
         [Networked] private NetworkButtons PreviousButtons { get; set; }
         [Networked, HideInInspector] public NetworkBool IsStun { get; private set; }
@@ -53,11 +51,7 @@ namespace InGame.Player
         /// <summary> Player関連コンポーネントの初期化 </summary>
         void InitComponents()
         {
-            if (TryGetComponent(out PlayerMovement movement))
-            {
-                _playerMovement = movement;
-                movement.Init(_playerParameter.Stamina, _playerParameter.StaminaConsumption, _playerParameter.StaminaRegen);
-            }
+            _playerMovement = GetComponent<PlayerMovement>();
 
             if (TryGetComponent(out CameraController cameraController))
             {
@@ -68,7 +62,6 @@ namespace InGame.Player
             if (TryGetComponent(out PlayerHealth health))
             {
                 _playerHealth = health;
-                health.Init(_playerParameter.Health);
                 health.OnDeath += OnDeath;
             }
 
@@ -108,8 +101,6 @@ namespace InGame.Player
                 // player movement に入力を与えて更新する
                 _playerMovement.UpdateMovement(input.MoveDirection, input.Buttons.IsSet(PlayerButtons.Dash), 
                     input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), Runner.DeltaTime);
-                
-                if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump)) _playerMovement.AddForce(Vector3.up * 10);
             }
 
             if (_shouldWarp)
@@ -170,22 +161,6 @@ namespace InGame.Player
             Normal,
             InputLocked,
             ForcedControl
-        }
-
-        [SerializeField] private AnimationClip _clip;
-        AnimationClipPlayer _clipPlayer;
-
-        private void Start()
-        {
-            _clipPlayer = GetComponent<AnimationClipPlayer>();
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                _clipPlayer.PlayClip(_clip);
-            }
         }
     }
 }

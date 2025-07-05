@@ -6,6 +6,7 @@ namespace InGame.Player
 {
     public class PlayerDataManager : MonoBehaviour
     {
+        private PlayerManager _playerManager;
         private PlayerStatus _playerStatus;
 
         private void Start()
@@ -16,19 +17,20 @@ namespace InGame.Player
 
         private void Initialize()
         {
+            _playerManager = GetComponent<PlayerManager>();
             _playerStatus = GetComponent<PlayerStatus>();
         }
 
         // GameLauncherでDataを登録する必要がある
         private void RegisterPlayer(PlayerStatus status)
         {
-            if (!status.ISLocalPlayer)
+            if (!_playerManager.IsLocalPlayer)
                 return;
             
             // Health監視
-            status.CurrentHealth.DistinctUntilChanged().Subscribe(UIController.I.ChangeSliderValue).AddTo(this);
+            status.ReactiveCurrentHealth.DistinctUntilChanged().Subscribe(UIController.I.ChangeSliderValue).AddTo(this);
             // Stamina 監視
-            status.CurrentStamina.DistinctUntilChanged().Subscribe(UIController.I.ChangeStaminaValue).AddTo(this);
+            status.ReactiveCurrentStamina.DistinctUntilChanged().Subscribe(UIController.I.ChangeStaminaValue).AddTo(this);
         }
     }
 }
