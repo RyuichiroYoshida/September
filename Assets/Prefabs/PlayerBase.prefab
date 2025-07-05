@@ -3418,6 +3418,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6638110324921577417}
+  - component: {fileID: 6513057202848795871}
   m_Layer: 0
   m_Name: okb_ReJoint:test_okb_Reference2
   m_TagString: Untagged
@@ -3441,6 +3442,24 @@ Transform:
   - {fileID: 2783964309382280777}
   m_Father: {fileID: 1920212954294529003}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6513057202848795871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5396109632114098126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 224c75cd33ef4d74f9cf5b541cc9b898, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hitPoints:
+  - {fileID: 3879030015899006292}
+  - {fileID: 750593193299160763}
+  _startFrame: 17
+  _endFrame: 30
+  _radius: 0.1
 --- !u!1 &5474908219773255667
 GameObject:
   m_ObjectHideFlags: 0
@@ -5087,6 +5106,8 @@ MonoBehaviour:
   _colliderObj: {fileID: 2287520664147054077}
   _meshObj: {fileID: 0}
   _stunTime: 3
+  _IsStun:
+    _value: 0
 --- !u!114 &3242880713039265549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5145,6 +5166,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   _gizmoDisplayDuration: 1
   _visibleBit: 0
+  _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5181,6 +5203,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a48bc921e4c1add42b1038c5e786fbc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _MaxHealth: 0
+  _IsInvincible:
+    _value: 0
 --- !u!114 &-3905644752378878134
 MonoBehaviour:
   m_ObjectHideFlags: 0
