@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CRISound;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using September.InGame.Common;
@@ -21,6 +22,7 @@ namespace September.Common
             await UniTask.Delay(TimeSpan.FromSeconds(Context.TimerData.EndGameDelay));
             Context.Cts.Cancel();
             ShowCursor();
+            if(!string.IsNullOrEmpty(Context.CurrentBGM)) CRIAudio.StopBGM("BGM", Context.CurrentBGM);
             await NetworkManager.Instance.QuitInGame();
         }
         private void ShowCursor()

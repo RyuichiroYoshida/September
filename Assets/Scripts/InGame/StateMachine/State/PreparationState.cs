@@ -7,6 +7,7 @@ using InGame.Player;
 using September.InGame.Common;
 using September.InGame.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 namespace September.Common
@@ -26,6 +27,7 @@ namespace September.Common
 
         private async UniTask Initialize()
         {
+            await Runner.LoadScene("Field", LoadSceneMode.Additive);
             var container = CharacterDataContainer.Instance;
             foreach (var pair in PlayerDatabase.Instance.PlayerDataDic)
             {

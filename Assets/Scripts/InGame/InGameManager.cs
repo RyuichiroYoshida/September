@@ -10,6 +10,7 @@ namespace September.InGame.Common
 {
     public class InGameManager : NetworkStateMachineOwner<InGameManager>, IRegisterableService
     {
+        [SerializeField] private string _inGameBGMCueName = "Default_BGM";
         [Header("Timer Settings"), SerializeField, Label("TimerData")]
         
         private GameTimerData _timerData;
@@ -25,6 +26,8 @@ namespace September.InGame.Common
         public CancellationTokenSource Cts { get; private set; }
 
         public int AddScore => _addScore;
+        public string InGameBGMCueName => _inGameBGMCueName;
+        public string CurrentBGM { get; set; }
 
         public void Register(ServiceLocator locator)
         {
