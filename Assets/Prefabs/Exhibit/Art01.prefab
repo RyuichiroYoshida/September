@@ -95,10 +95,10 @@ PrefabInstance:
       addedObject: {fileID: 6981107804672686831}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6246774991400790084}
+      addedObject: {fileID: 7869641315205178847}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7869641315205178847}
+      addedObject: {fileID: 7031200934987414312}
   m_SourcePrefab: {fileID: 100100000, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}
 --- !u!1 &3948263822443002454 stripped
 GameObject:
@@ -126,34 +126,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.8849132, y: 3.153297, z: 0.05643752}
   m_Center: {x: 0, y: 1.5766485, z: 0}
---- !u!114 &6246774991400790084
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3948263822443002454}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e8a2bef30e6b0b4e8d05cbb271de6fd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _requiredInteractTimeDictionary:
-    keys: 0200000001000000
-    values:
-    - 1
-    - 5
-  _cooldownTimeDictionary:
-    keys: 0200000001000000
-    values:
-    - 1
-    - 5
-  _characterEffects: []
-  _warpRotation: 180
-  _warpDuration: 0.5
-  references:
-    version: 2
-    RefIds: []
 --- !u!114 &7869641315205178847
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,8 +143,42 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 6246774991400790084}
+  - {fileID: 7031200934987414312}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &7031200934987414312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3948263822443002454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 076425aa117f6da4e8296801168596ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _requiredInteractTimeDictionary:
+    keys: 04000000
+    values:
+    - 2
+  _cooldownTimeDictionary:
+    keys: 04000000
+    values:
+    - 10
+  _characterEffects:
+  - rid: 3302172163222274141
+  references:
+    version: 2
+    RefIds:
+    - rid: 3302172163222274141
+      type: {class: WarpInteractEffect, ns: InGame.Exhibit, asm: Scripts}
+      data:
+        _characterType: 4
+        _warpDestination: {fileID: 0}
+        _warpDuration: 0.5
+        _warpPosition: {fileID: 3855226410729490456}
+        _warpInSoundName: Painting_Warp_In
+        _warpOutSoundName: Painting_Warp_Out
 --- !u!4 &4431785762032050412 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e25c5601d17f3f64092628eb0bb45db2, type: 3}

@@ -12,21 +12,43 @@ using September.InGame.Effect;
 namespace InGame.Exhibit
 {
     [Serializable]
-    public class WarpObject : CharacterInteractEffectBase
+    public class WarpInteractEffect : CharacterInteractEffectBase
     {
-        [SerializeField, Label("ワープ先（Goal）")] private GameObject _warpDestination;
-        [SerializeField,Label("Duration")] private float _warpDuration = 0.5f;
-        [SerializeField, Label("ワープポジション")] private GameObject _warpPosition;
-        [SerializeField, Label("音名")] private string _soundName;
+        [Label("ワープ先（Goal）")] 
+        public GameObject _warpDestination;
+        [Label("Duration")] 
+        public float _warpDuration = 0.5f;
+        [Label("ワープ先のワープポジション")]
+        public GameObject _warpPosition;
+        [Label("音名")] 
+        public string _warpInSoundName;
+
+        public string _warpOutSoundName;
         
         private CancellationTokenSource _cts;
 
         private EffectSpawner _effectSpawner;
         
+        public override CharacterInteractEffectBase Clone()
+        {
+            return new WarpInteractEffect
+            {
+                _warpDestination = _warpDestination,
+                _warpDuration = _warpDuration,
+                _warpPosition = _warpPosition,
+                _warpInSoundName = _warpInSoundName,
+                _warpOutSoundName = _warpOutSoundName,
+            };
+        }
         
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
         {
             _cts = new CancellationTokenSource();
+            PlayerRef playerRef = PlayerRef.FromEncoded(context.Interactor);
+            if(target.Runner.TryGetPlayerObject(playerRef, out NetworkObject playerNetworkObject))
+            {
+                HandleWarpAsync(playerNetworkObject).Forget();
+            }
         }
 
         // インタラクト時のWarp処理
@@ -35,11 +57,11 @@ namespace InGame.Exhibit
             // Effectの再生
             Vector3 effectPos = player.transform.position + Vector3.up * 1.0f;
             PlayEffect(EffectType.Warp, effectPos,Quaternion.identity);
-            PlaySE(_soundName);
+            PlaySE(_warpInSoundName);
 
             // Playerを初期化
             SetPlayerVisible(player, false);
-            Vector3 targetPos = _warpDestination.transform.position;
+            Vector3 targetPos = _warpPosition.transform.position;
             Vector3 backward = _warpDestination.transform.forward;
             Quaternion targetRot = Quaternion.LookRotation(backward,Vector3.up);
             
@@ -53,7 +75,7 @@ namespace InGame.Exhibit
             // ゴール側エフェクトの再生
             PlayEffect(EffectType.Warp, targetPos, Quaternion.identity);
             SetPlayerVisible(player, true);
-            PlaySE(_soundName);
+            PlaySE(_warpOutSoundName);
         }
 
         private void SetPlayerVisible(NetworkObject player, bool isVisible)
@@ -63,11 +85,6 @@ namespace InGame.Exhibit
             {
                 renderer.enabled = isVisible;
             }
-        }
-
-        public override CharacterInteractEffectBase Clone()
-        {
-            throw new System.NotImplementedException();
         }
 
         private void PlaySE(string soundName)
@@ -87,4 +104,3 @@ namespace InGame.Exhibit
         }
     }
 }
-    
