@@ -23,6 +23,7 @@ namespace InGame.Player
         [SerializeField] float _dashAcceleration;
         [SerializeField] private float _maxDashSpeed;
         [SerializeField] private float _dashCooldown = 3f;
+        [SerializeField] private float _staminaConsumption;
         [Header("Rotation")]
         [SerializeField, Tooltip("degree/s")] private float _rotationSpeed = 5f;
         [Header("Vault")]
@@ -37,18 +38,15 @@ namespace InGame.Player
         [SerializeField] private int _visibleBit;
 
         private Rigidbody _rb;
+        private PlayerStatus _status;
         
         // base move
         private Vector3 _moveVelocity;
         private Vector3 _rotationDirection;
         private bool _isGround;
         private Vector3 _groundNormal = Vector3.up;
-        // スタミナ消費量
-        private float _staminaConsumption;
-        // スタミナ回復量
-        float _staminaRegen;
         private bool _isDashCoolTime;
-        private bool CanDash => !_isDashCoolTime && Stamina > 0 && _isGround;
+        private bool CanDash => !_isDashCoolTime && _status.CurrentStamina > 0 && _isGround;
         // vault
         private bool _doingVault;
         private float _vaultTimer;
@@ -59,30 +57,14 @@ namespace InGame.Player
         private float _gizmoTimer;
         private List<CapsuleCastData> _capsuleCastData = new();
 
-        public readonly BehaviorSubject<float> OnStaminaChanged = new(0);
         public Vector3 MoveVelocity => _moveVelocity;
         public bool IsGround => _isGround;
         public Vector3 GroundNormal => _groundNormal;
-        
-        [Networked, OnChangedRender(nameof(OnChangedStamina))] private float Stamina { get; set; }
-        private void OnChangedStamina() => OnStaminaChanged.OnNext(Stamina);
-        [Networked, HideInInspector] public float MaxStamina { get; private set; }
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-        }
-
-        public void Init(float stamina, float staminaConsumption, float staminaRegen)
-        {
-            Stamina = stamina;
-            MaxStamina = stamina;
-            _staminaConsumption = staminaConsumption;
-            _staminaRegen = staminaRegen;
-            
-            // なんかFixedUpdateNetworkで値を更新しないと変更が同期されなくてOnChangedRenderが反応しない見たい
-            // だから自分で呼ぶ必要がある
-            OnStaminaChanged.OnNext(Stamina);
+            _status = GetComponent<PlayerStatus>();
         }
 
         public void UpdateMovement(Vector2 moveInput, bool isDash, float cameraYaw, bool isJump, float deltaTime)
@@ -129,10 +111,10 @@ namespace InGame.Player
             // Dash中ならスタミナを消費させる
             if (isDash)
             {
-                Stamina = Mathf.Max(0, Stamina - _staminaConsumption * deltaTime);
+                _status.CurrentStamina = Mathf.Max(0, _status.CurrentStamina - _staminaConsumption * deltaTime);
 
                 // スタミナなくなったら
-                if (Stamina <= 0)
+                if (_status.CurrentStamina <= 0)
                 {
                     // クールタイムに入れて一定時間後に解除
                     _isDashCoolTime = true;
@@ -159,7 +141,7 @@ namespace InGame.Player
                 float acceleration = (_isGround ? isDash ? _dashAcceleration : _acceleration : _airAcceleration) * deltaTime;
                 Vector2 targetVelocity = moveVelocity2 + moveDir * acceleration;
             
-                float maxSpeed = isDash ? _maxDashSpeed : _maxMoveSpeed;
+                float maxSpeed = (isDash ? _maxDashSpeed : _maxMoveSpeed) * _status.MaxSpeedRate;
                 float moveMag = targetVelocity.magnitude;
 
                 if (!_isGround)
@@ -220,7 +202,7 @@ namespace InGame.Player
         /// <summary> 条件付きでスタミナを回復させる </summary>
         private void UpdateStamina(bool dashInput, float deltaTime)
         {
-            if (!dashInput || _isDashCoolTime) Stamina = Mathf.Min(MaxStamina, Stamina + _staminaRegen * deltaTime);
+            if (!dashInput || _isDashCoolTime) _status.CurrentStamina = Mathf.Min(_status.MaxStamina, _status.CurrentStamina + _status.StaminaRegen * deltaTime);
         }
 
         private void TryVault(Vector2 moveDirection)
