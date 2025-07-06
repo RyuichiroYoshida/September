@@ -60,7 +60,7 @@ public class BuildCommand
         BuildProfile buildProfile = null;
         if (!string.IsNullOrEmpty(profileName))
         {
-            var assetPath = "Assets/Settings/Build Profile/" + profileName + ".asset";
+            var assetPath = "Assets/Settings/Build Profiles/" + profileName + ".asset";
             buildProfile = AssetDatabase.LoadAssetAtPath<BuildProfile>(assetPath);
 
             if (buildProfile == null)
