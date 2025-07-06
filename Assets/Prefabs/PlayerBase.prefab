@@ -4971,6 +4971,7 @@ GameObject:
   - component: {fileID: 4737425158909762900}
   - component: {fileID: 7710838205980989238}
   - component: {fileID: 2221120114231077883}
+  - component: {fileID: 7508249662566368237}
   m_Layer: 6
   m_Name: PlayerBase
   m_TagString: Player
@@ -5049,6 +5050,7 @@ MonoBehaviour:
   - {fileID: -3905644752378878134}
   - {fileID: 958249503331897705}
   - {fileID: 7710838205980989238}
+  - {fileID: 7508249662566368237}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-189776657306787398
 MonoBehaviour:
@@ -5167,7 +5169,6 @@ MonoBehaviour:
     m_RotationOrder: 4
   _gizmoDisplayDuration: 1
   _visibleBit: 0
-  _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5308,6 +5309,33 @@ MonoBehaviour:
   _paramIsStan: IsStan
   _pramSpeed: Speed
   _pramIsGround: IsGround
+--- !u!114 &7508249662566368237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360875997416129576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e61063c74074ca18761d832a0f30177, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _opticalCamouflageMaterial: {fileID: 2100000, guid: 9c38977772e2e4240ac333399ae5edb9, type: 2}
+  _renderers:
+  - {fileID: 3575924675545721963}
+  - {fileID: 5631792333289693105}
+  - {fileID: 9218991015478206441}
+  - {fileID: 1139740647661512145}
+  - {fileID: 3686096390443078596}
+  - {fileID: 2263042944706992357}
+  - {fileID: 3830958022252913730}
+  - {fileID: 8027778008327384495}
+  - {fileID: 4853792400020091216}
+  - {fileID: 7174729253006852656}
+  - {fileID: 4421077557014044086}
+  - {fileID: 1057085153343749984}
+  - {fileID: 5582140088514353255}
 --- !u!1 &8408815403407481762
 GameObject:
   m_ObjectHideFlags: 0
