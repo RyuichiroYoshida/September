@@ -10,7 +10,7 @@ namespace September.Common
     [CreateAssetMenu(fileName = "Character Data Container", menuName = "ScriptableObjects/CharacterDataContainer")]
     public class CharacterDataContainer : ScriptableObject
     {
-        const int DataCount = 2;
+        const int DataCount = 3;
         static CharacterDataContainer _instance;
         public static CharacterDataContainer Instance => _instance;
         [Serializable]

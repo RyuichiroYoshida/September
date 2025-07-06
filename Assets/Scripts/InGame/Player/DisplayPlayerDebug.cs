@@ -16,17 +16,18 @@ namespace InGame.Player
         
         private void Start()
         {
+            PlayerManager playerManager = GetComponentInParent<PlayerManager>();
             PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
             _playerMovement = playerStatus.GetComponent<PlayerMovement>();
 
-            if (!playerStatus.ISLocalPlayer)
+            if (!playerManager.IsLocalPlayer)
             {
                 gameObject.SetActive(false);
                 return;
             }
 
-            playerStatus.CurrentHealth.Subscribe(health => _healthText.text = health.ToString());
-            playerStatus.CurrentStamina.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
+            playerStatus.ReactiveCurrentHealth.Subscribe(health => _healthText.text = health.ToString());
+            playerStatus.ReactiveCurrentStamina.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
         }
 
         private void FixedUpdate()

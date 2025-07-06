@@ -97,7 +97,8 @@ public class PterodactylObject : MonoBehaviour
         transform.rotation =
             Quaternion.Slerp(transform.rotation, transform.rotation * roll, Time.deltaTime * _tiltLerpSpeed);
     }
-    
+
+    #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying) 
@@ -120,6 +121,7 @@ public class PterodactylObject : MonoBehaviour
         Vector3 inputVec = new Vector3(_moveInput.x, 0f, _moveInput.y);
         Gizmos.DrawRay(transform.position, transform.TransformDirection(inputVec));
     }
+    #endif
 
     // 接地判定
     private void OnCollisionStay(Collision collision)
