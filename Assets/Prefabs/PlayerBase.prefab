@@ -5120,7 +5120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 587e83a63041ba6409720410fb73af1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveCapsuleCollider: {fileID: 0}
+  _moveCapsuleCollider: {fileID: 3128034714514688337}
   _gravity: 30
   _acceleration: 20
   _maxMoveSpeed: 1.8
@@ -5167,7 +5167,6 @@ MonoBehaviour:
     m_RotationOrder: 4
   _gizmoDisplayDuration: 1
   _visibleBit: 0
-  _MaxStamina: 0
 --- !u!114 &8355274600117350697
 MonoBehaviour:
   m_ObjectHideFlags: 0

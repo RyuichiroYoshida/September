@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace InGame.Player
 {
-    [CreateAssetMenu(fileName = "PlayerParameter", menuName = "Scriptable Objects/PlayerParameter")]
+    [CreateAssetMenu(fileName = "PlayerParameter", menuName = "Scriptable Objects/Player/PlayerParameter")]
     public class PlayerParameter : ScriptableObject
     {
         [SerializeField] int _health;
