@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace InGame.Exhibit
 {
     [Serializable]
-    public class TutankhamenObject : CharacterInteractEffectBase
+    public class TutankhamenInteractEffect : CharacterInteractEffectBase
     {
         public GameObject _tutankhamenHead;
         public string _soundName;
@@ -49,7 +49,7 @@ namespace InGame.Exhibit
 
         public override CharacterInteractEffectBase Clone()
         {
-            return new TutankhamenObject
+            return new TutankhamenInteractEffect
             {
                 _soundName = _soundName , 
                 _tutankhamenHead = _tutankhamenHead,
@@ -78,9 +78,8 @@ namespace InGame.Exhibit
             // Effect生成処理
             _effectSpawner ??= StaticServiceLocator.Instance.Get<EffectSpawner>();
             
-            Vector3 effectPos = _effectPos.transform.position + targetPos;
-            Debug.Log("Playing effect: " + effectPos);
-            _effectSpawner?.RequestPlayOneShotEffect(EffectType.Tutankhamen, effectPos, _effectPos.transform.rotation);
+            _effectSpawner?.RequestPlayOneShotEffect(EffectType.Tutankhamen, _effectPos.transform.position,
+                _effectPos.transform.rotation,_effectPos.transform);
             // 音量再生
             CRIAudio.PlaySE("Exhibit",_soundName);
             AttachHeadMask(player);
