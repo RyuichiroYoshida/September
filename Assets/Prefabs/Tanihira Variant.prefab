@@ -74,6 +74,14 @@ PrefabInstance:
       propertyPath: SortKey
       value: 2182714248
       objectReference: {fileID: 0}
+    - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: NetworkedBehaviours.Array.size
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: 'NetworkedBehaviours.Array.data[9]'
+      value: 
+      objectReference: {fileID: 5262821608227247826}
     - target: {fileID: 8360875997416129576, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: m_Name
       value: Tanihira Variant
@@ -158,3 +166,4 @@ MonoBehaviour:
   - {fileID: 4746645744473700332}
   - {fileID: 7173067844847371961}
   _friendsTypes: 0000000000000000
+  _friendDatabase: {fileID: 11400000, guid: 378195fd5e8c92a4ca92dcf50c72789c, type: 2}
