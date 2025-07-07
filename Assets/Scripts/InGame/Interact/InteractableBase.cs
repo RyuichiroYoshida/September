@@ -82,10 +82,10 @@ namespace InGame.Interact
         {
             var charaType = context.CharacterType;
 
-            // CharacterType に合う effect を先に探す（All優先）
+            // All を優先し、特定キャラタイプの effect があれば上書きする
             var effect = _characterEffects
-                .FirstOrDefault(e => e != null && e.CharacterType == charaType) ?? _characterEffects
-                .FirstOrDefault(e => e is { CharacterType: CharacterType.All });
+                             .FirstOrDefault(e => e is { CharacterType: CharacterType.All }) 
+                         ?? _characterEffects.FirstOrDefault(e => e != null && e.CharacterType == charaType);
 
             if (effect != null)
             {
