@@ -31,6 +31,7 @@ namespace InGame.Interact
 
         public void Interact(IInteractableContext context)
         {
+            if (!HasStateAuthority) return;
             var charaType = context.CharacterType;
 
             if (!ValidateInteraction(context))
@@ -81,10 +82,10 @@ namespace InGame.Interact
         {
             var charaType = context.CharacterType;
 
-            // CharacterType に合う effect を先に探す（All優先）
+            // All を優先し、特定キャラタイプの effect があれば上書きする
             var effect = _characterEffects
-                .FirstOrDefault(e => e != null && e.CharacterType == charaType) ?? _characterEffects
-                .FirstOrDefault(e => e is { CharacterType: CharacterType.All });
+                             .FirstOrDefault(e => e is { CharacterType: CharacterType.All }) 
+                         ?? _characterEffects.FirstOrDefault(e => e != null && e.CharacterType == charaType);
 
             if (effect != null)
             {
@@ -106,26 +107,31 @@ namespace InGame.Interact
 
         private void Update()
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractUpdate(Time.deltaTime);
         }
 
         private void LateUpdate()
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractLateUpdate(Time.deltaTime);
         }
 
         private void FixedUpdate()
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractFixedUpdate();
         }
 
         public override void FixedUpdateNetwork()
         {
-            _activeEffectBase?.OnInteractFixedNetworkUpdate();
+            GetInput(out PlayerInput input);
+            _activeEffectBase?.OnInteractFixedNetworkUpdate(input);
         }
 
         private void OnCollisionStay(Collision collision)
         {
+            if (!HasStateAuthority) return;
             _activeEffectBase?.OnInteractCollisionStay(collision);
         }
 

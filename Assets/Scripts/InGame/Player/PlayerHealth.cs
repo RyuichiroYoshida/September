@@ -10,36 +10,28 @@ namespace InGame.Player
 {
     public class PlayerHealth : NetworkBehaviour, IDamageable
     {
-        public bool IsAlive => Health > 0;
-        public readonly BehaviorSubject<int> OnHealthChanged = new(0);
+        PlayerStatus _status;
+        private CancellationTokenSource _cts;
+        Renderer _renderer;
+        MaterialPropertyBlock _materialPropertyBlock;
+        
+        public bool IsAlive => _status.CurrentHealth > 0;
         public PlayerRef OwnerPlayerRef => Object.InputAuthority;
         
         // event
         public event Action<HitData> OnHitTaken;
         public event Action<HitData> OnDeath;
 
-        [Networked, OnChangedRender(nameof(OnChangeHealth))] private int Health { get; set; }
-        void OnChangeHealth() => OnHealthChanged.OnNext(Health);
-        [Networked, HideInInspector] public int MaxHealth { get; private set; }
         /// <summary> 無敵 </summary> 無敵の set が　public なのどうなん
         [Networked, HideInInspector] public NetworkBool IsInvincible { get; set; }
 
-        private CancellationTokenSource _cts;
-        
-        Renderer _renderer;
-        MaterialPropertyBlock _materialPropertyBlock;
-
-        public void Init(int health)
+        public override void Spawned()
         {
             if (HasStateAuthority)
             {
-                Health = health;
-                MaxHealth = health;
-            
-                OnHealthChanged.OnNext(Health);
-
                 OnDeath += Death;
             }
+            
             _cts = new CancellationTokenSource();
             _renderer = GetComponentInChildren<Renderer>();
             _materialPropertyBlock = new MaterialPropertyBlock();
@@ -58,8 +50,9 @@ namespace InGame.Player
                 if (!IsAlive) OnDeath?.Invoke(hitData);
                 hitData.Executor?.HitExecution(hitData);
             }
-            RPC_HitDebug();
-            Debug.Log(hitData + $"\nHealth:     {Health}");
+            
+            RPC_HitDebug(hitData.HitActionType);
+            Debug.Log(hitData + $"\nHealth:     {_status.CurrentHealth}");
         }
 
         void ApplyHit(ref HitData hitData)
@@ -74,28 +67,39 @@ namespace InGame.Player
             {
                 hitData.Amount = TakeDamage(hitData.Amount);
             }
+            else if (hitData.HitActionType == HitActionType.Heal)
+            {
+                hitData.Amount = TakeHeal(hitData.Amount);
+            }
         }
 
         int TakeDamage(int damage)
         {
             if (IsInvincible) return 0;
-            int previousHealth = Health;
-            Health  = Mathf.Clamp(Health - damage, 0, MaxHealth);
-            return previousHealth - Health;
+            int previousHealth = _status.CurrentHealth;
+            _status.CurrentHealth = Mathf.Clamp(_status.CurrentHealth - damage, 0, _status.MaxHealth);
+            return previousHealth - _status.CurrentHealth;
         }
 
+        int TakeHeal(int heal)
+        {
+            if (IsInvincible) return 0;
+            int previousHealth = _status.CurrentHealth;
+            _status.CurrentHealth = Mathf.Clamp(_status.CurrentHealth + heal, 0, _status.MaxHealth);
+            return _status.CurrentHealth - previousHealth;
+        }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_HitDebug()
+        private void RPC_HitDebug(HitActionType actionType)
         {
-            HitDebug().Forget();
+            HitDebug(actionType).Forget();
         }
         
 
-        private async UniTask HitDebug()
+        private async UniTask HitDebug(HitActionType actionType)
         {
             _renderer.GetPropertyBlock(_materialPropertyBlock);
-            _materialPropertyBlock.SetColor("_BaseColor", Color.red);
+            _materialPropertyBlock.SetColor("_BaseColor", actionType == HitActionType.Damage ? Color.red : Color.green);
             _renderer.SetPropertyBlock(_materialPropertyBlock);
             try
             {
@@ -110,7 +114,7 @@ namespace InGame.Player
         /// <summary> 死んだとき </summary>
         void Death(HitData lastHitData)
         {
-            Health = MaxHealth;
+            _status.CurrentHealth = _status.MaxHealth;
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)

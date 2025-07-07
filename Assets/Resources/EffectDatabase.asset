@@ -19,3 +19,6 @@ MonoBehaviour:
   - EffectType: 1
     Guid: 44377882acfef6d4192e55ae4c8f67c3
     Prefab: {fileID: 9156133491186058588, guid: 44377882acfef6d4192e55ae4c8f67c3, type: 3}
+  - EffectType: 2
+    Guid: 3a33409044ad45b409ac078785d6358f
+    Prefab: {fileID: 945911020688150381, guid: 3a33409044ad45b409ac078785d6358f, type: 3}

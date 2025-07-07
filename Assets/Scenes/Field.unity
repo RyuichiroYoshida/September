@@ -22137,6 +22137,10 @@ PrefabInstance:
       value: BgMD_Stand_001_ShortStand (2)
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0f72629f1e967a54da2f71516b58f23c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 0f72629f1e967a54da2f71516b58f23c, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -31859,7 +31863,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 98eb58a96f13e434fade1d73f9f6bd38, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 98eb58a96f13e434fade1d73f9f6bd38, type: 3}
       propertyPath: m_StaticEditorFlags

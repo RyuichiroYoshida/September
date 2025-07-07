@@ -6,6 +6,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using Fusion.Sockets;
 using NaughtyAttributes;
+using UnityEngine.SceneManagement;
 
 namespace Common
 {
@@ -18,6 +19,7 @@ namespace Common
         [SerializeField] string _roomName = "TestRoom";
         [SerializeField] int _playerCount = 1;
         [SerializeField] CharacterType _characterType;
+        [SerializeField] bool _useClickToStart;
         
         NetworkRunner _runner;
 
@@ -29,9 +31,17 @@ namespace Common
                 return;
             }
 
-            StartGame().Forget();
+            if (!_useClickToStart) StartGame().Forget();
         }
-        
+
+        private void Update()
+        {
+            if (_useClickToStart && !_runner && Input.GetMouseButtonDown(0))
+            {
+                StartGame().Forget();
+            }
+        }
+
         async UniTask StartGame()
         {
             // NetworkRunnerを作成して部屋を作成
@@ -43,7 +53,8 @@ namespace Common
             {
                 GameMode = GameMode.AutoHostOrClient,
                 SessionName = _roomName,
-                PlayerCount = _playerCount
+                PlayerCount = _playerCount,
+                Scene = SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex)
             });
 
             if (!result.Ok)

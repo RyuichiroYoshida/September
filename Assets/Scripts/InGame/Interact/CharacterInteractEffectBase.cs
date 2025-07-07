@@ -17,10 +17,11 @@ namespace InGame.Interact
         public virtual void OnInteractUpdate(float deltaTime) { }
         public virtual void OnInteractLateUpdate(float deltaTime) { }
         public virtual void OnInteractFixedUpdate() { }
-        public virtual void OnInteractFixedNetworkUpdate() { }
+        public virtual void OnInteractFixedNetworkUpdate(PlayerInput playerInput) { }
         public virtual void OnInteractCollisionStay(Collision collision) { }
         public virtual void OnInteractEnd() { }
-
+        
+        //クローン関数ではインスペクタで設定した値などをコピーする処理を書いてください
         public abstract CharacterInteractEffectBase Clone();
     }
 }

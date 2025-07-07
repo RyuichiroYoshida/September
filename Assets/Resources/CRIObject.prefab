@@ -107,7 +107,7 @@ MonoBehaviour:
     maxPitch: 2400
     maxParameterBlocks: 1024
     soundRendererType: 1
-    keepPlayingSoundOnPause: 1
+    keepPlayingSoundOnPause: 0
     enableSonicSync: 1
     enableAtomSoundDisabledMode: 0
     enableAtomSoundDisabledModeLinux: 0
@@ -183,16 +183,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   acfFile: September.acf
   cueSheets:
-  - name: Warp
-    acbFile: Warp.acb
-    awbFile: 
-    loaderStatus: 0
   - name: BGM
     acbFile: BGM.acb
     awbFile: 
     loaderStatus: 0
-  - name: Pteranodon
-    acbFile: Pteranodon.acb
+  - name: Exhibit
+    acbFile: Exhibit.acb
     awbFile: 
     loaderStatus: 0
   dspBusSetting: 
