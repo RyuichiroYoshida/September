@@ -24,6 +24,9 @@ namespace InGame.Exhibit
 
         private Animator _animator;
         [Networked, OnChangedRender(nameof(OnChangeOwnerRef))] private PlayerRef OwnerPlayerRef { get; set; }
+        [Networked] private bool IsFlying { get; set; }
+        [Networked] private Vector2 NetworkedMoveDirection { get; set; }
+
         private PlayerManager _ownerPlayerManager;
         private bool _isFlying;
         [SerializeField,Label("アニメーション最低値")]private float _targetBlendValue = 0.01f;
@@ -59,20 +62,26 @@ namespace InGame.Exhibit
 
         public override void FixedUpdateNetwork()
         {
-            if(!_isFlying || !HasInputAuthority) 
+            if(!IsFlying) 
                 return;
 
-            if (_suppressOffTime > 0f)
-                _suppressOffTime -= Runner.DeltaTime;
-
-            if (GetInput<PlayerInput>(out var input))
+            if (HasInputAuthority)
             {
-                Move(input.MoveDirection);
-                
-                // if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact)) 
-                // {
-                //     GetOff();
-                // }
+                if (GetInput<PlayerInput>(out var input))
+                {
+                    NetworkedMoveDirection = input.MoveDirection;
+                    
+                    // カメラリセットなどローカル専用処理
+                    if (_gameInput.Player.Aim.triggered)
+                    {
+                        _cameraController.CameraReset();
+                    }
+                }
+            }
+
+            if (HasStateAuthority)
+            {
+                Move(NetworkedMoveDirection);
             }
         }
 
@@ -101,9 +110,16 @@ namespace InGame.Exhibit
                 return;
             
             var requester = PlayerRef.FromEncoded(context.Interactor);
-            
+
             if (OwnerPlayerRef == PlayerRef.None)
-                GetOn(requester);
+                RPC_RequestGetOn(requester);
+        }
+        
+        [Rpc(RpcSources.StateAuthority, RpcTargets.StateAuthority)]
+        private void RPC_RequestGetOn(PlayerRef requester)
+        {
+            if (OwnerPlayerRef != PlayerRef.None) return;
+            GetOn(requester);
         }
         
         // 動き周り
@@ -138,26 +154,23 @@ namespace InGame.Exhibit
         
         private void GetOn(PlayerRef ownerPlayerRef)
         {
-            if (!Runner.IsServer || OwnerPlayerRef != PlayerRef.None) 
-                return;
-
             OwnerPlayerRef = ownerPlayerRef;
             Object.AssignInputAuthority(OwnerPlayerRef);
-            CRIAudio.PlaySE("Pteranodon","Pteranodon_cry");
+            CRIAudio.PlaySE("Exhibit","Pteranodon_cry");
 
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>()
                 .PlayerDataDic[OwnerPlayerRef].GetComponent<PlayerManager>();
-            
+
             if (_ownerPlayerManager == null)
                 Debug.LogError("PlayerManager is null");
-            
+
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
             _ownerPlayerManager.RPC_SetMeshActive(false);
-            var floatOffset = Vector3.up * 0.3f;
-            transform.position += floatOffset;
-            _isFlying = true;
+    
+            transform.position += Vector3.up * 0.3f;
             _rigidbody.isKinematic = false;
+            IsFlying = true;
         }
 
         private void GetOff()
@@ -167,12 +180,13 @@ namespace InGame.Exhibit
 
             OwnerPlayerRef = PlayerRef.None;
             Object.RemoveInputAuthority();
-
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _ownerPlayerManager.RPC_SetColliderActive(true);
             _ownerPlayerManager.RPC_SetMeshActive(true);
             _ownerPlayerManager.transform.position = _getOffPoint.position;
-            _isFlying = false;
+
+            IsFlying = false;
+            _rigidbody.isKinematic = true;
         }
 
         private void OnChangeOwnerRef()
@@ -195,7 +209,7 @@ namespace InGame.Exhibit
         [Rpc(RpcSources.All,RpcTargets.All)]
         private void RPC_PlaySE(Vector3 position, string cueName)
         {
-            CRIAudio.PlaySE(position,"Pteranodon", cueName);
+            CRIAudio.PlaySE(position,"Exhibit", cueName);
         }
     }
 }
