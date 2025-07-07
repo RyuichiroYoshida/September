@@ -5,6 +5,7 @@ using InGame.Player;
 using September.Common;
 using September.InGame.Common;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 
 namespace  InGame.Exhibit
@@ -18,6 +19,10 @@ namespace  InGame.Exhibit
         private Rigidbody _rigidbody;
         [SerializeField] private float _speed;
         private GameInput _gameInput;
+       [SerializeField] private float _maxRotateValue;
+       [SerializeField]private Vector3 _moveVelocity;
+       [SerializeField]private Vector3 _gravity;
+       [SerializeField] private Vector3 _groundNormal;
         private void Awake()
         {
             _cameraController = GetComponent<CameraController>();
@@ -34,8 +39,7 @@ namespace  InGame.Exhibit
             
             if (GetInput<PlayerInput>(out var input))
             {
-                Move(input.MoveDirection);
-                
+                Move(input.MoveDirection,Runner.DeltaTime);
                 // if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Interact)) 
                 // {
                 //     GetOff();
@@ -90,19 +94,52 @@ namespace  InGame.Exhibit
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
             _ownerPlayerManager.RPC_SetMeshActive(false);
+            _rigidbody.isKinematic = false;
         }
 
-        private void Move(Vector2 inputMoveDirection)
+        private void Move(Vector2 inputMoveDirection,float deltaTime)
         {
+            if(inputMoveDirection == Vector2.zero) return;
             Vector3 cameraForward = _cameraController.GetCameraForward();
             Vector3 cameraRight = _cameraController.GetCameraRight();
             Vector3 moveDirection = cameraForward * inputMoveDirection.y + cameraRight * inputMoveDirection.x;
-            moveDirection.y = 0;
-            _rigidbody.linearVelocity = moveDirection * _speed;
-            if (moveDirection.magnitude > 0)
+            _moveVelocity = Vector3.ProjectOnPlane(moveDirection, _groundNormal).normalized;
+            _moveVelocity.y = 0;
+            _rigidbody.linearVelocity = _moveVelocity * _speed;
+            AddGravity(deltaTime);
+            Rotate(deltaTime);
+        }
+
+        private void AddGravity(float deltaTime)
+        {
+            _rigidbody.AddForce(_gravity * deltaTime, ForceMode.Acceleration);
+        }
+
+        private void Rotate(float deltaTime)
+        {
+            var rot = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(_moveVelocity), _maxRotateValue * deltaTime);
+            transform.rotation = rot;
+        }
+
+        private void OnCollisionStay(Collision other)
+        {
+            if (HasStateAuthority)
             {
-                var rot = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), 10f);
-                transform.rotation = rot;
+                OnGround(other);
+            }
+        }
+
+        private void OnGround(Collision other)
+        {
+            if(other == null)return;
+            //地面かどうかの判定がhoshii　タグ指定とか？
+            foreach (var contact in other.contacts)
+            {
+                if (Vector3.Angle(contact.normal, Vector3.up) < 90)
+                {
+                    _groundNormal = contact.normal;
+                    return;
+                }
             }
         }
     }

@@ -115,15 +115,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: b00046901229af84294992b65e8e56c7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 5.17
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b00046901229af84294992b65e8e56c7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -4.75
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b00046901229af84294992b65e8e56c7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 4.4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: b00046901229af84294992b65e8e56c7, type: 3}
       propertyPath: m_LocalRotation.w
@@ -182,6 +182,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b00046901229af84294992b65e8e56c7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4525244990235054785}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b00046901229af84294992b65e8e56c7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2032781522313076161}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b00046901229af84294992b65e8e56c7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4254043498628353191}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: b00046901229af84294992b65e8e56c7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7025832692230290475}
   m_SourcePrefab: {fileID: 100100000, guid: b00046901229af84294992b65e8e56c7, type: 3}
 --- !u!1 &8165078956369315277 stripped
 GameObject:
@@ -213,7 +222,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!95 &523806901974110039
 Animator:
@@ -274,6 +283,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 348771049436264265}
   - {fileID: 7799844561911314809}
+  - {fileID: 7025832692230290475}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &7799844561911314809
 MonoBehaviour:
@@ -322,6 +332,79 @@ MonoBehaviour:
   _cameraRadius: 0.1
   _motionDuration: 0.3
   _motionEase: 9
+--- !u!136 &2032781522313076161
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8165078956369315277}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.71
+  m_Height: 3.24
+  m_Direction: 1
+  m_Center: {x: 0, y: 1.51, z: -0.98}
+--- !u!65 &4254043498628353191
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8165078956369315277}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 10.21}
+  m_Center: {x: 0, y: 3.3, z: -1.48}
+--- !u!114 &7025832692230290475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8165078956369315277}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 417e756097b866945a1d1cee43f410e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _requiredInteractTimeDictionary:
+    keys: 01000000
+    values:
+    - 1
+  _cooldownTimeDictionary:
+    keys: 01000000
+    values:
+    - 1
+  _characterEffects: []
+  _speed: 5
+  _maxRotateValue: 50
+  _moveVelocity: {x: 0, y: 0, z: 0}
+  _gravity: {x: 0, y: -10, z: 0}
+  _groundNormal: {x: 0, y: 0, z: 0}
+  references:
+    version: 2
+    RefIds: []
 --- !u!4 &8798873276942737271 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: b00046901229af84294992b65e8e56c7, type: 3}
