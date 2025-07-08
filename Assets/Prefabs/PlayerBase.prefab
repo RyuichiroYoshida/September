@@ -5122,7 +5122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 587e83a63041ba6409720410fb73af1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveCapsuleCollider: {fileID: 0}
+  _moveCapsuleCollider: {fileID: 3128034714514688337}
   _gravity: 30
   _acceleration: 20
   _maxMoveSpeed: 1.8
