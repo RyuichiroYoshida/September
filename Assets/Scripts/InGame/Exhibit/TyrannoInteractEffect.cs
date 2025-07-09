@@ -30,12 +30,13 @@ namespace InGame.Exhibit
         private Transform _transform;
         private bool _isInteracting;
         private bool _isGround;
-        
+        private CapsuleCollider _capsuleCollider;
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
         {
             if (_isInteracting)
             {
                 GetOff();
+                _animator.SetBool("IsInteracting", false);
                 return;
             }
             _cameraController = target.GetComponent<CameraController>();
@@ -47,11 +48,13 @@ namespace InGame.Exhibit
             _networkObject = target.GetComponent<NetworkObject>();
             _networkRunner = _networkObject.Runner;
             _transform = target.transform;
+            _capsuleCollider = target.GetComponent<CapsuleCollider>();
             var charaType = context.CharacterType;
             var playerRef = PlayerRef.FromEncoded(context.Interactor);
             if (charaType == CharacterType.OkabeWright)
             {
                 GetOn(playerRef);
+                _animator.SetBool("IsInteracting", true);
             }
         }
 
@@ -70,6 +73,7 @@ namespace InGame.Exhibit
 
         public override void OnInteractFixedNetworkUpdate(PlayerInput playerInput)
         {
+            Debug.Log(_isGround);
             if (_networkObject == null || !_networkObject.HasInputAuthority)
                 return;
             CheckIsGround();
@@ -103,7 +107,6 @@ namespace InGame.Exhibit
         {
             if (!_networkRunner.IsServer || _ownerPlayerRef == default)
                 return;
-
             _networkObject.RemoveInputAuthority();
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _ownerPlayerManager.RPC_SetColliderActive(true);
@@ -111,6 +114,7 @@ namespace InGame.Exhibit
             _ownerPlayerManager.transform.position = _getOffPoint.position;
             _cameraController.SetCameraPriority(5);
             _isInteracting = false;
+            _rigidbody.isKinematic = true;
             _ownerPlayerRef = default;
         }
         private void Move(Vector2 inputMoveDirection, float deltaTime)
@@ -121,7 +125,6 @@ namespace InGame.Exhibit
             Vector3 cameraRight = _cameraController.GetCameraRight();
             Vector3 moveDirection = cameraForward * inputMoveDirection.y + cameraRight * inputMoveDirection.x;
             _moveVelocity = Vector3.ProjectOnPlane(moveDirection, _groundNormal).normalized;
-            _moveVelocity.y = 0;
             _rigidbody.linearVelocity = _moveVelocity * _moveSpeed;
             Rotate(deltaTime);
         }
@@ -140,11 +143,12 @@ namespace InGame.Exhibit
 
         private void CheckIsGround()
         {
-           bool ray = Physics.Raycast(_transform.position, _rayDirection, out RaycastHit hit, _rayDistance);
+           bool ray = Physics.Raycast(_capsuleCollider.center, _rayDirection, out RaycastHit hit, _rayDistance);
            var normal = hit.normal;
            if (ray && Vector3.Angle(normal, Vector3.up) < 90)
            {
                _isGround = true;
+               _groundNormal = hit.normal;
                return;
            }
            _isGround = false;

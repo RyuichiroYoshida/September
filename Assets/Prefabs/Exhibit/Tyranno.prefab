@@ -8120,7 +8120,6 @@ GameObject:
   - component: {fileID: 5528080299047924652}
   - component: {fileID: 3625285631583279299}
   - component: {fileID: 8530606980210531306}
-  - component: {fileID: 4304060561943511218}
   - component: {fileID: 1586770802241551170}
   - component: {fileID: 7882330073764326687}
   m_Layer: 0
@@ -8145,6 +8144,7 @@ Transform:
   m_Children:
   - {fileID: 9115480591727808431}
   - {fileID: 4007046251673996013}
+  - {fileID: 2976718366034083368}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &1701702037370204521
@@ -8287,27 +8287,6 @@ CapsuleCollider:
   m_Height: 3.24
   m_Direction: 1
   m_Center: {x: 0, y: 1.51, z: -0.98}
---- !u!65 &4304060561943511218
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6056286797189814286}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 10.21}
-  m_Center: {x: 0, y: 3.3, z: -1.48}
 --- !u!114 &1586770802241551170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8324,13 +8303,13 @@ MonoBehaviour:
     keys: 030000000100000002000000
     values:
     - 1
-    - 1
+    - 5
     - 1
   _cooldownTimeDictionary:
     keys: 030000000100000002000000
     values:
     - 1
-    - 1
+    - 5
     - 1
   _characterEffects:
   - rid: 3872013951182831691
@@ -8346,8 +8325,8 @@ MonoBehaviour:
         _moveVelocity: {x: 0, y: 0, z: 0}
         _gravity: {x: 0, y: -10, z: 0}
         _groundNormal: {x: 0, y: 0, z: 0}
-        _getOffPoint: {fileID: 0}
-        _rayDirection: {x: 0, y: -1, z: 0}
+        _getOffPoint: {fileID: 2976718366034083368}
+        _rayDirection: {x: 0, y: -1.5, z: 0}
         _rayDistance: 2
 --- !u!114 &7882330073764326687
 MonoBehaviour:
@@ -8364,7 +8343,7 @@ MonoBehaviour:
   Animator: {fileID: 1701702037370204521}
   ApplyTiming: 2
   SyncSettings: 79
-  StateHashes: 000000004cf1e72e1eab980720e23b685928a8ce
+  StateHashes: 000000004eeb5158547a6bb24cf1e72e1eab980720e23b685928a8ce
   TriggerHashes: 00000000
   TotalWords: 1
 --- !u!1 &6094436688019791440
@@ -10730,6 +10709,37 @@ Transform:
   m_Children:
   - {fileID: 2176113925391627926}
   m_Father: {fileID: 1124125730408760077}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7756623886416866757
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2976718366034083368}
+  m_Layer: 0
+  m_Name: GetOffPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2976718366034083368
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7756623886416866757}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.99, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3027430941088939585}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7793637572071656845
 GameObject:
