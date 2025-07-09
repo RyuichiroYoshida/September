@@ -1,5 +1,8 @@
 using System;
+using DG.Tweening;
 using Fusion;
+using InGame.Common;
+using InGame.Health;
 using InGame.Interact;
 using InGame.Player;
 using September.Common;
@@ -32,12 +35,20 @@ namespace InGame.Exhibit
         [SerializeField] private float _rotSpeedYaw;
         [SerializeField] private float _rotReturnSpeedRoll;
         [Header("Ground")]
-        [SerializeField] private float _groundDrag;
+        [SerializeField] private Vector3 _groundDrag;
         [SerializeField] private float _angularGroundDrag;
         [SerializeField] private float _rotSpeedGroundYaw;
         [Header("Prop")]
         [SerializeField] private Transform _prop;
         [SerializeField] private float _propSpeedRate;
+        [Header("MachineGun")]
+        [SerializeField] private float _fireInterval;
+        [SerializeField] private Transform[] _muzzles;
+        [SerializeField] private ParticleSystem _muzzleFlash;
+        [SerializeField] private ParticleSystem _ballistic;
+        [SerializeField] private ParticleSystem _bulletMark;
+        [SerializeField] private float _gunMaxDistance;
+        [SerializeField] private LayerMask _gunLayerMask = ~0;
         [Header("Debug")]
         [SerializeField] private TMP_Text _velocityText;
         [SerializeField] private TMP_Text _forwardSpeedText;
@@ -56,6 +67,8 @@ namespace InGame.Exhibit
         // FixedUpdateNetwork で AddForce するときの補正
         private float PhysicsCoefficient => Runner.DeltaTime / Time.fixedDeltaTime;
         private bool _sendToHost;
+        // MachineGun
+        private float _machineGunTimer;
         
         [Networked, OnChangedRender(nameof(OnChangeOwnerPlayerRef))] private PlayerRef OwnerPlayerRef { get; set; }
         [Networked] private float CurrentAccel { get; set; }
@@ -81,6 +94,8 @@ namespace InGame.Exhibit
                     RotatePlane(input.MoveDirection);
                     // playerオブジェクトのpositionを固定する
                     _ownerPlayerManager.transform.position = transform.position;
+
+                    UpdateMachineGun(input.Buttons.IsSet(PlayerButtons.Attack), Runner.DeltaTime);
                 }
                 else
                 {
@@ -142,7 +157,7 @@ namespace InGame.Exhibit
             // drag
             if (_rb.linearVelocity.sqrMagnitude > 0.0001f)
             {
-                Vector3 dragLocalVelocity = Vector3.Scale(transform.InverseTransformDirection(_rb.linearVelocity), _drag);
+                Vector3 dragLocalVelocity = Vector3.Scale(transform.InverseTransformDirection(_rb.linearVelocity),IsGround ? _groundDrag : _drag);
                 Vector3 dragWorldVelocity = transform.TransformDirection(dragLocalVelocity);
                 _rb.AddForce(_rb.linearVelocity.magnitude * PhysicsCoefficient * -dragWorldVelocity, ForceMode.Acceleration);
             }
@@ -195,6 +210,48 @@ namespace InGame.Exhibit
                 torque.y += moveDir.x * _rotSpeedYaw * forwardSpeed;
                 //torque += moveDir.x * _rotSpeedYaw * forwardSpeed * (Quaternion.Euler(transform.eulerAngles.x, 0, 0) * Vector3.up);
                 _rb.AddTorque(torque * PhysicsCoefficient, ForceMode.Acceleration);
+            }
+        }
+
+        void UpdateMachineGun(bool fireInput, float deltaTime)
+        {
+            if (fireInput && _machineGunTimer <= 0)
+            {
+                Fire();
+            }
+            else if (_machineGunTimer > 0)
+            {
+                _machineGunTimer -= deltaTime;
+            }
+        }
+
+        void Fire()
+        {
+            _machineGunTimer = _fireInterval;
+            
+            foreach (var muzzle in _muzzles)
+            {
+                var hit = Physics.Raycast(muzzle.position, muzzle.forward, out RaycastHit hitInfo, _gunMaxDistance, _gunLayerMask);
+                    
+                // hit effect
+                var damageable = hitInfo.collider.GetComponent<IDamageable>();
+
+                if (damageable != null)
+                {
+                    var hitData = new HitData(HitActionType.Damage, 10, OwnerPlayerRef, damageable.OwnerPlayerRef, null, damageable);
+                    damageable.TakeHit(ref hitData);
+                    Debug.Log(damageable.OwnerPlayerRef);
+                }
+                    
+                // particle
+                ParticlePool.Play(_muzzleFlash, muzzle.position, muzzle.rotation);
+                ParticlePool.Play(_ballistic, muzzle.position, muzzle.rotation, 0.003f * (hit ? hitInfo.distance : _gunMaxDistance))
+                    .transform.DOMove(hit ? hitInfo.point : muzzle.position + muzzle.forward * _gunMaxDistance, 0.003f * (hit ? hitInfo.distance : _gunMaxDistance));
+                
+                if (hit)
+                {
+                    ParticlePool.Play(_bulletMark, hitInfo.point, Quaternion.Euler(hitInfo.normal));
+                }
             }
         }
 
@@ -272,7 +329,6 @@ namespace InGame.Exhibit
 
         protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
-            Debug.Log(OwnerPlayerRef);
             return OwnerPlayerRef == PlayerRef.None || OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
         }
 

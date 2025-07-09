@@ -44,9 +44,10 @@ namespace InGame.Player
         private Vector3 _moveVelocity;
         private Vector3 _rotationDirection;
         private bool _isGround;
+        private float _isGroundTimer;
         private Vector3 _groundNormal = Vector3.up;
         private bool _isDashCoolTime;
-        private bool CanDash => !_isDashCoolTime && _status.CurrentStamina > 0 && _isGround;
+        private bool CanDash => !_isDashCoolTime && _status.CurrentStamina > 0 && IsGround;
         // vault
         private bool _doingVault;
         private float _vaultTimer;
@@ -58,7 +59,7 @@ namespace InGame.Player
         private List<CapsuleCastData> _capsuleCastData = new();
 
         public Vector3 MoveVelocity => _moveVelocity;
-        public bool IsGround => _isGround;
+        public bool IsGround => _isGround || _isGroundTimer > 0;
         public Vector3 GroundNormal => _groundNormal;
 
         private void Awake()
@@ -78,6 +79,7 @@ namespace InGame.Player
             {
                 ApplyGrav(deltaTime);
                 Move(moveDirection, isDash, cameraYaw, deltaTime);
+                AdsorptionOnGround();
                 ApplyVelocity(deltaTime);
             }
             
@@ -87,7 +89,8 @@ namespace InGame.Player
             // スタミナの更新
             UpdateStamina(isDash, deltaTime);
             
-            // is ground のリセット
+            // is ground の管理
+            if (!_isGround && _isGroundTimer > 0) _isGroundTimer -= deltaTime; 
             _isGround = false;
             _groundNormal = Vector3.up;
         }
@@ -109,7 +112,7 @@ namespace InGame.Player
             isDash = isDash && CanDash;
             
             // Dash中ならスタミナを消費させる
-            if (isDash)
+            if (isDash && moveDirection != Vector2.zero)
             {
                 _status.CurrentStamina = Mathf.Max(0, _status.CurrentStamina - _staminaConsumption * deltaTime);
 
@@ -129,41 +132,40 @@ namespace InGame.Player
         /// <summary> 水平方向のMoveVelocityを計算する </summary>
         private void CalcMoveVelocity(Vector2 moveDir, bool isDash, float deltaTime)
         {
-            Vector2 moveVelocity2 = new Vector2(_moveVelocity.x, _moveVelocity.z);
-            float lastMoveMag = moveVelocity2.magnitude;
+            float lastMoveMag = _moveVelocity.magnitude;
             // is ground で摩擦量が変わる
-            float friction = (_isGround ? _friction : _airFriction) * deltaTime;
+            float friction = (IsGround ? _friction : _airFriction) * deltaTime;
             
             // 入力がある場合
             if (moveDir != Vector2.zero)
             {
+                Vector3 moveDir3 = Quaternion.FromToRotation(Vector3.up, _groundNormal) * new Vector3(moveDir.x, 0, moveDir.y);
                 // 加速
-                float acceleration = (_isGround ? isDash ? _dashAcceleration : _acceleration : _airAcceleration) * deltaTime;
-                Vector2 targetVelocity = moveVelocity2 + moveDir * acceleration;
+                float acceleration = (IsGround ? isDash ? _dashAcceleration : _acceleration : _airAcceleration) * deltaTime;
+                Vector3 targetVelocity = _moveVelocity + moveDir3 * acceleration;
             
                 float maxSpeed = (isDash ? _maxDashSpeed : _maxMoveSpeed) * _status.MaxSpeedRate;
                 float moveMag = targetVelocity.magnitude;
 
-                if (!_isGround)
+                if (!IsGround)
                 {
                     // 空中は加速も摩擦もかける
-                    moveVelocity2 = (moveMag - friction) / moveMag * targetVelocity;
+                    _moveVelocity = (moveMag - friction) / moveMag * targetVelocity;
                 }
                 else if (moveMag > maxSpeed) // todo:加速後のVectorから計算したいけど摩擦の計算時に加速を入れたくない
                 {
                     // 入力があってMaxSpeedを超えた場合、摩擦をかけるがMaxSpeedを下回らない
                     friction = Mathf.Min(friction, lastMoveMag - maxSpeed);
-                    moveVelocity2 = (lastMoveMag - friction) / moveMag * targetVelocity;
+                    _moveVelocity = (lastMoveMag - friction) / moveMag * targetVelocity;
                 }
                 else // max speed を超えない場合
                 {
                     // 加速する
-                    moveVelocity2 = targetVelocity;
+                    _moveVelocity = targetVelocity;
                 }
 
-                Vector3 localVelocity = new Vector3(moveVelocity2.x, 0, moveVelocity2.y);
-                float yMag = _moveVelocity.y;
-                _moveVelocity = Vector3.ProjectOnPlane(localVelocity, _groundNormal).normalized * localVelocity.magnitude + Vector3.up * yMag;
+                //_moveVelocity = Quaternion.FromToRotation(Vector3.up, _groundNormal) * new Vector3(moveVelocity2.x, 0, moveVelocity2.y);
+                // _moveVelocity = localVelocity + Vector3.up * yMag;
             }
             else // 入力がなかった場合
             {
@@ -177,10 +179,28 @@ namespace InGame.Player
 
         void ApplyGrav(float deltaTime)
         {
-            if (_isGround) _moveVelocity.y = 0;
+            if (IsGround)
+            {
+                Vector3 normalUp = Quaternion.FromToRotation(_groundNormal, Vector3.up) * _moveVelocity;
+                normalUp.y = 0;
+                _moveVelocity = Quaternion.FromToRotation(Vector3.up, _groundNormal) * normalUp;
+            }
             else _moveVelocity.y -= _gravity * deltaTime;
         }
 
+        void AdsorptionOnGround()
+        {
+            if (_isGround) return;
+            
+            Vector3 origin = _moveCapsuleCollider.transform.position + Vector3.up * _moveCapsuleCollider.radius;
+            var hit = Physics.SphereCast(origin + Vector3.up * 0.1f, _moveCapsuleCollider.radius, Vector3.down, out var hitInfo, 0.4f, _groundLayer);
+
+            if (hit && hitInfo.distance > 0)
+            {
+                transform.position += Vector3.down * hitInfo.distance;
+            }
+        }
+        
         private void ApplyVelocity(float deltaTime)
         {
             // 速度の代入
@@ -207,7 +227,7 @@ namespace InGame.Player
 
         private void TryVault(Vector2 moveDirection)
         {
-            if (!_isGround) return;
+            if (!IsGround) return;
 
             _gizmoTimer = _gizmoDisplayDuration; // 1 秒 gizmo 表示
             _capsuleCastData.Clear();
@@ -340,7 +360,11 @@ namespace InGame.Player
         public void AddForce(Vector3 force)
         {
             _moveVelocity += force;
-            if (Vector3.Angle(_moveVelocity, _groundNormal) < 89) _isGround = false;
+            if (Vector3.Angle(_moveVelocity, _groundNormal) < 89)
+            {
+                _isGround = false;
+                _isGroundTimer = 0.1f;
+            }
         }
 
         /// <summary> 速度ベクトルを0にする </summary>
@@ -366,6 +390,7 @@ namespace InGame.Player
                 if (Vector3.Angle(Vector3.up, contact.normal) <= _groundSlopeThreshold && (Vector3.Angle(_moveVelocity, contact.normal) >= 89 || _moveVelocity == Vector3.zero))
                 {
                     _isGround = true;
+                    _isGroundTimer = 0.1f;
                     _groundNormal = contact.normal;
                     return;
                 }
