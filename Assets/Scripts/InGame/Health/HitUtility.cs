@@ -13,6 +13,17 @@ namespace InGame.Health
         public PlayerRef TargetRef;
         public IDamageable Target;
 
+        public HitData(HitActionType actionType, int amount, PlayerRef executorRef, PlayerRef targetRef, IHitExecutor executor = null, IDamageable target = null)
+        {
+            HitActionType = actionType;
+            Amount = amount;
+            IsLastHit = false;
+            ExecutorRef = executorRef;
+            Executor = executor;
+            TargetRef = targetRef;
+            Target = target;
+        }
+
         public override string ToString()
         {
             return $"ActionType: {HitActionType}\n" +
