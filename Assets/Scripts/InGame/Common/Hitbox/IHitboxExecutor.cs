@@ -7,6 +7,6 @@ public interface IHitboxExecutor
     void Tick(float deltaTime);
 
 #if UNITY_EDITOR
-    void DebugGizmo(Vector3 start, Vector3 end);
+    void DebugCapsuleGizmo(Vector3 start, Vector3 end);
 #endif
 }
