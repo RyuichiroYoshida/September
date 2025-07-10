@@ -13,31 +13,34 @@ namespace InGame.Exhibit
     {
         [Header("Flight Settings")] 
         [SerializeField] private Transform _getOffPoint;
+        
+        [Header("Sound Settings")]
+        [SerializeField] private string _crySE = "Pteranodon_cry";
+        [SerializeField] private string _flapSE = "Pteranodon_Flapping_1";
 
         [Header("Movement Settings")] 
         [SerializeField] private float _moveSpeed;
         private Rigidbody _rigidbody;
-        private GameInput _gameInput;
         
         [Header("Camera Settings")]
         private CameraController _cameraController;
 
+        [Header("Animation Settings")]
+        [SerializeField,Label("アニメーション最低値")]private float _targetBlendValue = 0.01f;
         private Animator _animator;
+        
+        [Header("Network Settings")]
         [Networked, OnChangedRender(nameof(OnChangeOwnerRef))] private PlayerRef OwnerPlayerRef { get; set; }
-        [Networked] private bool IsFlying { get; set; }
-        [Networked] private Vector2 NetworkedMoveDirection { get; set; }
+        
+        [Networked] public float CurrentSpeed { get; set; }
 
         private PlayerManager _ownerPlayerManager;
-        private bool _isFlying;
-        [SerializeField,Label("アニメーション最低値")]private float _targetBlendValue = 0.01f;
+        
         private float _currentBlendValue = 0.01f;
 
         #region AnimationHash
 
         private static readonly int _flyStateBlend = Animator.StringToHash("FlyStateBlend");
-        [Networked]
-        public NetworkButtons PreviousButtons { get; set; }
-        private float _suppressOffTime = 0f;
         #endregion
         
        private void Awake()
@@ -47,12 +50,8 @@ namespace InGame.Exhibit
             if(_animator is null)
                 Debug.LogError("Animator is null");
             
-            _rigidbody = GetComponent<Rigidbody>();
-            _cameraController.Init(true);
-
-            _gameInput = new GameInput();
-            _gameInput.Enable();
-            _isFlying = false;
+            _rigidbody = GetComponent<Rigidbody>(); 
+            _cameraController.Init(true); 
         }
 
        private void Start()
@@ -60,82 +59,67 @@ namespace InGame.Exhibit
            _rigidbody.isKinematic = true;
        }
 
-        public override void FixedUpdateNetwork()
-        {
-            if(!IsFlying) 
-                return;
-
-            if (HasInputAuthority)
-            {
-                if (GetInput<PlayerInput>(out var input))
-                {
-                    NetworkedMoveDirection = input.MoveDirection;
-                    
-                    // カメラリセットなどローカル専用処理
-                    if (_gameInput.Player.Aim.triggered)
-                    {
-                        _cameraController.CameraReset();
-                    }
-                }
-            }
-
-            if (HasStateAuthority)
-            {
-                Move(NetworkedMoveDirection);
-            }
-        }
+       public override void FixedUpdateNetwork()
+       {
+           if (HasStateAuthority)
+           {
+               if (GetInput<PlayerInput>(out var input))
+               {
+                   Vector2 moveDirection = input.MoveDirection;
+                   Move(moveDirection);
+                   CurrentSpeed = moveDirection.magnitude;
+                   if (input.Buttons.IsSet(PlayerButtons.Attack))
+                   {
+                       _cameraController.CameraReset();
+                   }
+               }
+           }
+       }
 
         private void LateUpdate()
         {
             if (HasInputAuthority)
             {
-                if (_gameInput.Player.Aim.triggered)
+                if (GameInput.I.Player.Aim.triggered)
                 {
                     _cameraController.CameraReset();
                 }
-                _cameraController.RotateCamera(_gameInput.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
+                
+                _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
-        }
 
-        protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
-        {
-            // すでにキャラクターが乗っていたらインタラクト不可能にする
-            return OwnerPlayerRef == PlayerRef.None || OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
+            _currentBlendValue = Mathf.Lerp(_currentBlendValue, CurrentSpeed, Time.deltaTime * 5f);
+            float clampedBlend = Mathf.Clamp(_currentBlendValue,0.01f,1.0f);
+            _animator.SetFloat(_flyStateBlend, clampedBlend);
         }
 
         // キャラクターごとにスキルを変更する
         protected override void OnInteract(IInteractableContext context)
         {
-            if(!HasStateAuthority)
-                return;
-            
             var requester = PlayerRef.FromEncoded(context.Interactor);
 
             if (OwnerPlayerRef == PlayerRef.None)
                 RPC_RequestGetOn(requester);
+            else if(OwnerPlayerRef == requester)
+                GetOff();
         }
         
         [Rpc(RpcSources.StateAuthority, RpcTargets.StateAuthority)]
         private void RPC_RequestGetOn(PlayerRef requester)
         {
-            if (OwnerPlayerRef != PlayerRef.None) return;
             GetOn(requester);
         }
         
         // 動き周り
         private void Move(Vector2 moveDirection)
         {
-            if (_currentBlendValue < 0.01)
-            {
-                _currentBlendValue = _targetBlendValue;
-            }
+            if(_rigidbody.isKinematic)
+                return;
+            
             Vector3 cameraForward = _cameraController.GetCameraForward();
             Vector3 cameraRight = _cameraController.GetCameraRight();
-            
-            // 方向キーの入力値とカメラの向きから、移動方向を決定
             Vector3 moveDir = cameraForward * moveDirection.y + cameraRight * moveDirection.x;
             
-            // 移動方向にスピードをかける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
             _rigidbody.linearVelocity = moveDir * _moveSpeed;
 
             if (moveDir != Vector3.zero)
@@ -143,26 +127,19 @@ namespace InGame.Exhibit
                 Quaternion targetRotation = Quaternion.LookRotation(moveDir, Vector3.up);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
             }
-            
-            float speed = moveDir.magnitude;
-            
-            _currentBlendValue = Mathf.Lerp(_currentBlendValue, speed, Time.deltaTime * 5f);
-            float clampedBlend = Mathf.Clamp(_currentBlendValue,0.01f,1.0f);
-            
-            _animator.SetFloat(_flyStateBlend, clampedBlend);
         }
         
         private void GetOn(PlayerRef ownerPlayerRef)
         {
+            if(!Runner.IsServer || OwnerPlayerRef != PlayerRef.None)
+                return;
+            
             OwnerPlayerRef = ownerPlayerRef;
             Object.AssignInputAuthority(OwnerPlayerRef);
-            CRIAudio.PlaySE("Exhibit","Pteranodon_cry");
+            CRIAudio.PlaySE("Exhibit",_flapSE);
 
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>()
                 .PlayerDataDic[OwnerPlayerRef].GetComponent<PlayerManager>();
-
-            if (_ownerPlayerManager == null)
-                Debug.LogError("PlayerManager is null");
 
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
@@ -170,9 +147,8 @@ namespace InGame.Exhibit
     
             transform.position += Vector3.up * 0.3f;
             _rigidbody.isKinematic = false;
-            IsFlying = true;
         }
-
+        
         private void GetOff()
         {
             if (!Runner.IsServer || OwnerPlayerRef == PlayerRef.None) 
@@ -180,12 +156,11 @@ namespace InGame.Exhibit
 
             OwnerPlayerRef = PlayerRef.None;
             Object.RemoveInputAuthority();
+            
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _ownerPlayerManager.RPC_SetColliderActive(true);
             _ownerPlayerManager.RPC_SetMeshActive(true);
             _ownerPlayerManager.transform.position = _getOffPoint.position;
-
-            IsFlying = false;
             _rigidbody.isKinematic = true;
         }
 
@@ -194,6 +169,7 @@ namespace InGame.Exhibit
             if (OwnerPlayerRef == Runner.LocalPlayer)
             {
                 _cameraController.SetCameraPriority(15);
+                _cameraController.CameraReset();
             }
             else
             {
@@ -201,9 +177,15 @@ namespace InGame.Exhibit
             }
         }
         
+        protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
+        {
+            // すでにキャラクターが乗っていたらインタラクト不可能にする
+            return OwnerPlayerRef == PlayerRef.None || OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
+        }
+        
         public void OnPlaySE()
         {
-            RPC_PlaySE(transform.position, "Pteranodon_Flapping_1");
+            RPC_PlaySE(transform.position, _crySE);
         }
 
         [Rpc(RpcSources.All,RpcTargets.All)]
