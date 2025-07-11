@@ -22,6 +22,7 @@ namespace InGame.Exhibit
         [SerializeField]private float _rayDistance;
         [SerializeField]private Transform _modelTransform;
         
+        
         private Transform _transform;
         private CameraController _cameraController;
         private PlayerRef _ownerPlayerRef;
@@ -33,16 +34,17 @@ namespace InGame.Exhibit
         private NetworkRunner _networkRunner;
         private bool _isInteracting;
         private bool _isGround;
+        private HitData _hitData;
+        private int _damageAmount;
 
         #region AttackParam
 
         private MeleeHitboxExecutor _executor;
-        private List<Transform> _points;
-        private float _duration;
-        private float _hitboxRadius = 0.2f;
-        private LayerMask _hitMask = default;
-        private int _startFrame = 0;
-        private int _endFrame = 34;
+        [SerializeField]private List<Transform> _points;
+        [SerializeField] private float _hitboxRadius = 0.2f;
+        [SerializeField]private LayerMask _hitMask = default;
+        [SerializeField]private int _startFrame = 0;
+        [SerializeField]private int _endFrame = 34;
         private int _currentFrame = 0;
         private bool _isAttacking;
         #endregion
@@ -71,13 +73,14 @@ namespace InGame.Exhibit
                 GetOn(playerRef);
                 _animator.SetBool("IsInteracting", true);
             }
-            _executor = new MeleeHitboxExecutor(_points,_duration, _hitboxRadius, _hitMask,_startFrame,_endFrame)
+            _executor = new MeleeHitboxExecutor(_points,_hitboxRadius, _hitMask,_startFrame,_endFrame)
             {
                 OnHit = collider =>
                 {
                     if (collider.TryGetComponent(out IDamageable damageable))
                     {
-                        damageable.TakeHit();
+                        var hitData = new HitData(HitActionType.Damage, _damageAmount, playerRef, damageable.OwnerPlayerRef);
+                        damageable.TakeHit(ref hitData);
                     }
                 }
             };
@@ -103,11 +106,13 @@ namespace InGame.Exhibit
             CheckIsGround();
             AddGravity(_networkRunner.DeltaTime);
             Move(playerInput.MoveDirection, _networkRunner.DeltaTime);
-            if (playerInput.Buttons.IsSet(PlayerButtons.Attack) && !_isAttacking)
-            {
-                OnAttackStart();
-            }
             _animator.SetBool("Run", playerInput.MoveDirection == Vector2.zero ? false : true);
+            if (playerInput.Buttons.IsSet(PlayerButtons.Attack))
+            {
+                _isAttacking = true;
+                _animator.SetTrigger("Attack");
+            }
+            OnAttackUpdate(_networkRunner.DeltaTime);
         }
 
         private void GetOn(PlayerRef ownerPlayerRef)
@@ -185,9 +190,15 @@ namespace InGame.Exhibit
             }
         }
 
-        private void OnAttackStart()
+        private void OnAttackUpdate(float deltaTime)
         {
-            
+            if(!_isAttacking) return;
+            _executor?.Tick(deltaTime);
+            Debug.Log("Attacking");
+            if (_executor.IsFinished)
+            {
+                _isAttacking = false;
+            }
         }
         public override CharacterInteractEffectBase Clone()
         {
@@ -202,7 +213,11 @@ namespace InGame.Exhibit
                 _rayDirection = _rayDirection,
                 _rayDistance = _rayDistance,
                 _modelTransform = _modelTransform,
-                _executor = new MeleeHitboxExecutor(_points,_duration,_hitboxRadius,_hitMask,_startFrame,_endFrame)
+                _points =  _points,
+                _hitboxRadius = _hitboxRadius,
+                _hitMask = _hitMask,
+                _startFrame = _startFrame,
+                _endFrame = _endFrame
             };
 
            
