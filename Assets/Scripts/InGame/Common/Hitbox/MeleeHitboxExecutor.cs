@@ -5,9 +5,6 @@ using UnityEngine;
 public class MeleeHitboxExecutor : IHitboxExecutor
 {
     private readonly List<Transform> _points;
-    private readonly float _duration;
-    private float _elapsed;
-
     private readonly float _hitboxRadius;
     private readonly LayerMask _hitMask = default;
     private readonly HashSet<Collider> _alreadyHit = new();
@@ -17,21 +14,19 @@ public class MeleeHitboxExecutor : IHitboxExecutor
     private readonly int _startFrame;
     private readonly int _endFrame;
 
-    public bool IsFinished => _elapsed >= _duration;
+    public bool IsFinished => _currentFrame > _endFrame;
     public Action<Collider> OnHit;
 
     public MeleeHitboxExecutor(
         List<Transform> points,
-        float duration,
         float hitboxRadius = 0.2f,
         LayerMask hitMask = default,
         int startFrame = 0,
         int endFrame = int.MaxValue)
     {
         _points = points ?? new List<Transform>();
-        _duration = duration;
         _hitboxRadius = hitboxRadius;
-        _hitMask = hitMask;
+        _hitMask = hitMask == default ? ~0 : hitMask;
         _startFrame = startFrame;
         _endFrame = endFrame;
         _currentFrame = 0;
@@ -39,7 +34,6 @@ public class MeleeHitboxExecutor : IHitboxExecutor
 
     public void Tick(float deltaTime)
     {
-        _elapsed += deltaTime;
         _currentFrame++;
 
         if (_currentFrame >= _startFrame && _currentFrame <= _endFrame)

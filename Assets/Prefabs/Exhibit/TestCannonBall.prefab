@@ -188,6 +188,7 @@ MonoBehaviour:
     - 0
   _characterEffects:
   - rid: 5083283266887483664
+  _LastInteractTime: -9999
   references:
     version: 2
     RefIds:
@@ -211,9 +212,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _model: {fileID: 4840829209715252854}
   _rigidbody: {fileID: 4885728260643230006}
-  _power: 2
-  _upwardForce: 5
-  _currentOwnerTransform: {fileID: 0}
+  _power: 3
+  _upwardForce: 1
+  _damageAmount: 10
+  _startPosition: {x: 0, y: 0, z: 0}
 --- !u!54 &4885728260643230006
 Rigidbody:
   m_ObjectHideFlags: 0
