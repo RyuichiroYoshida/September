@@ -51,6 +51,7 @@ namespace InGame.Exhibit
 
             _gameInput = new GameInput();
             _gameInput.Enable();
+            _rigidbody.isKinematic = false;
             _cameraController.Init(true);
 
             _ownerPlayerRef = PlayerRef.FromEncoded(context.Interactor);
