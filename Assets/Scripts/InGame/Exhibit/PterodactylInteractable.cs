@@ -31,16 +31,17 @@ namespace InGame.Exhibit
         
         [Header("Network Settings")]
         [Networked, OnChangedRender(nameof(OnChangeOwnerRef))] private PlayerRef OwnerPlayerRef { get; set; }
-        
-        [Networked] public float CurrentSpeed { get; set; }
+
+        private float _currentSpeed;
 
         private PlayerManager _ownerPlayerManager;
         
-        private float _currentBlendValue = 0.01f;
+        [Networked] private float _currentBlendValue { get; set; }
 
         #region AnimationHash
 
         private static readonly int _flyStateBlend = Animator.StringToHash("FlyStateBlend");
+        
         #endregion
         
        private void Awake()
@@ -61,17 +62,21 @@ namespace InGame.Exhibit
 
        public override void FixedUpdateNetwork()
        {
-           if (HasStateAuthority)
+           if (!HasStateAuthority) 
+               return;
+           
+           if (GetInput<PlayerInput>(out var input))
            {
-               if (GetInput<PlayerInput>(out var input))
+               Vector2 moveDirection = input.MoveDirection;
+               Move(moveDirection);
+               
+               _currentBlendValue = Mathf.Lerp(_currentBlendValue, moveDirection.magnitude, Runner.DeltaTime * 5f);
+               
+               if (input.DesiredLookDirection.sqrMagnitude > 0.001f)
                {
-                   Vector2 moveDirection = input.MoveDirection;
-                   Move(moveDirection);
-                   CurrentSpeed = moveDirection.magnitude;
-                   if (input.Buttons.IsSet(PlayerButtons.Attack))
-                   {
-                       _cameraController.CameraReset();
-                   }
+                   Vector3 flatDir = new(input.DesiredLookDirection.x, 0f, input.DesiredLookDirection.z);
+                   Quaternion targetRotation = Quaternion.LookRotation(flatDir, Vector3.up);
+                   transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Runner.DeltaTime * 5f);
                }
            }
        }
@@ -81,22 +86,19 @@ namespace InGame.Exhibit
             if (HasInputAuthority)
             {
                 if (GameInput.I.Player.Aim.triggered)
-                {
                     _cameraController.CameraReset();
-                }
                 
                 _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
 
-            _currentBlendValue = Mathf.Lerp(_currentBlendValue, CurrentSpeed, Time.deltaTime * 5f);
-            float clampedBlend = Mathf.Clamp(_currentBlendValue,0.01f,1.0f);
+            float clampedBlend = Mathf.Clamp(_currentBlendValue, 0.01f, 1f);
             _animator.SetFloat(_flyStateBlend, clampedBlend);
         }
 
         // キャラクターごとにスキルを変更する
         protected override void OnInteract(IInteractableContext context)
         {
-            var requester = PlayerRef.FromEncoded(context.Interactor);
+            PlayerRef requester = PlayerRef.FromEncoded(context.Interactor);
 
             if (OwnerPlayerRef == PlayerRef.None)
                 RPC_RequestGetOn(requester);
@@ -116,17 +118,19 @@ namespace InGame.Exhibit
             if(_rigidbody.isKinematic)
                 return;
             
-            Vector3 cameraForward = _cameraController.GetCameraForward();
-            Vector3 cameraRight = _cameraController.GetCameraRight();
-            Vector3 moveDir = cameraForward * moveDirection.y + cameraRight * moveDirection.x;
+            if (!GetInput<PlayerInput>(out var input)) 
+                return;
             
-            _rigidbody.linearVelocity = moveDir * _moveSpeed;
+            Vector3 lookDir = input.DesiredLookDirection;
+            Vector3 cameraForward = lookDir.normalized;
+            Vector3 cameraRight = Vector3.Cross(Vector3.up, cameraForward);
 
-            if (moveDir != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(moveDir, Vector3.up);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-            }
+            Vector3 moveDir = cameraForward * moveDirection.y + cameraRight * moveDirection.x;
+
+            // 飛行挙動
+            Vector3 velocityTarget = moveDir.normalized * _moveSpeed;
+            Vector3 velocityDelta = velocityTarget - _rigidbody.linearVelocity;
+            _rigidbody.AddForce(velocityDelta, ForceMode.VelocityChange);
         }
         
         private void GetOn(PlayerRef ownerPlayerRef)
@@ -136,7 +140,7 @@ namespace InGame.Exhibit
             
             OwnerPlayerRef = ownerPlayerRef;
             Object.AssignInputAuthority(OwnerPlayerRef);
-            CRIAudio.PlaySE("Exhibit",_flapSE);
+            OnPlaySE(_crySE);
 
             _ownerPlayerManager = StaticServiceLocator.Instance.Get<InGameManager>()
                 .PlayerDataDic[OwnerPlayerRef].GetComponent<PlayerManager>();
@@ -144,8 +148,7 @@ namespace InGame.Exhibit
             _ownerPlayerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _ownerPlayerManager.RPC_SetColliderActive(false);
             _ownerPlayerManager.RPC_SetMeshActive(false);
-    
-            transform.position += Vector3.up * 0.3f;
+            
             _rigidbody.isKinematic = false;
         }
         
@@ -182,16 +185,16 @@ namespace InGame.Exhibit
             // すでにキャラクターが乗っていたらインタラクト不可能にする
             return OwnerPlayerRef == PlayerRef.None || OwnerPlayerRef == PlayerRef.FromEncoded(context.Interactor);
         }
-        
-        public void OnPlaySE()
-        {
-            RPC_PlaySE(transform.position, _crySE);
-        }
 
         [Rpc(RpcSources.All,RpcTargets.All)]
         private void RPC_PlaySE(Vector3 position, string cueName)
         {
             CRIAudio.PlaySE(position,"Exhibit", cueName);
+        }
+        
+        private void OnPlaySE(string cueName)
+        {
+            RPC_PlaySE(transform.position, cueName);
         }
     }
 }

@@ -101,7 +101,7 @@ BlendTree:
     m_DirectBlendParameter: FlyStateBlend
     m_Mirror: 0
   - serializedVersion: 2
-    m_Motion: {fileID: 1827226128182048838, guid: 882a344bffb826145930134219d66852, type: 3}
+    m_Motion: {fileID: 7400000, guid: 9b279ea22502ae04fb9f7eb2f461f55c, type: 2}
     m_Threshold: 0.8
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1
