@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Fusion;
+using InGame.Health;
 using InGame.Interact;
 using InGame.Player;
 using September.Common;
@@ -18,7 +20,9 @@ namespace InGame.Exhibit
         [SerializeField] private Transform _getOffPoint;
         [SerializeField]private Vector3 _rayDirection;
         [SerializeField]private float _rayDistance;
+        [SerializeField]private Transform _modelTransform;
         
+        private Transform _transform;
         private CameraController _cameraController;
         private PlayerRef _ownerPlayerRef;
         private PlayerManager _ownerPlayerManager;
@@ -27,10 +31,22 @@ namespace InGame.Exhibit
         private GameInput _gameInput;
         private NetworkObject _networkObject;
         private NetworkRunner _networkRunner;
-        private Transform _transform;
         private bool _isInteracting;
         private bool _isGround;
-        private CapsuleCollider _capsuleCollider;
+
+        #region AttackParam
+
+        private MeleeHitboxExecutor _executor;
+        private List<Transform> _points;
+        private float _duration;
+        private float _hitboxRadius = 0.2f;
+        private LayerMask _hitMask = default;
+        private int _startFrame = 0;
+        private int _endFrame = 34;
+        private int _currentFrame = 0;
+        private bool _isAttacking;
+        #endregion
+        
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
         {
             if (_isInteracting)
@@ -48,7 +64,6 @@ namespace InGame.Exhibit
             _networkObject = target.GetComponent<NetworkObject>();
             _networkRunner = _networkObject.Runner;
             _transform = target.transform;
-            _capsuleCollider = target.GetComponent<CapsuleCollider>();
             var charaType = context.CharacterType;
             var playerRef = PlayerRef.FromEncoded(context.Interactor);
             if (charaType == CharacterType.OkabeWright)
@@ -56,6 +71,16 @@ namespace InGame.Exhibit
                 GetOn(playerRef);
                 _animator.SetBool("IsInteracting", true);
             }
+            _executor = new MeleeHitboxExecutor(_points,_duration, _hitboxRadius, _hitMask,_startFrame,_endFrame)
+            {
+                OnHit = collider =>
+                {
+                    if (collider.TryGetComponent(out IDamageable damageable))
+                    {
+                        damageable.TakeHit();
+                    }
+                }
+            };
         }
 
         public override void OnInteractLateUpdate(float deltaTime)
@@ -73,12 +98,15 @@ namespace InGame.Exhibit
 
         public override void OnInteractFixedNetworkUpdate(PlayerInput playerInput)
         {
-            Debug.Log(_isGround);
             if (_networkObject == null || !_networkObject.HasInputAuthority)
                 return;
             CheckIsGround();
             AddGravity(_networkRunner.DeltaTime);
             Move(playerInput.MoveDirection, _networkRunner.DeltaTime);
+            if (playerInput.Buttons.IsSet(PlayerButtons.Attack) && !_isAttacking)
+            {
+                OnAttackStart();
+            }
             _animator.SetBool("Run", playerInput.MoveDirection == Vector2.zero ? false : true);
         }
 
@@ -120,7 +148,6 @@ namespace InGame.Exhibit
         private void Move(Vector2 inputMoveDirection, float deltaTime)
         {
             if (inputMoveDirection == Vector2.zero) return;
-            if(!_isGround) return;
             Vector3 cameraForward = _cameraController.GetCameraForward();
             Vector3 cameraRight = _cameraController.GetCameraRight();
             Vector3 moveDirection = cameraForward * inputMoveDirection.y + cameraRight * inputMoveDirection.x;
@@ -136,23 +163,31 @@ namespace InGame.Exhibit
 
         private void Rotate(float deltaTime)
         {
-            var rot = Quaternion.RotateTowards(_transform.rotation, Quaternion.LookRotation(_moveVelocity),
+            var rot = Quaternion.RotateTowards(_modelTransform.rotation, Quaternion.LookRotation(_moveVelocity),
                 _maxRotateValue * deltaTime);
-            _transform.rotation = rot;
+            _modelTransform.rotation = rot;
         }
 
         private void CheckIsGround()
         {
-           bool ray = Physics.Raycast(_capsuleCollider.center, _rayDirection, out RaycastHit hit, _rayDistance);
-           var normal = hit.normal;
-           if (ray && Vector3.Angle(normal, Vector3.up) < 90)
-           {
-               _isGround = true;
-               _groundNormal = hit.normal;
-               return;
-           }
-           _isGround = false;
-           
+            bool ray = Physics.Raycast(_transform.position + Vector3.up, _rayDirection, out RaycastHit hit, _rayDistance);
+            var normal = hit.normal;
+            if (ray && Vector3.Angle(normal, Vector3.up) < 90)
+            {
+                _isGround = true;
+                _groundNormal = normal;
+                return;
+            }
+            if(!ray || Vector3.Angle(normal, Vector3.up) >= 90)
+            {
+                _isGround = false;
+                _groundNormal = Vector3.up;
+            }
+        }
+
+        private void OnAttackStart()
+        {
+            
         }
         public override CharacterInteractEffectBase Clone()
         {
@@ -166,7 +201,11 @@ namespace InGame.Exhibit
                 _getOffPoint =  _getOffPoint,
                 _rayDirection = _rayDirection,
                 _rayDistance = _rayDistance,
+                _modelTransform = _modelTransform,
+                _executor = new MeleeHitboxExecutor(_points,_duration,_hitboxRadius,_hitMask,_startFrame,_endFrame)
             };
+
+           
         }
     }
 }
