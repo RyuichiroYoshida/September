@@ -31,6 +31,12 @@ public class MeleeHitboxExecutor : IHitboxExecutor
         _endFrame = endFrame;
         _currentFrame = 0;
     }
+    
+    public void Init()
+    {
+        _alreadyHit.Clear();
+        _currentFrame = 0;
+    }
 
     public void Tick(float deltaTime)
     {
