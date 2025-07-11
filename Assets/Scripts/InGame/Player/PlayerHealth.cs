@@ -3,7 +3,6 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
-using UniRx;
 using UnityEngine;
 
 namespace InGame.Player
@@ -32,6 +31,7 @@ namespace InGame.Player
                 OnDeath += Death;
             }
             
+            _status = GetComponent<PlayerStatus>();
             _cts = new CancellationTokenSource();
             _renderer = GetComponentInChildren<Renderer>();
             _materialPropertyBlock = new MaterialPropertyBlock();

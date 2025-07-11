@@ -13,12 +13,13 @@ namespace InGame.Player
         [SerializeField] TMP_Text _isGroundText;
 
         PlayerMovement _playerMovement;
+        PlayerStatus _playerStatus;
         
         private void Start()
         {
             PlayerManager playerManager = GetComponentInParent<PlayerManager>();
-            PlayerStatus playerStatus = GetComponentInParent<PlayerStatus>();
-            _playerMovement = playerStatus.GetComponent<PlayerMovement>();
+            _playerStatus = GetComponentInParent<PlayerStatus>();
+            _playerMovement = _playerStatus.GetComponent<PlayerMovement>();
 
             if (!playerManager.IsLocalPlayer)
             {
@@ -26,8 +27,8 @@ namespace InGame.Player
                 return;
             }
 
-            playerStatus.ReactiveCurrentHealth.Subscribe(health => _healthText.text = health.ToString());
-            playerStatus.ReactiveCurrentStamina.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
+            _playerStatus.ReactiveCurrentHealth.Subscribe(health => _healthText.text = health.ToString());
+            _playerStatus.ReactiveCurrentStamina.Subscribe(stamina => _staminaText.text = stamina.ToString("F1"));
         }
 
         private void FixedUpdate()

@@ -12,11 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b10e7b9c18af92e4ea7d4b50318f7035, type: 3}
   m_Name: PlayerBase
   m_EditorClassIdentifier: 
-  _characterName: Base
   _health: 100
   _speed: 5
   _stamina: 100
   _staminaConsumption: 20
   _staminaRegen: 20
   _attackDamage: 10
-  _attackDamageOgre: 15
