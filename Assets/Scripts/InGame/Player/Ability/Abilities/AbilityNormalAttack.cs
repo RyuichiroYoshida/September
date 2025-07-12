@@ -64,7 +64,7 @@ namespace InGame.Player.Ability
             var start = resolver?.GetStartFrame();
             var end = resolver?.GetEndFrame();
             var radius = resolver?.GetRadius() ?? 0.1f;
-            _executor = new MeleeHitboxExecutor(points, _attackDuration, radius, _hitMask, start ?? 0, end ?? int.MaxValue)
+            _executor = new MeleeHitboxExecutor(points, radius, _hitMask, start ?? 0, end ?? int.MaxValue)
             {
                 OnHit = collider =>
                 {

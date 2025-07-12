@@ -21,7 +21,7 @@ namespace InGame.Interact
 
 
         [Networked]
-        private float LastInteractTime { get; set; } = -9999f;
+        public float LastInteractTime { get; set; } = -9999f;
         
         [Networked]
         private float LastUsedCooldownTime { get; set; } = 0f;
@@ -39,13 +39,12 @@ namespace InGame.Interact
                 Debug.Log($"[InteractableBase] OnValidateInteraction により拒否: {context.Interactor}");
                 return;
             }
-
-            // 実行
-            OnInteract(context);
-
             // クールダウン登録
             LastInteractTime = Runner ? Runner.SimulationTime : Time.time;
             LastUsedCooldownTime = _cooldownTimeDictionary.Dictionary.GetValueOrDefault(charaType, 0f);
+
+            // 実行
+            OnInteract(context);
         }
 
         /// <summary>
