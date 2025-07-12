@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Overlays;
 using UnityEngine;
@@ -51,3 +52,4 @@ public class TimeScaleOverlay : Overlay
         return root;
     }
 }
+#endif
