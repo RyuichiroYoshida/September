@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 namespace InGame.Tanihira
 {
-    public class FriendsSpawner : NetworkBehaviour
+    public class FriendsSpawner : NetworkBehaviour, InGame.Player.IMimicCleanup, InGame.Player.IMimicInitialize
     {
         [Header("初期友達の設定")]
         [SerializeField] private FriendType[] _friendsTypes;
@@ -15,6 +15,8 @@ namespace InGame.Tanihira
         [SerializeField] private Transform _firstSpawnPoint;
         [SerializeField] private float _navmeshSerchRadius = 5.0f;
         private NetworkRunner _networkRunner;
+        private readonly System.Collections.Generic.List<NetworkObject> _spawnedFriends = new();
+        private bool _isInitialized;
 
         public void Start()
         {
@@ -24,11 +26,17 @@ namespace InGame.Tanihira
         //初期化処理
         private void Initialize()
         {
-            _networkRunner = FindFirstObjectByType<NetworkRunner>();
+            if (_isInitialized)
+                return;
+
+            _networkRunner = Runner != null ? Runner : FindFirstObjectByType<NetworkRunner>();
             if (_networkRunner == null)
             {
                 Debug.LogError("NetworkRunnerがありません");
+                return;
             }
+
+            _isInitialized = true;
 
             if (HasStateAuthority)
             {
@@ -40,6 +48,12 @@ namespace InGame.Tanihira
             }
             
             _formationManager.RegisterFriendFormation();
+        }
+
+        // インターフェース実装
+        public void InitializeAfterMimicSpawn()
+        {
+            Initialize();
         }
 
         /// <summary>
@@ -64,10 +78,12 @@ namespace InGame.Tanihira
                     Debug.LogWarning($"{friendType} はNavMesh上にスポーンできませんでした");
                 }
                 
-                FriendBase friend = _networkRunner.Spawn(prefab, fixedPos, Quaternion.identity, null).GetComponent<FriendBase>();
-                
+                NetworkObject spawnedObject = _networkRunner.Spawn(prefab, fixedPos, Quaternion.identity, null);
+                FriendBase friend = spawnedObject.GetComponent<FriendBase>();
+
                 if (friend)
                 {
+                    _spawnedFriends.Add(spawnedObject);
                     // フレンドにFormationManagerとownerPlayerを設定
                     friend.SetFormationManager(_formationManager);
                     friend.SetOwnerPlayer(_ownerPlayer);
@@ -83,6 +99,21 @@ namespace InGame.Tanihira
             }
             
             return null;
+        }
+
+        // インターフェース実装
+        public void CleanupBeforeMimicDespawn()
+        {
+            if (!HasStateAuthority || _networkRunner == null)
+                return;
+
+            foreach (var friendObject in _spawnedFriends)
+            {
+                if (friendObject)
+                    _networkRunner.Despawn(friendObject);
+            }
+
+            _spawnedFriends.Clear();
         }
     }
 }

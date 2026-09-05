@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using InGame.Player;
 using September.Common;
 using September.InGame.Common;
 using UnityEngine;
 
 namespace Ingame.Tanihira
 {
-    public class FriendPlayerDetector : NetworkBehaviour
+    public class FriendPlayerDetector : NetworkBehaviour, IMimicInitialize, IMimicCleanup
     {
         [SerializeField] private Transform _detectionCenter;
         [SerializeField] private float _detectionRadius;
@@ -23,6 +24,7 @@ namespace Ingame.Tanihira
         [SerializeField, ReadOnly] private List<TyrannoInteractable> _tyrannoInteractables = new List<TyrannoInteractable>();
         private Collider[] _overlapResults = new Collider[50];
         private bool _isEnd;
+        private bool _isSubscribedToGameStart;
 
         [SerializeField, ReadOnly] private bool _isSerching = true;
         private Transform _moveIndependentDestination; //ペンギンが自立する時の目的地
@@ -35,7 +37,7 @@ namespace Ingame.Tanihira
                 _inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
                 if (_inGameManager)
                 {
-                    _inGameManager.GameStarted += GameStart;
+                    SubscribeGameStart();
                 }
                 _tyrannoInteractables = FindObjectsOfType<TyrannoInteractable>().ToList();
             }
@@ -78,6 +80,46 @@ namespace Ingame.Tanihira
         private void GameStart()
         {
             _isWaiting = true;
+        }
+
+        // インターフェース実装
+        public void InitializeAfterMimicSpawn()
+        {
+            if (!HasStateAuthority)
+                return;
+
+            _inGameManager ??= StaticServiceLocator.Instance.Get<InGameManager>();
+            SubscribeGameStart();
+            _tyrannoInteractables = FindObjectsOfType<TyrannoInteractable>().ToList();
+            _currentTarget = null;
+            _isEnd = false;
+
+            // 擬態は試合開始後に行われるため、発火済みのGameStartedを待たず索敵を開始する。
+            if (_inGameManager?.CurrentStateName != "EndingState")
+                _isWaiting = true;
+        }
+
+        // インターフェース実装
+        public void CleanupBeforeMimicDespawn()
+        {
+            if (_inGameManager && _isSubscribedToGameStart)
+                _inGameManager.GameStarted -= GameStart;
+
+            _isSubscribedToGameStart = false;
+            _isWaiting = false;
+            _currentTarget = null;
+        }
+
+        /// <summary>
+        /// ゲーム開始時にイベント購読をするメソッド
+        /// </summary>
+        private void SubscribeGameStart()
+        {
+            if (!_inGameManager || _isSubscribedToGameStart)
+                return;
+
+            _inGameManager.GameStarted += GameStart;
+            _isSubscribedToGameStart = true;
         }
 
         //プレイヤーを索敵する処理

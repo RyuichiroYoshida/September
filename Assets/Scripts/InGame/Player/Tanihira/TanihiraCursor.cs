@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Ingame.Tanihira
 {
-    public class TanihiraCursor : NetworkBehaviour, IAfterTick
+    public class TanihiraCursor : NetworkBehaviour, IAfterTick, IMimicCleanup
     {
         [Header("Cursor")]
         [SerializeField] private GameObject _cursorPrefab;
@@ -154,6 +154,41 @@ namespace Ingame.Tanihira
             _state = TanihiraCursorState.Idol;
             _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             RPC_ChangeDescriptionUI(ControlDescriptionType.Tanihira);
+        }
+
+        public void CleanupBeforeMimicDespawn()
+        {
+            CleanupLocalPresentation();
+
+            if (!HasStateAuthority)
+                return;
+
+            _state = TanihiraCursorState.Idol;
+            if (_playerManager)
+                _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
+
+            if (_moveTargetInstance)
+            {
+                Runner.Despawn(_moveTargetInstance);
+                _moveTargetInstance = null;
+            }
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            CleanupLocalPresentation();
+        }
+
+        private void CleanupLocalPresentation()
+        {
+            if (_cameraController)
+                _cameraController.ResetOffset(_changeOffsetDuration);
+
+            if (_cursorObject)
+            {
+                Destroy(_cursorObject);
+                _cursorObject = null;
+            }
         }
 
         private Vector3 MoveCursorPos()
