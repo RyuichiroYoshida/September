@@ -1479,6 +1479,12 @@ MonoBehaviour:
     m_Bits: 16512
   _scannerCanvas: {fileID: 7310910699517085291}
   _visual: {fileID: 5851093174879335224}
+  _playerJewelryView: {fileID: 3361756016605456788}
+--- !u!225 &3361756016605456788 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 8170373435814273824, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+  m_PrefabInstance: {fileID: 6901102396210121396}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &3505574817478847412 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8026515877087289600, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}

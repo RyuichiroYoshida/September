@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using InGame.Interact;
+using InGame.Jewelry;
 using September.Common;
 using UnityEngine;
 
@@ -39,6 +40,9 @@ namespace InGame.Player
         [Header("ガワ")]
         [SerializeField]
         TakamuraVisual _visual;
+
+        [Header("宝石UI")]
+        [SerializeField] CanvasGroup _playerJewelryView;
 
         TakamuraScanTarget[] _scanTargets = Array.Empty<TakamuraScanTarget>();
         readonly Dictionary<NetworkId, TakamuraScanTarget> _targetByNetworkId = new();
@@ -405,12 +409,16 @@ namespace InGame.Player
             if (MimicTargetId == default)
             {
                 _visual.Reveal();
+                // キャンバスを表示
+                if (_playerJewelryView) _playerJewelryView.alpha = 1;
                 return;
             }
 
             if (_targetByNetworkId.TryGetValue(MimicTargetId, out var target) && target)
             {
                 _visual.Mimic(target);
+                // キャンバスを非表示
+                if (_playerJewelryView) _playerJewelryView.alpha = 0;
             }
         }
     }
