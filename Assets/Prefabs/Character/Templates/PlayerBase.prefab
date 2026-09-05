@@ -5438,6 +5438,7 @@ GameObject:
   - component: {fileID: 8026515877087289600}
   - component: {fileID: 202504370253565435}
   - component: {fileID: 846463964584838234}
+  - component: {fileID: 2520683386849973483}
   m_Layer: 6
   m_Name: PlayerBase
   m_TagString: Player
@@ -5539,6 +5540,7 @@ MonoBehaviour:
   - {fileID: 8026515877087289600}
   - {fileID: 202504370253565435}
   - {fileID: 846463964584838234}
+  - {fileID: 2520683386849973483}
   - {fileID: 4810525472409146702}
   - {fileID: 2132102575819528591}
   - {fileID: 3043690341386287730}
@@ -5625,6 +5627,9 @@ MonoBehaviour:
   _moveCapsuleCollider: {fileID: 3128034714514688337}
   _moveSpeed: 1.8
   _groundSlopeThreshold: 45
+  _groundDistanceThreshold: 0.25
+  _groundSnapDistance: 0.4
+  _coyoteTime: 0.1
   _groundLayer:
     serializedVersion: 2
     m_Bits: 159
@@ -6007,17 +6012,80 @@ MonoBehaviour:
   _overrideInTime: 0.08
   _overrideInCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _overrideOutTime: 0.1
+  _overrideOutTime: 0.164
   _overrideOutCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  _getUpBlendTime: 0
+  _getUpBlendCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _isGetUpAutoRotationEnabled: 0
+  _getUpRotationOffsetY: 0
   _EnableFallMotion: 1
 --- !u!114 &9111916553959908344
 MonoBehaviour:
@@ -6180,8 +6248,6 @@ MonoBehaviour:
   _heightOffset: 1.58
   _audioBroadcaster: {fileID: 2132102575819528591}
   _pickUpSoundCueName: SE_Jewel_PickUp
-  _interactEffectType: 27
-  _interactEffectOffset: {x: 0, y: 0.6, z: 0}
 --- !u!114 &202504370253565435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6209,7 +6275,91 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _coolTime: 3
-  _outFieldHeight: -20
+  _playerManager: {fileID: -4668177863944640257}
+--- !u!114 &2520683386849973483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360875997416129576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d6f1bbf38834db98ae4a378155fd874, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerRespawn: {fileID: 846463964584838234}
+  _jewelryContainerObj: {fileID: 8026515877087289600}
+  _playerMovement: {fileID: 3242880713039265549}
+  _playerHealth: {fileID: 5358505061852357365}
+  _dropSettings:
+  - {fileID: 11400000, guid: a1ae910b68ab24548aeb22c70f07f662, type: 2}
+  - {fileID: 11400000, guid: 119bedf445fad8b43a29785def84571e, type: 2}
+  _hitRetentionTime: 20
+  _randomOffsetRange: 3
+  _searchFieldRadius: 10
+  _height: 1.5
+  _randomHeight: 0.3
+  _duration: 1.5
+  _randomDuration: 0.2
+  _randomDelay: 0.2
+  _verticalEase:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1.2657601
+      outSlope: 1.2657601
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.39172637
+      value: 0.4958316
+      inSlope: 1.0473057
+      outSlope: 1.0473057
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.8288513
+      outSlope: 0.8288513
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _horizontalEase:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8408815403407481762
 GameObject:
   m_ObjectHideFlags: 0

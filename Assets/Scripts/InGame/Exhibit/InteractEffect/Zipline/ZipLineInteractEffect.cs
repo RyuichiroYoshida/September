@@ -3,6 +3,7 @@ using InGame.Common;
 using InGame.Interact;
 using September.Common;
 using System;
+using Ingame.Tanihira;
 using InGame.Player;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -63,6 +64,8 @@ namespace September
             _activeEffect = target;
             _activeEffect.ForceSetInteractable = false;
 
+            _targetPlayerObject.GetComponent<FormationManager>()?.WarpFriendOutField();
+
             _animator = _targetPlayerObject.GetComponentInChildren<Animator>();
             Trolley.transform.position = Spline.EvaluatePosition(0f);
             _timer = 0f;
@@ -99,21 +102,29 @@ namespace September
 
             if (t >= 1f)
             {
+                var completedPlayer = _targetPlayerObject;
+
                 // プレイヤーをここで降ろす
-                var playerManager = _targetPlayerObject.GetComponent<PlayerManager>();
+                var playerManager = completedPlayer.GetComponent<PlayerManager>();
                 playerManager.RPC_SetUseGrav(true);
                 playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
 
                 // プレイヤーのアニメーションを停止する
-                if (_targetPlayerObject.TryGetComponent(out AnimationClipPlayer animationClipPlayer))
+                if (completedPlayer.TryGetComponent(out AnimationClipPlayer animationClipPlayer))
                 {
                     animationClipPlayer.StopClip(Anim);
                 }
 
                 // プレイヤーの落下アニメーションを再度有効にする
-                if (_targetPlayerObject.TryGetComponent(out AnimationClipPlayerManager animManager))
+                if (completedPlayer.TryGetComponent(out AnimationClipPlayerManager animManager))
                 {
                     animManager.EnableFallMotion = true;
+                }
+
+                if (completedPlayer.TryGetComponent(out FormationManager formationManager) &&
+                    completedPlayer.TryGetComponent(out PlayerMovement playerMovement))
+                {
+                    formationManager.WarpFriendNearPlayerWhenGrounded(playerMovement);
                 }
 
                 _targetPlayerObject = null;

@@ -23,7 +23,7 @@ namespace September.InGame.Jewelry.Drop.Strategies.Amounts
 
             // 0~1 の範囲に正規化。
             // 数値が大きい方が順位が高いようにする
-            float rankRatio = playersCount > 0
+            float rankRatio = playersCount > 1
                     ? 1f - (victimRank - 1f) / (playersCount - 1f)
                     : 1f;
 

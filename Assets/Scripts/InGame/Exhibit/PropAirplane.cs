@@ -427,8 +427,8 @@ namespace InGame.Exhibit
             //隊列がある場合の処理
             if (_ownerPlayerManager.TryGetComponent<FormationManager>(out var formationManager))
             {
-                formationManager.WarpFriendNearPlayer(_ownerPlayerManager.transform.position,
-                    _ownerPlayerManager.transform.rotation);
+                formationManager.WarpFriendNearPlayerWhenGrounded(
+                    _ownerPlayerManager.GetComponent<PlayerMovement>());
             }
             AudioBroadcaster.RequestStopSound(SoundCues.SE.ZeroFighter_Interact.Name);          // 飛行中のループ音(サウンドデータの関係でInteractの音で判定)
             AudioBroadcaster.RequestStopSound(SoundCues.SE.ZeroFighter_TakeoffGunFire.Name);    // もしくは射撃音を止める

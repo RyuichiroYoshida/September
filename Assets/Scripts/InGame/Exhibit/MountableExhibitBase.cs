@@ -11,12 +11,13 @@ using NaughtyAttributes;
 using September.Common;
 using September.InGame.Common;
 using September.InGame.Effect;
+using September.InGame.Mountable;
 using September.InGame.UI;
 using UnityEngine;
 
 namespace InGame.Exhibit
 {
-    public class MountableExhibitBase : NetworkBehaviour,IDamageable
+    public class MountableExhibitBase : NetworkBehaviour, IDamageable , IMountable
     {
         protected CameraController CameraController { get; private set; }
         
@@ -173,6 +174,13 @@ namespace InGame.Exhibit
         /// </summary>
         public virtual void GetOff(PlayerRef playerRef)
         {
+            Vector3 getOffPosition = _getOffPoint != null
+                ? _getOffPoint.position
+                : _ownerPlayerManager.transform.position;
+            Quaternion getOffRotation = _getOffPoint != null
+                ? _getOffPoint.rotation
+                : _ownerPlayerManager.transform.rotation;
+
             PlayerDatabase.Instance.PlayerDataDic.TryGet(playerRef, out var playerData);
             ControlDescriptionType type = CharacterDataContainer.Instance.GetControlDescriptionType(playerData.CharacterType);
             
@@ -194,15 +202,16 @@ namespace InGame.Exhibit
             _ownerPlayerManager.RPC_SetUseGrav(true);
             _ownerPlayerManager.RPC_SetColliderActive(true);
             _ownerPlayerManager.RPC_SetMeshActive(true);
+            _ownerPlayerManager.transform.SetPositionAndRotation(getOffPosition, getOffRotation);
             var health = _ownerPlayerManager.GetComponent<PlayerHealth>();
             SetInvincible(health,true).Forget();
             Object.RemoveInputAuthority();
             RPC_SetCameraPriority(playerRef,5);
             RPC_SetIsKinematic(true);
-            var obj = _ownerPlayerManager.GetComponent<NetworkObject>();
             if (_ownerPlayerManager.TryGetComponent<FormationManager>(out var formationManager))
             {
-                formationManager.WarpFriendNearPlayer(obj.transform.position,obj.transform.rotation);
+                formationManager.WarpFriendNearPlayerWhenGrounded(
+                    _ownerPlayerManager.GetComponent<PlayerMovement>());
             }
             Executor = null;
             CameraController.CameraReset();

@@ -66,7 +66,7 @@ public static class DebugDrawUtility
     }
 
     [Conditional("UNITY_EDITOR")]
-    public static void DrawOrientedWireBox(Vector3 center, Vector3 halfExtents, Quaternion rot, Color col, float duration)
+    public static void DrawOrientedWireBox(Vector3 center, Vector3 halfExtents, Quaternion rot, Color col, float duration = 0f)
     {
         var c = GetBoxCorners(center, halfExtents, rot);
         // 底面

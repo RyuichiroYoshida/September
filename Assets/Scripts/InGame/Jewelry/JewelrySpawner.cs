@@ -2,7 +2,10 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
+using InGame.Jewelry.Common;
+using JetBrains.Annotations;
 using September.Common;
+using September.InGame.Jewelry;
 using September.InGame.UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -17,6 +20,11 @@ namespace InGame.Jewelry
         [SerializeField] private float _predictionVisibleDuration;
         [SerializeField] private JewelrySpawnData _jewelrySpawnData;
 
+        [Header("リポップ設定")]
+        [SerializeField] private Vector3 _repopOffset = new(0, 2f, 0);
+        [SerializeField] private Vector2 _repopThrowForce = new(3f, 1f);
+        [SerializeField] private float _repopDelay = 0f;
+
         private int _nextTime = 0;
 
         private CancellationTokenSource _cts;
@@ -29,6 +37,40 @@ namespace InGame.Jewelry
             Array.Sort(_jewelrySpawnData.SpawnSettings, (a, b) => b.SpawnTime.CompareTo(a.SpawnTime));
 
             WaitSpawnAsync().Forget();
+        }
+
+        public override void FixedUpdateNetwork()
+        {
+            foreach ((JewelryType jewelryType, int count) in DespawnedJewelryRepository.GetDespawnedJewelryCount())
+            {
+                Vector3 spawnPosition = _spawnPositions[Random.Range(0, _spawnPositions.Length)].position + _repopOffset;
+
+                for (int i = 0; i < count; i++)
+                {
+                    RespawnJewelry(spawnPosition, jewelryType, _repopDelay, _cts.Token).Forget();
+                }
+            }
+
+            DespawnedJewelryRepository.Clear();
+
+            return;
+
+            async UniTaskVoid RespawnJewelry(Vector3 spawnPosition, JewelryType jewelryType, float delay = 0f, CancellationToken token = default)
+            {
+                if (delay > 0)
+                {
+                    await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
+                }
+
+                NetworkObject obj = SpawnJewelry(spawnPosition, jewelryType);
+
+                if (obj == null) return;
+
+                if (obj.gameObject.TryGetComponent(out Jewelry jewelry))
+                {
+                    jewelry.JewelryControl.RandomThrow(_repopThrowForce.x, _repopThrowForce.y);
+                }
+            }
         }
 
         private async UniTask WaitSpawnAsync()
@@ -171,19 +213,23 @@ namespace InGame.Jewelry
                     spawnPosition.x += randomOffset.x;
                     spawnPosition.z += randomOffset.y;
 
-                    var prefab = _jewelrySpawnData.GetPrefab(spawnSetting.Items[i].JewelryType);
-
-                    if (prefab == null)
-                    {
-                        Debug.LogError($"JewelrySpawner : 宝石のPrefabが設定されていません。宝石の種類: {spawnSetting.Items[i].JewelryType}");
-                        continue;
-                    }
-
-                    Runner.Spawn(prefab, spawnPosition, Quaternion.identity);
+                    SpawnJewelry(spawnPosition, spawnSetting.Items[i].JewelryType);
                 }
             }
+        }
 
+        [CanBeNull]
+        private NetworkObject SpawnJewelry(Vector3 position, JewelryType jewelryType)
+        {
+            NetworkObject prefab = _jewelrySpawnData.GetPrefab(jewelryType);
 
+            if (prefab == null)
+            {
+                Debug.LogError($"JewelrySpawner : 宝石のPrefabが設定されていません。宝石の種類: {jewelryType}");
+                return null;
+            }
+
+            return Runner.Spawn(prefab, position, Quaternion.identity);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)

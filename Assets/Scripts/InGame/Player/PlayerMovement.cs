@@ -18,6 +18,8 @@ namespace InGame.Player
         [SerializeField] private float _moveSpeed;
         [SerializeField, Tooltip("地面と認識する最大角度")] private float _groundSlopeThreshold = 45f;
         [SerializeField, Tooltip("地面と認識する最大距離")] private float _groundDistanceThreshold = 0.25f;
+        [SerializeField, Tooltip("接地していないときに足元へ吸着させる最大距離")] private float _groundSnapDistance = 0.4f;
+        [SerializeField, Tooltip("接地が切れてから空中扱いになるまでの猶予 (コヨーテタイム)")] private float _coyoteTime = 0.1f;
         [SerializeField] private LayerMask _groundLayer = ~0;
         [Header("鬼状態時の移動速度")]
         [SerializeField] private float _ogreMoveSpeed;
@@ -38,6 +40,7 @@ namespace InGame.Player
         [Header("Hook")]
         [SerializeField] private float _hookPower = 10f;
         [Header("Bomb")]
+        [SerializeField] private float _moveDumping = 0.5f;
         [SerializeField] private float _flyingDamping = 8f;
         [Header("Roll")]
         [SerializeField] private EvasionData _evasionData;
@@ -62,12 +65,21 @@ namespace InGame.Player
         private Vector3 _moveVelocity;
         public Vector3 MoveVelocity => _moveVelocity;
         private Vector3 _flyingVelocity;
+        private Vector3 _fallVelocity;
+        private Vector3 _flyingMoveVelocity;
 
         private Vector3 _rotationDirection;
         private bool _setDirection;
         private bool _isGround;
         private float _isGroundTimer;
+        private float _prevGroundedTime;
         private Vector3 _groundNormal = Vector3.up;
+        /// <summary> カプセルを接地面へ吸着させるための下方向移動量 </summary>
+        private float _groundGap;
+        /// <summary> 接地判定・吸着の探索開始オフセット。足裏からこの高さで探索を始める </summary>
+        private const float GroundProbeOffset = 0.1f;
+        /// <summary> この値以下の浮きは吸着しない。毎Tickの微小な上下でガタつかせないため </summary>
+        private const float GroundSnapTolerance = 0.02f;
         private bool _isDashCoolTime;
         private bool CanDash => !_isDashCoolTime && _status.CurrentStamina > 0 && IsGround;
         private bool _isDash;
@@ -111,6 +123,11 @@ namespace InGame.Player
         [Networked] public bool IgnoreMoveInput { get; set; }
         [Networked] public bool IgnoreEvasionInput { get; set; }
         [Networked] public bool IsHookLocked { get; set; }
+
+        public override void Spawned()
+        {
+            _prevGroundedTime = Runner.SimulationTime;
+        }
 
         private void Awake()
         {
@@ -196,6 +213,17 @@ namespace InGame.Player
                 _teleportTarget = null;
             }
 
+            if (IsGround)
+            {
+                _fallVelocity = Vector3.zero;
+                _prevGroundedTime = Runner.SimulationTime;
+                _flyingMoveVelocity = _moveVelocity;
+            }
+            else
+            {
+                _fallVelocity += Physics.gravity * deltaTime;
+            }
+
             ApplyVelocity(deltaTime);
             // Character の回転
             RotationByDirection(_rotationDirection, deltaTime);
@@ -209,10 +237,13 @@ namespace InGame.Player
             }
 
             // is ground の管理
-            if (!_isGround && _isGroundTimer > 0) _isGroundTimer -= deltaTime;
+            if (!_isGround && _isGroundTimer > 0)
+                _isGroundTimer = Mathf.Max(0f, _isGroundTimer - deltaTime);
+            if (!_isGround && _isGroundTimer <= 0f)
+                _groundNormal = Vector3.up;
+
+            if (_isGround) _moveVelocity = Vector3.zero;
             _isGround = false;
-            _groundNormal = Vector3.up;
-            _moveVelocity = Vector3.zero;
         }
 
         /// <summary> 回避中の 1 Tick 分の更新。Tick 基準なので予測・再シミュレーションでも同じ結果になる </summary>
@@ -302,7 +333,7 @@ namespace InGame.Player
         public void AddForce(Vector3 force)
         {
             _moveVelocity += force;
-            if (Vector3.Angle(MoveVelocity, _groundNormal) < 89)
+            if (Vector3.Angle(_moveVelocity, _groundNormal) < 89)
                 _moveVelocity += force;
             if (Vector3.Angle(_moveVelocity, _groundNormal) < 89)
             {
@@ -379,40 +410,60 @@ namespace InGame.Player
             return result;
         }
 
+        /// <summary>
+        /// 足裏を地面へ吸着させる
+        /// <para>
+        /// 接地したまま足が浮いていると、ApplyVelocityがy速度を上書きして重力が効かず、
+        /// コヨーテタイムが切れるまで空中に留まってから落下する。下り坂ではこれが毎Tick起きて
+        /// 空中判定と着地を繰り返し、つっかえる。IsGroundで弾かず接地中も吸着させる
+        /// </para>
+        /// </summary>
         void AdsorptionOnGround()
         {
-            if (IsGround) return;
+            // ノックバック中と上方向へ飛ばされている間は引き戻さない
+            if (_knockBackActive || _flyingVelocity.y > 0f) return;
 
-            Vector3 origin = _moveCapsuleCollider.transform.position + Vector3.up * _moveCapsuleCollider.radius;
-            var hit = Physics.SphereCast(origin + Vector3.up * 0.1f, _moveCapsuleCollider.radius, Vector3.down, out var hitInfo, 0.4f, _groundLayer);
-
-            if (hit && hitInfo.distance > 0)
+            if (_isGround)
             {
-                transform.position += Vector3.down * (hitInfo.distance - 0.1f);
-                _isGround = true;
-                _isGroundTimer = 0.1f;
-                _groundNormal = hitInfo.normal;
+                // CheckGroundManualが測った浮き量へそのまま吸着する
+                if (_groundGap <= GroundSnapTolerance) return;
+
+                transform.position += Vector3.down * _groundGap;
+                _groundGap = 0f;
+                return;
             }
+
+            // 実接地していない場合は、接地判定より広い範囲を探して足元へ引き戻す
+            if (!TryProbeGround(_groundSnapDistance, out Vector3 normal, out float gap)) return;
+
+            if (gap > GroundSnapTolerance)
+                transform.position += Vector3.down * gap;
+            _isGround = true;
+            _isGroundTimer = _coyoteTime;
+            _groundNormal = normal;
+            _groundGap = 0f;
         }
 
         protected virtual void ApplyVelocity(float deltaTime)
         {
-            if (IsGround)
+            if (!_knockBackActive)
             {
-                _rb.linearVelocity = _moveVelocity + _flyingVelocity;
-                NetworkVelocity = _moveVelocity + _flyingVelocity;
-            }
-            else
-            {
-                var linearVelocity = _flyingVelocity;
-                var networkVelocity = _flyingVelocity;
+                if (_isGround)
+                {
+                    _rb.linearVelocity = _moveVelocity + _flyingVelocity;
+                }
+                else
+                {
+                    _flyingMoveVelocity = Vector3.Lerp(_flyingMoveVelocity, Vector3.zero, _moveDumping * deltaTime);
 
-                linearVelocity.y = _rb.linearVelocity.y;
-                networkVelocity.y = NetworkVelocity.y;
-
-                _rb.linearVelocity = linearVelocity;
-                NetworkVelocity = linearVelocity;
+                    _rb.linearVelocity =
+                        (_rb.useGravity ? _fallVelocity : Vector3.zero)
+                        + _flyingMoveVelocity
+                        + _flyingVelocity;
+                }
             }
+
+            NetworkVelocity = _rb.linearVelocity;
 
             // 減衰
             _flyingVelocity = Vector3.Lerp(_flyingVelocity, Vector3.zero, _flyingDamping * deltaTime);
@@ -518,6 +569,7 @@ namespace InGame.Player
         void EndVault(Vector3 endVelocity)
         {
             _moveVelocity = endVelocity;
+            _flyingMoveVelocity = endVelocity;
             _rb.linearVelocity = _moveVelocity;
             DoingVault = false;
         }
@@ -526,6 +578,8 @@ namespace InGame.Player
         public void Stop()
         {
             _moveVelocity = Vector3.zero;
+            _flyingMoveVelocity = Vector3.zero;
+            _fallVelocity = Vector3.zero;
             _rb.linearVelocity = _moveVelocity;
         }
 
@@ -534,6 +588,7 @@ namespace InGame.Player
             if (!HasStateAuthority) return;
 
             _rb.linearVelocity = force;
+            _flyingVelocity = force;
             _knockBackActive = true;
 
             await UniTask.Delay(TimeSpan.FromSeconds(duration), cancellationToken: this.GetCancellationTokenOnDestroy());
@@ -549,7 +604,8 @@ namespace InGame.Player
         public void TeleportImmediate(Vector3 position)
         {
             transform.position = position;
-            _moveVelocity = Vector3.zero;
+            _prevGroundedTime = Runner.SimulationTime;
+            Stop();
         }
 
         public float GetSpeedOnPlane()
@@ -587,17 +643,76 @@ namespace InGame.Player
 
         private void CheckGroundManual()
         {
-            Vector3 origin = transform.position + Vector3.up * 0.1f;
+            if (!TryProbeGround(out Vector3 normal, out float gap)) return;
 
-            if (Physics.Raycast(origin, Vector3.down, out var hitInfo, _groundDistanceThreshold, _groundLayer))
-            {
-                if (Vector3.Angle(Vector3.up, hitInfo.normal) <= _groundSlopeThreshold)
-                {
-                    _isGround = true;
-                    _isGroundTimer = 0.1f;
-                    _groundNormal = hitInfo.normal;
-                }
-            }
+            _isGround = true;
+            _isGroundTimer = _coyoteTime;
+            _groundNormal = normal;
+            _groundGap = gap;
+        }
+
+        /// <summary> 立てる角度の面か </summary>
+        private bool IsWalkable(Vector3 normal) => Vector3.Angle(Vector3.up, normal) <= _groundSlopeThreshold;
+
+        /// <summary>
+        /// 足裏から真下の地面を探索する
+        /// <para>
+        /// 足元中心のRaycastを優先し、現在立っている面の法線を取得する。
+        /// 下り始めなどRaycastが地面を見失った場合だけSphereCastで補完し、
+        /// 登り切りで前方の平地を先取りして移動方向が水平になることを防ぐ
+        /// </para>
+        /// </summary>
+        /// <param name="normal">接地面の法線</param>
+        /// <param name="gap">接地面までの下方向移動量</param>
+        /// <returns>地面が見つかったか</returns>
+        private bool TryProbeGround(out Vector3 normal, out float gap)
+        {
+            return TryProbeGround(_groundDistanceThreshold, out normal, out gap);
+        }
+
+        private bool TryProbeGround(float probeDistance, out Vector3 normal, out float gap)
+        {
+            if (TryRaycastGround(probeDistance, out normal, out gap)) return true;
+            return TrySphereCastGround(probeDistance, out normal, out gap);
+        }
+
+        private bool TryRaycastGround(float probeDistance, out Vector3 normal, out float gap)
+        {
+            normal = Vector3.up;
+            gap = 0f;
+
+            Bounds bounds = _moveCapsuleCollider.bounds;
+            Vector3 rayOrigin = new(bounds.center.x, bounds.min.y + GroundProbeOffset, bounds.center.z);
+            if (!Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit rayHit, probeDistance, _groundLayer)) return false;
+            if (!IsWalkable(rayHit.normal)) return false;
+
+            float radius = Mathf.Min(bounds.extents.x, bounds.extents.z);
+            float normalY = Mathf.Max(rayHit.normal.y, Mathf.Epsilon);
+            float capsuleSlopeClearance = radius * (1f / normalY - 1f);
+            normal = rayHit.normal;
+            gap = Mathf.Max(0f, bounds.min.y - rayHit.point.y - capsuleSlopeClearance);
+            return true;
+        }
+
+        private bool TrySphereCastGround(float probeDistance, out Vector3 normal, out float gap)
+        {
+            normal = Vector3.up;
+            gap = 0f;
+
+            Bounds bounds = _moveCapsuleCollider.bounds;
+            float radius = Mathf.Min(bounds.extents.x, bounds.extents.z);
+            Vector3 sphereOrigin = new(bounds.center.x, bounds.min.y + radius + GroundProbeOffset, bounds.center.z);
+
+            if (!Physics.SphereCast(sphereOrigin, radius, Vector3.down, out RaycastHit sphereHit, probeDistance, _groundLayer)) return false;
+            if (sphereHit.distance <= 0f || !IsWalkable(sphereHit.normal)) return false;
+
+            float expectedContactHeight = bounds.min.y + radius * (1f - sphereHit.normal.y);
+            // 通常の斜面接触より高い位置へ当たった場合は、頂上の縁を先取りしたものとして除外する
+            if (sphereHit.point.y > expectedContactHeight + GroundSnapTolerance) return false;
+
+            normal = sphereHit.normal;
+            gap = Mathf.Max(0f, sphereHit.distance - GroundProbeOffset);
+            return true;
         }
 
 

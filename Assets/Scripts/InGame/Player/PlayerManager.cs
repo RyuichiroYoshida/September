@@ -27,7 +27,6 @@ namespace InGame.Player
         PlayerMovement _playerMovement;
         CameraController _cameraController;
         PlayerHealth _playerHealth;
-        TickTimer _stunTickTimer;
         PlayerEffectController _playerEffectController;
         Rigidbody _rigidbody;
         private bool _shouldWarp = false;
@@ -66,6 +65,7 @@ namespace InGame.Player
         [Networked] private NetworkButtons PreviousButtons { get; set; }
         [Networked, HideInInspector] public NetworkBool IsStun { get; private set; }
         [Networked, HideInInspector] public NetworkBool IsMovable { get; private set; } = true;
+        [Networked] private TickTimer StunTickTimer { get; set; }
 
         public override void Spawned()
         {
@@ -150,7 +150,7 @@ namespace InGame.Player
         {
             if (HasStateAuthority)
             {
-                if (_stunTickTimer.Expired(Runner) && IsStun)
+                if (StunTickTimer.Expired(Runner) && IsStun)
                 {
                     Restart();
                 }
@@ -202,9 +202,9 @@ namespace InGame.Player
         void OnDeath(HitData lastHitData)
         {
             _playerHealth.IsInvincible = true;
-            IsStun = true;
             // ビルドの減衰分を乗算
-            _stunTickTimer = TickTimer.CreateFromSeconds(Runner, _stunTime * (_playerStatus ? _playerStatus.StunDurationMultiply : 1));
+            StunTickTimer = TickTimer.CreateFromSeconds(Runner, _stunTime * (_playerStatus ? _playerStatus.StunDurationMultiply : 1));
+            IsStun = true;
             _playerEffectController.PlayStunEffect();
         }
 
@@ -259,6 +259,9 @@ namespace InGame.Player
             _colliderObj.SetActive(!active);
             _meshObj.SetActive(!active);
             _rigidbody.useGravity = !active;
+            _rigidbody.constraints = active ?
+                RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation :
+                _defaultConstraints;
         }
 
         /// <summary> 非常用リスポーン </summary>
@@ -275,8 +278,8 @@ namespace InGame.Player
             }
         }
 
-        /// <summary> スタンの経過時間を取得する </summary>
-        public float GetRemainingStunTime => _stunTickTimer.RemainingTime(Runner) ?? 0;
+        /// <summary> スタンの残り時間を取得する </summary>
+        public float GetRemainingStunTime => StunTickTimer.RemainingTime(Runner) ?? 0;
 
         public virtual bool GetPlayerInput(out PlayerInput input)
         {
