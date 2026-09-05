@@ -16,12 +16,16 @@ namespace InGame.Player.Takamura.Mimic
     /// </summary>
     public sealed class MimicTransformationService : MonoBehaviour
     {
+        /// <summary>擬態予約を順番に保存するためのコレクション</summary>
         private readonly Queue<TransformRequest> _pendingRequests = new();
+        /// <summary>擬態中のプレイヤー情報を保持するためのコレクション</summary>
         private readonly Dictionary<PlayerRef, ActiveTransformation> _activeTransformations = new();
+        /// <summary>擬態に関する処理を実行中のプレイヤーを保持するコレクション</summary>
         private readonly HashSet<PlayerRef> _processingPlayers = new();
 
         private NetworkRunner _runner;
 
+        /// <summary>擬態のリクエスト用DTO</summary>
         private readonly struct TransformRequest
         {
             public readonly PlayerRef Player;
@@ -42,6 +46,7 @@ namespace InGame.Player.Takamura.Mimic
             }
         }
 
+        /// <summary>擬態中のプレイヤーの情報を持つDTO</summary>
         private readonly struct ActiveTransformation
         {
             public readonly NetworkPrefabRef OriginalPrefab;
@@ -139,12 +144,19 @@ namespace InGame.Player.Takamura.Mimic
             var expiredPlayers = new List<PlayerRef>();
             foreach (var pair in _activeTransformations)
             {
-                // 擬態終了条件を満たした場合はコレクションに登録
-                if (_runner.SimulationTime >= pair.Value.ExpireTime
-                    && !_processingPlayers.Contains(pair.Key))
-                {
-                    expiredPlayers.Add(pair.Key);
-                }
+                if (_runner.SimulationTime < pair.Value.ExpireTime
+                    || _processingPlayers.Contains(pair.Key))
+                    continue;
+
+                if (!TryGetCurrentPlayer(pair.Key, out var currentPlayer))
+                    continue;
+
+                // スタン関連のNetworked状態を別Prefabへ引き継がず、解除されるまで復帰を保留する。
+                var playerManager = currentPlayer.GetComponent<PlayerManager>();
+                if (playerManager && playerManager.IsStun)
+                    continue;
+
+                expiredPlayers.Add(pair.Key);
             }
 
             // 終了条件を満たしたプレイヤーに対して順に擬態解除を実行
@@ -210,6 +222,8 @@ namespace InGame.Player.Takamura.Mimic
                 InitializeReplacementPlayer(request.Player, newPlayer);
                 // 操作するキャラクターの参照を置き換える
                 ReplacePlayerReferences(request.Player, newPlayer);
+                InitializeAfterMimicSpawn(newPlayer);
+                CleanupBeforeDespawn(oldPlayer);
                 // 擬態前のオブジェクトを削除
                 _runner.Despawn(oldPlayer);
 
@@ -261,6 +275,8 @@ namespace InGame.Player.Takamura.Mimic
                 InitializeReplacementPlayer(player, restoredPlayer);
                 // 操作キャラクターの参照を置き換える
                 ReplacePlayerReferences(player, restoredPlayer);
+                InitializeAfterMimicSpawn(restoredPlayer);
+                CleanupBeforeDespawn(copiedPlayer);
                 // 擬態解除前のオブジェクトを削除
                 _runner.Despawn(copiedPlayer);
                 // 擬態中の情報を削除
@@ -332,6 +348,32 @@ namespace InGame.Player.Takamura.Mimic
                 inGameManager.PlayerKilled?.Invoke(hitData.ExecutorRef, hitData.TargetRef);
                 killUseCase.Execute(hitData);
             };
+        }
+
+        /// <summary>
+        /// プレハブ削除時に後処理するメソッド
+        /// </summary>
+        /// <param name="playerObject">後処理するオブジェクト</param>
+        private static void CleanupBeforeDespawn(NetworkObject playerObject)
+        {
+            if (!playerObject)
+                return;
+
+            foreach (var cleanup in playerObject.GetComponentsInChildren<IMimicCleanup>(true))
+                cleanup.CleanupBeforeMimicDespawn();
+        }
+
+        /// <summary>
+        /// プレハブ生成時に初期化するメソッド
+        /// </summary>
+        /// <param name="playerObject">初期化するオブジェクト</param>
+        private static void InitializeAfterMimicSpawn(NetworkObject playerObject)
+        {
+            if (!playerObject)
+                return;
+
+            foreach (var initializer in playerObject.GetComponentsInChildren<IMimicInitialize>(true))
+                initializer.InitializeAfterMimicSpawn();
         }
     }
 }
