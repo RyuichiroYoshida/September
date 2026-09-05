@@ -77,7 +77,8 @@ namespace September.InGame.Common
 
         public void AddPlayerObject(PlayerRef playerRef, NetworkObject networkObject)
         {
-            _playerDataDic.Add(playerRef, networkObject);
+            // 擬態などでPlayerのNetworkObjectが交換された場合も同じPlayerRefを更新できるようにする。
+            _playerDataDic[playerRef] = networkObject;
         }
 
         private void OnDestroy()
