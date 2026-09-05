@@ -574,7 +574,7 @@ PrefabInstance:
     - target: {fileID: 2520683386849973483, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _playerMovement
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1809326798388321474}
     - target: {fileID: 2525442923973757293, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: m_Avatar
       value: 
@@ -733,7 +733,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2779401866583128900, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: managedReferences[1341869328126181463]._maxAngle
-      value: 30
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 2779401866583128900, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: managedReferences[1705309116627681364].IsEnabled
@@ -845,7 +845,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2779401866583128900, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: managedReferences[1341869328126181463]._mimicDuration
-      value: 15
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2779401866583128900, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: managedReferences[1705309116627681364]._enableAutoAim
@@ -1428,6 +1428,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _hookPower: 10
+  _moveDumping: 0.5
   _flyingDamping: 8
   _evasionData: {fileID: 0}
   _playerHealth: {fileID: 0}
