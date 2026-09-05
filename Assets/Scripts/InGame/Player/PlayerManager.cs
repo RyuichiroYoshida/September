@@ -67,12 +67,27 @@ namespace InGame.Player
         [Networked, HideInInspector] public NetworkBool IsMovable { get; private set; } = true;
         [Networked] private TickTimer StunTickTimer { get; set; }
 
+        /// <summary> このプレイヤーのカメラ前方。ホスト・他クライアントからも参照できる </summary>
+        [Networked, HideInInspector] public Vector3 LookDirection { get; private set; }
+        /// <summary> このプレイヤーのカメラのヨー角 (0 <= yaw < 360) </summary>
+        [Networked, HideInInspector] public float LookYaw { get; private set; }
+        /// <summary> このプレイヤーのカメラ位置 </summary>
+        [Networked, HideInInspector] public Vector3 LookOrigin { get; private set; }
+
         public override void Spawned()
         {
             InitComponents();
 
             _respawnPosition = transform.position;
             _defaultConstraints = _rigidbody.constraints;
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            if (_cameraController != null)
+            {
+                StaticServiceLocator.Instance.Unregister<ILookInputReceiver>(_cameraController);
+            }
         }
 
         /// <summary> Player関連コンポーネントの初期化 </summary>
@@ -85,6 +100,12 @@ namespace InGame.Player
             {
                 _cameraController = cameraController;
                 cameraController.Init(IsLocalPlayer);
+
+                if (IsLocalPlayer)
+                {
+                    // InputProvider が入力収集の直前に視点入力を適用できるよう、ローカルのカメラリグを公開する
+                    StaticServiceLocator.Instance.Register<ILookInputReceiver>(cameraController);
+                }
             }
 
             if (TryGetComponent(out PlayerHealth health))
@@ -142,7 +163,8 @@ namespace InGame.Player
                     _cameraController.CameraReset();
                 }
 
-                _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
+                // 同一フレームで InputProvider.OnInput が先に回していれば、ここでは何もしない
+                _cameraController.TryApplyLookInput(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
         }
 
@@ -159,6 +181,8 @@ namespace InGame.Player
             // プレイヤーの入力の管理
             if (_playerInputManager != null && _playerInputManager.GetPlayerInput(out var input))
             {
+                RecordLookState(input);
+
                 if (!IsStun && IsMovable && CurrentPlayerControlState == PlayerControlState.Normal)
                 {
                     // player movement に入力を与えて更新する_playerInputManager
@@ -188,6 +212,14 @@ namespace InGame.Player
         public void AfterTick()
         {
             PreviousButtons = GetInput<PlayerInput>().GetValueOrDefault().Buttons;
+        }
+
+        /// <summary> 入力に載ってきたカメラ姿勢を Networked に写し、どこからでも各プレイヤーの向きを取れるようにする </summary>
+        private void RecordLookState(in PlayerInput input)
+        {
+            LookDirection = input.DesiredLookDirection;
+            LookYaw = input.CameraYaw;
+            LookOrigin = input.CameraPosition;
         }
 
         /// <summary> 気絶が終わったとき </summary>

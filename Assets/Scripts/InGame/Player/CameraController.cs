@@ -9,7 +9,7 @@ using UnityEngine;
 namespace InGame.Player
 {
     /// <summary> プレイヤーのカメラ操作 </summary>
-    public class CameraController : MonoBehaviour
+    public class CameraController : MonoBehaviour, ILookInputReceiver
     {
         [SerializeField] private float _sens;
         [SerializeField] private float _padSens;
@@ -36,6 +36,7 @@ namespace InGame.Player
         private float _cameraPitch;
         private float _cameraYaw;
         private bool _isInRotation;
+        private int _lastLookInputFrame = -1;
         Tweener _rotateTweener;
         
         // camera position
@@ -64,6 +65,20 @@ namespace InGame.Player
         private void LateUpdate()
         {
             CheckCameraDistance();
+        }
+
+        /// <summary>
+        /// 入力からカメラを回転させる (フレームにつき 1 回だけ)。
+        /// 入力収集 (InputProvider.OnInput) と LateUpdate の両方から呼ばれるため、
+        /// 先に呼ばれた側だけが回転し、同一フレームの 2 回目以降は何もしない。
+        /// </summary>
+        public bool TryApplyLookInput(Vector2 lookInput, float deltaTime)
+        {
+            if (_lastLookInputFrame == Time.frameCount) return false;
+
+            _lastLookInputFrame = Time.frameCount;
+            RotateCamera(lookInput, deltaTime);
+            return true;
         }
 
         /// <summary> 入力からカメラを回転させる </summary>

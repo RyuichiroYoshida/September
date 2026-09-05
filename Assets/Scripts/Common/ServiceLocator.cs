@@ -29,6 +29,15 @@ namespace September.Common
             _services[type] = instance;
         }
 
+        /// <summary> 登録済みのインスタンスが instance と同一のときだけ登録を外す (別インスタンスで上書き済みなら何もしない) </summary>
+        public void Unregister<T>(T instance)
+        {
+            if (_services.TryGetValue(typeof(T), out var registered) && ReferenceEquals(registered, instance))
+            {
+                _services.Remove(typeof(T));
+            }
+        }
+
         public T Get<T>()
         {
             if (_services.TryGetValue(typeof(T), out var service))

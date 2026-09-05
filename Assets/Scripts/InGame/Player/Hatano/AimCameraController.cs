@@ -1,4 +1,5 @@
 using Fusion;
+using September.Common;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -12,9 +13,10 @@ public class AimCameraController : NetworkBehaviour
     [Header("CrosshairPrefab(照準のUI)")]
     [SerializeField] private GameObject _crosshairPrefab;
     private GameObject _crosshair;
-    public Camera MainCamera { get; private set; }
-    
+
+    /// <summary> 照準の起点 (カメラ位置)。入力から毎ティック更新されるためホスト・クライアント双方で参照できる </summary>
     [Networked]public Vector3 AimOrigin { get; private set; }
+    /// <summary> 照準の向き (カメラ前方) </summary>
     [Networked]public Vector3 AimDirection { get; private set; }
 
     /// <summary>
@@ -26,35 +28,27 @@ public class AimCameraController : NetworkBehaviour
     {
         if (HasInputAuthority)
         {
-            MainCamera = Camera.main;
             _crosshair = Instantiate(_crosshairPrefab);
             _crosshair.SetActive(false);
         }
     }
-    
+
     public override void FixedUpdateNetwork()
     {
-        if(!HasInputAuthority || MainCamera == null) return;
-        if (IsAim)
+        if (!GetInput<PlayerInput>(out var input)) return;
+
+        // 入力に載ってきたカメラ姿勢をそのまま採用する。
+        // 以前は Camera.main を毎ティック RPC で送っていたため、ホストへの到着が 1 ティック遅れる上に
+        // CinemachineBrain 更新前 (1 フレーム前) の姿勢しか取れなかった。
+        AimOrigin = input.CameraPosition;
+        AimDirection = input.DesiredLookDirection;
+
+        if (IsAim && HasInputAuthority)
         {
-            var camForward = MainCamera.transform.forward;
+            var camForward = AimDirection;
             camForward.y = 0;
             transform.forward = camForward;
         }
-        
-        RPC_SetAim(MainCamera.transform.position, MainCamera.transform.forward);
-    }
-
-    /// <summary>
-    /// カメラの位置等をクライアントから送信しホスト側で変更
-    /// </summary>
-    /// <param name="aimOrigin">カメラ場所</param>
-    /// <param name="aimDirection">カメラのForward</param>
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void RPC_SetAim(Vector3 aimOrigin, Vector3 aimDirection)
-    {
-        AimOrigin = aimOrigin;
-        AimDirection = aimDirection;
     }
 
     /// <summary>

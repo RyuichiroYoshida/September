@@ -132,7 +132,8 @@ namespace InGame.Player.Sarutobi
 
             if (State == KunaiStateType.Ready || State == KunaiStateType.Stance)
             {
-                _movement.SetRotationDirection(HasInputAuthority ? _mainCamera.transform.forward : input.DesiredLookDirection);
+                // ローカルだけ Camera.main を読むとホストと向きがずれて予測と実際の回転が食い違うので、入力に載った向きに揃える
+                _movement.SetRotationDirection(input.DesiredLookDirection);
             }
 
             SetCooldownTimer();

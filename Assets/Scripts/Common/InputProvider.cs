@@ -43,24 +43,15 @@ namespace September.Common
         [SerializeField] private float _moveInterval = 2f;
         [SerializeField] private float _autoMoveTimer = 0f;
         [SerializeField] private int _moveDirection = 1;
-        
-        Camera _mainCamera;
-        
+
+        private readonly CameraViewResolver _cameraViewResolver = new();
+
         public bool UseAutoMove
         {
             get => _useAutoMove;
             set => _useAutoMove = value;
         }
         
-        private void Awake()
-        {
-            // InputSystemを有効にする
-            // GameInput.I.Enable();
-            
-            _mainCamera = Camera.main;
-        }
-        
-
         /// <summary>
         /// 現在の入力状況をネットワークに登録する
         /// </summary>
@@ -123,22 +114,34 @@ namespace September.Common
                 playerInput.Buttons.Set(PlayerButtons.Ultimate, playerActions.Ultimate.IsPressed());
             }
             
-            if (_mainCamera == null)
+            if (!_useAutoMove)
             {
-                _mainCamera = Camera.main;
-                if (_mainCamera == null)
-                {
-                    Debug.LogError("Main Cameraが見つかりません。カメラをシーンに配置してください。");
-                    return;
-                }
+                ApplyLookInputToLocalCamera();
             }
-            playerInput.CameraYaw = _mainCamera.transform.rotation.eulerAngles.y;
-            Vector3 cameraForward = _mainCamera.transform.forward;
-            playerInput.DesiredLookDirection = cameraForward.normalized;
 
-            playerInput.CameraPosition = _mainCamera.transform.position;
+            if (!_cameraViewResolver.TryResolve(out var cameraView))
+            {
+                Debug.LogError("Main Cameraが見つかりません。カメラをシーンに配置してください。");
+                return;
+            }
+            playerInput.CameraYaw = cameraView.Yaw;
+            playerInput.DesiredLookDirection = cameraView.Forward;
+            playerInput.CameraPosition = cameraView.Position;
 
             input.Set(playerInput);
+        }
+
+        /// <summary>
+        /// カメラ姿勢を入力に載せる前に、このフレームの視点入力をローカルのカメラリグへ適用する。
+        /// カメラ回転は LateUpdate で行われるが、Fusion の入力収集はそれより前に走るため、
+        /// ここで先に回しておかないと 1 ティック前の姿勢しか入力に載らない。
+        /// 同一フレーム内での二重適用はリグ側 (ILookInputReceiver) が防ぐ。
+        /// </summary>
+        private static void ApplyLookInputToLocalCamera()
+        {
+            if (!StaticServiceLocator.Instance.TryGet<ILookInputReceiver>(out var receiver)) return;
+
+            receiver.TryApplyLookInput(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
         }
 
         private void SetAutoMove(ref PlayerInput playerInput)
@@ -175,10 +178,7 @@ namespace September.Common
         public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
         public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
 
-        public void OnSceneLoadDone(NetworkRunner runner)
-        {
-            _mainCamera = Camera.main;
-        }
+        public void OnSceneLoadDone(NetworkRunner runner) { }
         public void OnSceneLoadStart(NetworkRunner runner) { }
         #endregion
     }
