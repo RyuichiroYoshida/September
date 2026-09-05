@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Fusion;
@@ -10,7 +9,7 @@ using UnityEngine;
 
 namespace InGame.Player.Sarutobi
 {
-    public class ThrowKunai : NetworkBehaviour, IAfterTick
+    public class ThrowKunai : NetworkBehaviour, IAfterTick, IMimicCleanup, IMimicInitialize
     {
         [SerializeField] private float _cooldown;
         [SerializeField] private int _damage;
@@ -34,9 +33,6 @@ namespace InGame.Player.Sarutobi
         [SerializeField] private ParticleSystem _bulletMark;
         [Header("UI")]
         [SerializeField] private GameObject _crosshairPrefab;
-        [Header("他プレイヤー")]
-        [SerializeField] private List<GameObject> _otherPlayers;
-
         private Camera _mainCamera;
         private PlayerManager _playerManager;
         private AnimationClipPlayer _clipPlayer;
@@ -75,26 +71,52 @@ namespace InGame.Player.Sarutobi
                 _crosshair = Instantiate(_crosshairPrefab);
                 _crosshair.SetActive(false);
 
-                //全プレイヤーを取得
-                GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-                if (players.Length > 0)
-                {
-                    //自身以外のプレイヤーを保持（クナイホーミングのため）
-                    foreach (var p in players)
-                    {
-                        if(p == gameObject) continue;
-                        _otherPlayers.Add(p);
-                    }
-                }
             }
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            if (HasStateAuthority && _grapplingHook)
+            // 削除時にイベント解除
+            if (_grapplingHook)
+                _grapplingHook.OnAbilityStart -= EndStance;
+
+            CleanupLocalPresentation();
+        }
+
+        // インターフェース実装
+        public void CleanupBeforeMimicDespawn()
+        {
+            if (HasStateAuthority)
+                EndStance();
+
+            if (_grapplingHook)
+                _grapplingHook.OnAbilityStart -= EndStance;
+
+            CleanupLocalPresentation();
+        }
+
+        // インターフェース実装
+        public void InitializeAfterMimicSpawn()
+        {
+            _playerManager = GetComponent<PlayerManager>();
+            _movement = GetComponent<PlayerMovement>();
+            _clipPlayer = GetComponent<AnimationClipPlayer>();
+            _grapplingHook = GetComponent<AbilityGrapplingHook>();
+
+            if (!HasStateAuthority)
+                return;
+
+            if (_grapplingHook)
             {
                 _grapplingHook.OnAbilityStart -= EndStance;
+                _grapplingHook.OnAbilityStart += EndStance;
             }
+
+            State = KunaiStateType.Idol;
+            _cooldownTimer = 0f;
+            BulletCountNetwork = _defaultBulletCount;
+            if (_playerManager)
+                _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
         }
 
         public override void FixedUpdateNetwork()
@@ -217,15 +239,17 @@ namespace InGame.Player.Sarutobi
         /// <returns>画面中心に最も近いプレイヤー</returns>
         private GameObject AcquireAttackTarget()
         {
-            if (_otherPlayers.Count == 0) return null;
-
             GameObject nearPlayer = null; // 最も近いプレイヤーを保持
             float mathf = Mathf.Infinity; //距離比較用
             Vector2 center = new Vector2(Screen.width / 2f, Screen.height / 2f); //画面中央
 
             // 画面中央から一番近いプレイヤーを判定
-            foreach (var p in _otherPlayers)
+            foreach (var pair in PlayerDatabase.Instance.PlayerObjectDic)
             {
+                var playerObject = pair.Value;
+                if (!playerObject || playerObject == Object) continue;
+
+                var p = playerObject.gameObject;
                 // ワールド座標をカメラのスクリーン座標へと変換
                 var screenPoint = _mainCamera.WorldToScreenPoint(p.transform.position);
                 // カメラに映っていて、範囲内にいるかを判定する
@@ -305,8 +329,25 @@ namespace InGame.Player.Sarutobi
         [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
         void Rpc_EndStance()
         {
-            _cameraController.ResetOffset(_changeOffsetDuration);
-            _crosshair.SetActive(false);
+            if (_cameraController)
+                _cameraController.ResetOffset(_changeOffsetDuration);
+            if (_crosshair)
+                _crosshair.SetActive(false);
+        }
+
+        /// <summary>
+        /// 後処理メソッド
+        /// </summary>
+        private void CleanupLocalPresentation()
+        {
+            if (_cameraController)
+                _cameraController.ResetOffset(_changeOffsetDuration);
+
+            if (_crosshair)
+            {
+                Destroy(_crosshair);
+                _crosshair = null;
+            }
         }
 
         // Local で投げる位置の判定をとる
