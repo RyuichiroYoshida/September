@@ -2,6 +2,7 @@ using Fusion;
 using Ingame.Tanihira;
 using InGame.Health;
 using September.Common;
+using September.InGame.Common;
 using September.InGame.Common.Stats;
 using UnityEngine;
 using PlayerInput = September.Common.PlayerInput;
@@ -20,6 +21,11 @@ namespace InGame.Player
         [SerializeField] private float _stunTime; // PlayerParameter に入れるべきか
         [SerializeField] private Vector3 _respawnPosition;
         [SerializeField] private GameObject _attackWeapon;
+        [Header("ロックオン設定")]
+        [SerializeField, Min(0f), Tooltip("ロックオン開始時に対象を検索する最大距離")]
+        private float _lockOnSearchRadius = 20f;
+        [SerializeField, Min(0f), Tooltip("ロックオンを維持できる対象との最大高低差")]
+        private float _lockOnVerticalRange = 1.5f;
         [Header("ビルドシステム関連の参照")]
         [SerializeField] BuildGenerator _buildGenerator;
         [SerializeField] PlayerStatus _playerStatus;
@@ -65,6 +71,8 @@ namespace InGame.Player
         [Networked] private NetworkButtons PreviousButtons { get; set; }
         [Networked, HideInInspector] public NetworkBool IsStun { get; private set; }
         [Networked, HideInInspector] public NetworkBool IsMovable { get; private set; } = true;
+        [Networked, HideInInspector] public NetworkBool IsLockOnActive { get; private set; }
+        [Networked] private NetworkId LockOnTargetId { get; set; }
         [Networked] private TickTimer StunTickTimer { get; set; }
 
         public override void Spawned()
@@ -142,7 +150,10 @@ namespace InGame.Player
                     _cameraController.CameraReset();
                 }
 
-                _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
+                if (ShouldTrackLockOnTarget(out Transform target))
+                    _cameraController.RotateCameraYawTowards(target.position, Time.deltaTime);
+                else
+                    _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
             }
         }
 
@@ -159,6 +170,8 @@ namespace InGame.Player
             // プレイヤーの入力の管理
             if (_playerInputManager != null && _playerInputManager.GetPlayerInput(out var input))
             {
+                UpdateLockOn(input);
+
                 if (!IsStun && IsMovable && CurrentPlayerControlState == PlayerControlState.Normal)
                 {
                     // player movement に入力を与えて更新する_playerInputManager
@@ -183,6 +196,115 @@ namespace InGame.Player
             }
 
 
+        }
+
+        /// <summary>
+        /// ロックオン入力と対象の有効性を更新する
+        /// </summary>
+        private void UpdateLockOn(PlayerInput input)
+        {
+            if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.LockOn)
+                && !IsStun
+                && IsMovable
+                && CurrentPlayerControlState == PlayerControlState.Normal)
+            {
+                if (IsLockOnActive)
+                    DisableLockOn();
+                else
+                    EnableLockOn();
+            }
+
+            if (IsLockOnActive
+                && (!TryGetLockOnTarget(out Transform target) || IsOutsideLockOnVerticalRange(target)))
+            {
+                DisableLockOn();
+            }
+        }
+
+        private bool ShouldTrackLockOnTarget(out Transform target)
+        {
+            target = null;
+            return IsLockOnActive
+                && !IsStun
+                && IsMovable
+                && CurrentPlayerControlState == PlayerControlState.Normal
+                && !_playerMovement.IgnoreMoveInput
+                && !_playerMovement.IsEvading
+                && !_playerMovement.DoingVault
+                && !_playerMovement.IsHookLocked
+                && TryGetLockOnTarget(out target)
+                && !IsOutsideLockOnVerticalRange(target);
+        }
+
+        private void EnableLockOn()
+        {
+            NetworkObject target = FindClosestLockOnTarget();
+            if (!target)
+                return;
+
+            LockOnTargetId = target.Id;
+            IsLockOnActive = true;
+        }
+
+        private void DisableLockOn()
+        {
+            IsLockOnActive = false;
+            LockOnTargetId = default;
+        }
+
+        private bool TryGetLockOnTarget(out Transform target)
+        {
+            target = null;
+            if (LockOnTargetId == default
+                || Runner == null
+                || !Runner.TryFindObject(LockOnTargetId, out NetworkObject targetObject)
+                || !IsValidLockOnTarget(targetObject))
+            {
+                return false;
+            }
+
+            target = targetObject.transform;
+            return true;
+        }
+
+        private NetworkObject FindClosestLockOnTarget()
+        {
+            if (!StaticServiceLocator.Instance.TryGet(out InGameManager inGameManager))
+                return null;
+
+            float closestSqrDistance = _lockOnSearchRadius * _lockOnSearchRadius;
+            NetworkObject closestTarget = null;
+            foreach (NetworkObject target in inGameManager.PlayerDataDic.Values)
+            {
+                if (!IsValidLockOnTarget(target)
+                    || target.GetComponent<PlayerManager>().IsStun
+                    || IsOutsideLockOnVerticalRange(target.transform))
+                    continue;
+
+                Vector3 targetOffset = target.transform.position - transform.position;
+                targetOffset.y = 0f;
+                float sqrDistance = targetOffset.sqrMagnitude;
+                if (sqrDistance >= closestSqrDistance)
+                    continue;
+
+                closestSqrDistance = sqrDistance;
+                closestTarget = target;
+            }
+
+            return closestTarget;
+        }
+
+        private bool IsOutsideLockOnVerticalRange(Transform target)
+        {
+            return Mathf.Abs(target.position.y - transform.position.y) > _lockOnVerticalRange;
+        }
+
+        private bool IsValidLockOnTarget(NetworkObject target)
+        {
+            if (!target || target == Object || !target.gameObject.activeInHierarchy)
+                return false;
+
+            return target.TryGetComponent(out PlayerManager _);
         }
 
         public void AfterTick()
