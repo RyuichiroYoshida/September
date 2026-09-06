@@ -136,6 +136,7 @@ public partial class GameInput
             Player.Ability1.Enable();
             Player.Ability2.Enable();
             Player.Interact.Enable();
+            Player.LockOn.Enable();
         }
         else
         {
@@ -143,6 +144,7 @@ public partial class GameInput
             Player.Ability1.Disable();
             Player.Ability2.Disable();
             Player.Interact.Disable();
+            Player.LockOn.Disable();
         }
     }
 
