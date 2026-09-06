@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: EvasionData
   m_EditorClassIdentifier: 
   _rollDistance: 5
-  _rollDuration: 0.95
-  _inputAngle: 360
+  _rollDuration: 0.7
+  _inputAngle: 180
   _maxTurnDuration: 2
+  _startInvincibleTime: 0.1
   _invincibleTime: 0.25
   _cooldown: 0
-  _weightDecay: 0.1
+  _weightDecay: -0.02
   _rollSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -32,7 +33,7 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 1
+      time: 0.6416626
       value: 1
       inSlope: 0
       outSlope: 0

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e08a5b333d46409d8e32b119815966, type: 3}
+  m_Name: OutOfField_NormalJewelry
+  m_EditorClassIdentifier: 
+  _settings:
+    _jewelryType: 0
+    _dropChances:
+    - rid: 1044499841031077986
+    _dropAmounts:
+    - rid: 1044499841031077987
+  references:
+    version: 2
+    RefIds:
+    - rid: 1044499841031077986
+      type: {class: ConstantDropChance, ns: September.InGame.Jewelry.Drop.Strategies.Chances, asm: Scripts}
+      data:
+        _dropChance: 1
+    - rid: 1044499841031077987
+      type: {class: RatioDropAmount, ns: September.InGame.Jewelry.Drop.Strategies.Amounts, asm: Scripts}
+      data:
+        _minDropAmount: 1
+        _minDropRatio: 0
+        _additionalDropRatio: 0.5

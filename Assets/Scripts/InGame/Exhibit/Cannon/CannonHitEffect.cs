@@ -24,7 +24,7 @@ namespace September.InGame.Exhibit
 			_explosionParticle.Stop();
 		}
 		
-		public void PlayEffect(Vector3 position, Vector3 normal)
+		public void OnHit(Vector3 position, Vector3 normal)
 		{
 			// 着弾時のエフェクト
 			_explosionParticle.transform.position = position;
@@ -34,7 +34,7 @@ namespace September.InGame.Exhibit
 			_explosionParticle.Play(true);
 		}
 
-		public void Hit(Vector3 position, Vector3 normal, GameObject hitObject, PlayerRef usePlayer)
+		public void OnStateAuthorityHit(Vector3 position, Vector3 normal, GameObject hitObject, PlayerRef usePlayer)
 		{
 			var colliders = Physics.OverlapSphere(position, _radius, _hitLayer); // TODO:当たり判定統一するかも
 			// ダメージ処理
@@ -57,7 +57,7 @@ namespace September.InGame.Exhibit
 
 		private void TakeDamage(IDamageable damageable, PlayerRef usingPlayer)
 		{
-			var hitData = new HitData(HitActionType.Damage, _damage, usingPlayer,
+			var hitData = new HitData(HitActionType.RangedDamage, _damage, usingPlayer,
 				damageable.OwnerPlayerRef);
 			PlayerDatabase.Instance.PlayerDataDic.Get(damageable.OwnerPlayerRef);
 			PlayerDatabase.Instance.PlayerDataDic.Get(usingPlayer);

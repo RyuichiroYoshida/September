@@ -41,6 +41,12 @@ namespace Result
         Kraken,
         [DisplayName("海図")]
         NauticalChart,
+        [DisplayName("ジップライン")]
+        ZipLine,
+        [DisplayName("バリスタ")]
+        Ballista,
+        [DisplayName("大砲")]
+        Cannon,
     }
 
     [Serializable]

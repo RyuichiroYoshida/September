@@ -125,7 +125,7 @@ namespace September.InGame.Kraken.Animations
             {
                 HitData hitData = new()
                 {
-                    HitActionType = HitActionType.Damage, Amount = _krakenSettings.Damage,
+                    HitActionType = HitActionType.RangedDamage, Amount = _krakenSettings.Damage,
                     ExecutorRef = _krakenSettings.OwnerPlayerRef, TargetRef = damageable.OwnerPlayerRef
                 };
 

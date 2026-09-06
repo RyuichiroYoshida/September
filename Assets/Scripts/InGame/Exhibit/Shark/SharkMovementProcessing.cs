@@ -7,23 +7,34 @@ using UnityEngine;
 /// </summary>
 public class SharkMovementProcessing : NetworkBehaviour
 {
-    [Header("移動設定"), SerializeField] private float _walkSpeed;
+    [Header("移動設定")]
+    [SerializeField] private float _walkSpeed;
     [SerializeField] private float _dashSpeed;
-    [SerializeField] AnimationCurve _speedCurve;
-    [SerializeField] private float _rayDistance;
-    [SerializeField] private float _groundMaximumAngle;
+    [SerializeField] private AnimationCurve _speedCurve;
     [SerializeField] private Vector3 _fallGravity;
     [SerializeField] private float _maxRotateValue;
-    [SerializeField] private float _groundAdsorptionSpeed;
+
+    [Header("地面判定")]
     [SerializeField] private LayerMask _groundLayerMask;
-    [SerializeField] private Vector3 _forwardGroundRayOriginOffset;
-    [SerializeField] private Vector3 _backGroundRayOriginOffset;
-    [SerializeField, Min(0)] private int _rayDivideCount;
+    [SerializeField] private Vector3 _groundHalfExtents = new(0.5f, 0.1f, 0.6f);
+    [SerializeField] private Vector3 _groundRayOffset = new(0, 0.5f, 0.875f);
+    [SerializeField] private float _groundRayDistance = 2.0f;
+    [SerializeField] private float _groundMaximumAngle = 90f;
+    [SerializeField] private float _groundAdsorptionSpeed = 10f;
+
+    [Header("地面浮遊")]
+    [SerializeField] private float _heightAboveGround = 0.5f;
+    [SerializeField] private float _floatingSpeed = 1f;
 
     [Header("正面衝突判定")]
     [SerializeField] float _forwardRayDistance = 1;
+    [SerializeField] Vector3 _forwardRayOffset = new(0, 0.5f, 0);
     [SerializeField] LayerMask _wallLayerMask;
     [SerializeField, Range(0, 90)] float _wallAngle = 90;
+
+    [Header("空中正面衝突判定")]
+    [SerializeField] Vector3 _halfExtents = Vector3.one * 0.5f;
+    [SerializeField] Vector3 _forwardRayOffsetAir = new(0, 0.5f, 0);
 
     /// <summary>
     /// 海に落ちる直前の位置
@@ -33,8 +44,13 @@ public class SharkMovementProcessing : NetworkBehaviour
     public float CurrentSpeedRatio { get; private set; }
 
     private Vector3 _currentGroundNormal; // 現在、接触している地面の法線
+    private float _currentGroundHeight; // 接触している地面との距離
     private bool _isGrounded; // プレイヤーが地面に接地しているか
-    float _keepMovingTime;
+
+    /// <summary>
+    /// 壁に当たらずに移動し続けている時間
+    /// </summary>
+    [Networked] private float KeepMovingTime { get; set; }
 
     [Networked] private float LastGroundedTime { get; set; }
 
@@ -58,26 +74,21 @@ public class SharkMovementProcessing : NetworkBehaviour
     }
 
     /// <summary>
-    /// Raycastで地面の法線を取得する
+    /// BoxCastで地面の法線を取得する
     /// </summary>
     /// <param name="rb">プレイヤーのRigidbody</param>
     private void CheckGroundManual(Rigidbody rb)
     {
-        var forwardRayOrigin = transform.TransformPoint(_forwardGroundRayOriginOffset);
-        var backRayOrigin = transform.TransformPoint(_backGroundRayOriginOffset);
+        var ray = new Ray(rb.position + rb.rotation * _groundRayOffset, Vector3.down);
 
-        // 地面判定
-        for (int i = 0; i < _rayDivideCount + 2; ++i)
+        if (Physics.BoxCast(ray.origin, _groundHalfExtents, ray.direction, out var hit, rb.rotation, _groundRayDistance, _groundLayerMask)
+            && Vector3.Angle(hit.normal, Vector3.up) < _groundMaximumAngle)
         {
-            var rayOrigin = Vector3.Lerp(forwardRayOrigin, backRayOrigin, i / (_rayDivideCount + 1f));
-            bool isHit = Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit groundHit, _rayDistance, _groundLayerMask);
-            if (isHit && Vector3.Angle(groundHit.normal, Vector3.up) < _groundMaximumAngle)
-            {
-                _isGrounded = true;
-                _currentGroundNormal = groundHit.normal;　// 最初に見つかった地面の法線を保存
-                PositionBeforeWaterFall = groundHit.point; // 最後に接していた地面の位置を保存
-                return;
-            }
+            _isGrounded = true;
+            _currentGroundNormal = hit.normal; // 最初に見つかった地面の法線を保存
+            _currentGroundHeight = transform.position.y - hit.point.y; // 地面との距離を保存
+            PositionBeforeWaterFall = hit.point; // 最後に接していた地面の位置を保存
+            return;
         }
 
         // 地面から離れた瞬間に、最後の接地時間を保存
@@ -109,20 +120,50 @@ public class SharkMovementProcessing : NetworkBehaviour
         Debug.DrawRay(transform.position, moveVelocity * 5f, Color.cyan);
 
         // 前方に壁があるか判定
-        var ray = new Ray(transform.position, moveDirection);
-        // Rayを飛ばす
-        if (Physics.Raycast(ray, out var hit, _forwardRayDistance, _wallLayerMask)
-            && Vector3.Dot(hit.normal, Vector3.up) <= Mathf.Cos(_wallAngle * Mathf.Deg2Rad))
+        var rot = Quaternion.LookRotation(moveDirection);
+
+        bool isHitWall = false;
+        {
+            if (_isGrounded)
+            {
+                var ray = new Ray(transform.position + rot * _forwardRayOffset, moveDirection);
+
+                Debug.DrawRay(ray.origin, ray.direction * _forwardRayDistance, Color.yellow);
+
+                // Rayを飛ばす
+                if (Physics.Raycast(ray, out var hit, _forwardRayDistance, _wallLayerMask)
+                    && Vector3.Dot(hit.normal, Vector3.up) <= Mathf.Cos(_wallAngle * Mathf.Deg2Rad))
+                {
+                    isHitWall = true;
+                }
+            }
+            else
+            {
+                var ray = new Ray(transform.position + rot * _forwardRayOffsetAir, moveDirection);
+
+                DebugDrawUtility.DrawOrientedWireBox(ray.origin + ray.direction * _forwardRayDistance, _halfExtents, transform.rotation, Color.yellow);
+                Debug.DrawRay(ray.origin, ray.direction * _forwardRayDistance, Color.yellow);
+
+                if (Physics.BoxCast(ray.origin, _halfExtents, ray.direction, out var hit, transform.rotation, _forwardRayDistance, _wallLayerMask)
+                    && Vector3.Dot(hit.normal, Vector3.up) <= Mathf.Cos(_wallAngle * Mathf.Deg2Rad))
+                {
+                    isHitWall = true;
+                }
+            }
+        }
+
+        if (isHitWall)
         {
             // 坂などは判定しないように内積で壁判定
-            _keepMovingTime = 0;
+            KeepMovingTime = 0;
         }
         else
         {
-            _keepMovingTime += deltaTime;
+            KeepMovingTime += deltaTime;
         }
+
         // アニメーションカーブで速度取得
-        float t = _speedCurve.Evaluate(_keepMovingTime);
+        float t = _speedCurve.Evaluate(KeepMovingTime);
         float baseSpeed = playerInput.Buttons.IsSet(PlayerButtons.Dash) ? _dashSpeed : _walkSpeed;
         float speed = baseSpeed * t;
 
@@ -139,8 +180,7 @@ public class SharkMovementProcessing : NetworkBehaviour
     private void Rotate(float deltaTime, Vector3 moveDirection)
     {
         if (moveDirection == Vector3.zero) return;
-        // -90の補正を掛けて、常に横向きにする ※仮オブジェクトのため、本来のモデルなら必要なくなる
-        var rot = Quaternion.LookRotation(moveDirection) * Quaternion.Euler(-90, 0, 0);
+        var rot = Quaternion.LookRotation(moveDirection);
         var endRot = Quaternion.RotateTowards(transform.rotation, rot, _maxRotateValue * deltaTime);
         transform.rotation = endRot;
     }
@@ -152,7 +192,18 @@ public class SharkMovementProcessing : NetworkBehaviour
     /// <param name="rb">プレイヤーのRigidbody</param>
     private void AdsorptionOnGround(float deltaTime, Rigidbody rb)
     {
-        if (_isGrounded) return;
+        if (_isGrounded)
+        {
+            var diff = _heightAboveGround - _currentGroundHeight;
+
+            if (diff > 0)
+            {
+                rb.linearVelocity += Vector3.up * _floatingSpeed;
+            }
+
+            return;
+        }
+
         var ray = Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, out RaycastHit hit,
             1.5f, _groundLayerMask);
         if (ray && hit.distance > 0)
@@ -164,21 +215,58 @@ public class SharkMovementProcessing : NetworkBehaviour
 
     public void OnInteractStart()
     {
+        ResetMovementState();
         LastGroundedTime = Runner.SimulationTime;
         PositionBeforeWaterFall = transform.position;
+    }
+
+    /// <summary>
+    /// インタラクト終了時の移動状態リセット
+    /// </summary>
+    /// <param name="rb">サメのRigidbody</param>
+    public void OnInteractEnd(Rigidbody rb)
+    {
+        ResetMovementState();
+
+        if (rb == null || rb.isKinematic) return;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// 内部状態を初期値へ戻し、何回インタラクトしても同じ効果が得られるようにする
+    /// </summary>
+    private void ResetMovementState()
+    {
+        KeepMovingTime = 0;
+        CurrentSpeedRatio = 0;
+        _isGrounded = false;
+        _currentGroundNormal = Vector3.up;
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
+        Matrix4x4 prevMatrix = Gizmos.matrix;
+        Gizmos.matrix = transform.localToWorldMatrix;
+        Gizmos.DrawWireCube(_groundRayOffset, _groundHalfExtents * 2f);
+        Gizmos.DrawWireCube(_groundRayOffset + Vector3.down * _groundRayDistance, _groundHalfExtents * 2f);
+        Gizmos.DrawLine(_groundRayOffset, _groundRayOffset + Vector3.down * _groundRayDistance);
 
-        var forwardRayOrigin = transform.TransformPoint(_forwardGroundRayOriginOffset);
-        var backRayOrigin = transform.TransformPoint(_backGroundRayOriginOffset);
+        Gizmos.color = new Color(1f, 0.5f, 0f);
+        Gizmos.DrawRay(_forwardRayOffsetAir, Vector3.forward * _forwardRayDistance);
+        Gizmos.DrawWireCube(_forwardRayOffsetAir + Vector3.forward * _forwardRayDistance, _halfExtents * 2f);
+        Gizmos.matrix = prevMatrix;
 
-        for (int i = 0; i < _rayDivideCount + 2; ++i)
-        {
-            var rayOrigin = Vector3.Lerp(forwardRayOrigin, backRayOrigin, i / (_rayDivideCount + 1f));
-            Gizmos.DrawRay(rayOrigin, Vector3.down * _rayDistance);
-        }
+        // 前方に壁があるか判定
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawRay(transform.position + transform.rotation * _forwardRayOffset, transform.forward * _forwardRayDistance);
+
+
+        // 地面から浮かせる距離
+        Gizmos.color = Color.cyan;
+        GizmosUtility.DrawHorizontalCross(transform.position, 1f);
+        Gizmos.DrawRay(transform.position, Vector3.down * _heightAboveGround);
+        GizmosUtility.DrawHorizontalCross(transform.position + Vector3.down * _heightAboveGround, 1f);
     }
 }

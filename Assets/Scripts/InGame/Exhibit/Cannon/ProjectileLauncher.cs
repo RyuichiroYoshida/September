@@ -1,5 +1,7 @@
 using System;
 using Fusion;
+using September.Common;
+using September.InGame.Effect;
 using UnityEngine;
 
 namespace September.InGame.Exhibit
@@ -9,6 +11,7 @@ namespace September.InGame.Exhibit
 		[SerializeField] private Transform _projectileSpawnPoint;
 		[SerializeField] private Projectile _projectilePrefab;
 		[SerializeField] private NetworkObject _projectileEffectPrefab;
+		[SerializeField] private EffectType _shootEffectType;
 		[SerializeField] private float _simulationStepTime = 0.1f;
 		[SerializeField] private float _lifeTime = 10f;
 		[SerializeField] private Vector3 _gravity = new(0, -9.81f, 0);
@@ -17,7 +20,7 @@ namespace September.InGame.Exhibit
 
 		[Header("Hit時の処理")] [SerializeReference, SubclassSelector]
 		private IProjectileHitEffect _projectileHitEffect;
-
+		private EffectSpawner _effectSpawner;
 		private Vector3[] _linePositions;
 		private int _lastPositionIndex;
 
@@ -42,6 +45,7 @@ namespace September.InGame.Exhibit
 			base.Spawned();
 			_projectileHitEffect.Initialize();
 			_linePositions = new Vector3[(int)(_lifeTime / _simulationStepTime)];
+			_effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
 		}
 
 		/// <summary>
@@ -70,11 +74,13 @@ namespace September.InGame.Exhibit
 					{
 						var normal = rotation * Vector3.forward;
 						if (Runner.IsServer)
-							_projectileHitEffect.Hit(position, normal, hitObject,
+							_projectileHitEffect.OnStateAuthorityHit(position, normal, hitObject,
 								usePlayerRef);
 						RPC_PlayEffect(position, normal);
 					});
 				});
+			
+			_effectSpawner.RequestPlayOneShotEffect(_shootEffectType, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation);
 		}
 
 		/// <summary>
@@ -119,7 +125,7 @@ namespace September.InGame.Exhibit
 		[Rpc]
 		private void RPC_PlayEffect(Vector3 position, Vector3 normal)
 		{
-			_projectileHitEffect.PlayEffect(position, normal);
+			_projectileHitEffect.OnHit(position, normal);
 		}
 
 		#region Gizmos
@@ -142,12 +148,12 @@ namespace September.InGame.Exhibit
 		/// <summary>
 		///     ProjectileHit時に呼ばれるサーバ上でのゲームロジック処理
 		/// </summary>
-		void Hit(Vector3 hitPos, Vector3 normal, GameObject hitObject, PlayerRef usePlayer);
+		void OnStateAuthorityHit(Vector3 hitPos, Vector3 normal, GameObject hitObject, PlayerRef usePlayer);
 
 		/// <summary>
 		///     ProjectileHit時に全クライアントで行う処理
 		/// </summary>
-		void PlayEffect(Vector3 hitPos, Vector3 normal);
+		void OnHit(Vector3 hitPos, Vector3 normal);
 
 		void DrawGizmos(Vector3 hitPos, Vector3 normal);
 	}

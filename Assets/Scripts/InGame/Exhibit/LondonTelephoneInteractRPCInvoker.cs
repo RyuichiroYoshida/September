@@ -54,21 +54,20 @@ namespace InGame.Exhibit
             // Effect生成処理
             InitEffectSpawner();
 
+            if (_effectSpawner == null) return;
+
             // ロンドンテレフォンの下にエフェクトを再生
             Vector3 startPos = _effectPos != null ? _effectPos.position : transform.position;
-            _effectSpawner?.RequestPlayOneShotEffect(
+            _effectSpawner.RequestPlayOneShotEffect(
                 EffectType.LondonTelephoneStart,
                 startPos,
                 Quaternion.identity
             );
 
-            string effectId = GenerateEffectId();
-
-            _effectSpawner?.RequestPlayLoopEffect(
-                effectId,
+            EffectID effectId = _effectSpawner.RequestPlayLoopEffect(
                 EffectType.LondonTelephoneActive,
                 effectPosition + Vector3.up,
-                new(),
+                new Quaternion(),
                 playerObject.transform
             );
 
@@ -81,11 +80,6 @@ namespace InGame.Exhibit
         private void InitEffectSpawner()
         {
             _effectSpawner ??= StaticServiceLocator.Instance.Get<EffectSpawner>();
-        }
-
-        private static string GenerateEffectId()
-        {
-            return Guid.NewGuid().ToString();
         }
     }
 }

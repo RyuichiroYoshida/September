@@ -330,7 +330,7 @@ namespace InGame.Player.Sarutobi
                 {
                     // ダメージ処理
                     bool enableData = PlayerDatabase.Instance.PlayerDataDic.TryGet(Object.InputAuthority, out var sessionData);
-                    var hitData = new HitData(HitActionType.Damage,
+                    var hitData = new HitData(HitActionType.RangedDamage,
                         enableData ? sessionData.IsOgre ? _ogreDamage : _damage : _damage, Object.InputAuthority,
                         damageable.OwnerPlayerRef, null, damageable);
                     damageable.TakeHit(ref hitData);

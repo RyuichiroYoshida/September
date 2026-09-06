@@ -38,14 +38,14 @@ namespace InGame.Bot
         }
 
         /// <summary>
-        /// Ú‘±ƒm[ƒh‚ğ“o˜^‚·‚é
+        /// æ¥ç¶šãƒãƒ¼ãƒ‰ã‚’ç™»éŒ²ã™ã‚‹
         /// </summary>
-        /// <param name="data">Ú‘±‚·‚éƒm[ƒh</param>
+        /// <param name="data">æ¥ç¶šã™ã‚‹ãƒãƒ¼ãƒ‰</param>
         public void AddConnect(NodeData data)
         {
             if (ConnectNode.Contains(data))
             {
-                Debug.Log("Ú‘±ƒm[ƒh‚ªd•¡‚µ‚Ä‚¢‚Ü‚·");
+                Debug.Log("æ¥ç¶šãƒãƒ¼ãƒ‰ãŒé‡è¤‡ã—ã¦ã„ã¾ã™");
                 return;
             }
 
@@ -61,14 +61,14 @@ namespace InGame.Bot
         }
 
         /// <summary>
-        /// ƒRƒXƒg‚ğŒvZ‚·‚é
+        /// ã‚³ã‚¹ãƒˆã‚’è¨ˆç®—ã™ã‚‹
         /// </summary>
         /// <returns></returns>
         public float GetAllCost()
         {
             if (State == NodeState.None)
             {
-                Debug.LogError("ƒRƒXƒg‚ª“ü—Í‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+                Debug.LogError("ã‚³ã‚¹ãƒˆãŒå…¥åŠ›ã•ã‚Œã¦ã„ã¾ã›ã‚“");
                 return 0;
             }
 
@@ -76,10 +76,10 @@ namespace InGame.Bot
         }
 
         /// <summary>
-        /// ƒm[ƒh‚ğOpen‚É‚·‚é
+        /// ãƒãƒ¼ãƒ‰ã‚’Openã«ã™ã‚‹
         /// </summary>
-        /// <param name="startDis">ŠJn’n“_‚©‚ç‚Ì‚İ‚¿‚Ì‚è</param>
-        /// <param name="goalDis">I—¹’n“_‚©‚ç‚Ì’¼ü‹——£</param>
+        /// <param name="startDis">é–‹å§‹åœ°ç‚¹ã‹ã‚‰ã®ã¿ã¡ã®ã‚Š</param>
+        /// <param name="goalDis">çµ‚äº†åœ°ç‚¹ã‹ã‚‰ã®ç›´ç·šè·é›¢</param>
         public void OpenNode(float startDis, float goalDis)
         {
             StartDistance = startDis;
@@ -101,6 +101,11 @@ namespace InGame.Bot
         public void SetVaultConnect(NodeData nodeData)
         {
             VaultConnect = nodeData;
+        }
+
+        public void SetIndex(int index)
+        {
+            NodeIndex = index;
         }
     }
 

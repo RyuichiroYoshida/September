@@ -39,7 +39,7 @@ namespace Ingame.Exhibit
             //    return;
 
             var hitData = new HitData(
-                HitActionType.Damage,
+                HitActionType.RangedDamage,
                 _hitDamage,
                 _ownerPlayer,
                 damageable.OwnerPlayerRef);

@@ -15,3 +15,9 @@ MonoBehaviour:
   _jewelryType: 1
   _score: 5
   _jewelrySprite: {fileID: 21300000, guid: 119f6bfea544228468947da275eeba5c, type: 3}
+  _lifeTime: 30
+  _blinkStartRemainingTime: 4
+  _blinkSpeed: 9
+  _fallDepth: 0
+  _pickupEffectType: 27
+  _pickupEffectOffset: {x: 0, y: 0.6, z: 0}

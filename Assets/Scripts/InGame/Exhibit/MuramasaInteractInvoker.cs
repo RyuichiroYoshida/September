@@ -19,12 +19,13 @@ namespace InGame.Exhibit
         private EffectSpawner EffectSpawner => StaticServiceLocator.Instance.Get<EffectSpawner>();
         private Transform _currentParent;
         private PlayerRef _currentOwner;
-        private int _currentOwnerID = -1;
-        private const string MURAMASA_EFFECT_ID = "muramasa";
+
+        private EffectID _currentEffectId;
 
         public override void FixedUpdateNetwork()
         {
-            if (_currentOwnerID == -1) return;
+            if (_currentOwner.IsNone) return;
+
             if (AttackTimer.ExpiredOrNotRunning(Runner) && HasStateAuthority)
             {
                 var hits = Physics.OverlapSphere(_currentParent.transform.position + _muramasaOffset, _attackRadius);
@@ -62,11 +63,11 @@ namespace InGame.Exhibit
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         public void Rpc_StartAttack(int interactor)
         {
-            if (_currentOwnerID != -1) return;
+            if (!_currentOwner.IsNone) return;
+
             var playerRef = PlayerRef.FromEncoded(interactor);
             if (!PlayerDatabase.Instance.PlayerObjectDic.TryGet(playerRef, out var playerObj)) return;
-            EffectSpawner.RequestPlayLoopEffect(
-                MURAMASA_EFFECT_ID + interactor,
+            _currentEffectId = EffectSpawner.RequestPlayLoopEffect(
                 EffectType.Muramasa,
                 playerObj.transform.position + _muramasaOffset,
                 Quaternion.identity,
@@ -74,14 +75,12 @@ namespace InGame.Exhibit
             );
             _currentParent = playerObj.transform;
             _currentOwner = playerRef;
-            _currentOwnerID = interactor;
             DurationTimer = TickTimer.CreateFromSeconds(Runner, _muramasaDuration);
         }
 
         private void StopAttack()
         {
-            EffectSpawner.StopEffect(MURAMASA_EFFECT_ID + _currentOwnerID);
-            _currentOwnerID = -1;
+            EffectSpawner.StopEffect(_currentEffectId);
             _currentOwner = PlayerRef.None;
             _currentParent = null;
         }

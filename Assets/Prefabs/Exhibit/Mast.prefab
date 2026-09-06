@@ -44,7 +44,6 @@ GameObject:
   - component: {fileID: 1716096396291440982}
   - component: {fileID: 8760742992607267601}
   - component: {fileID: 5439372749963849146}
-  - component: {fileID: 2885959084578552748}
   m_Layer: 0
   m_Name: Mast
   m_TagString: Untagged
@@ -173,17 +172,3 @@ MonoBehaviour:
   - {fileID: 1716096396291440982}
   - {fileID: 8760742992607267601}
   ForceRemoteRenderTimeframe: 0
---- !u!114 &2885959084578552748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9032611990967745808}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d0487f0201e1444f9eb9ce35ff55947, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _cooldownTime: 5
-  _interactable: {fileID: 8760742992607267601}

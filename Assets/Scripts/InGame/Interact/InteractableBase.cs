@@ -193,11 +193,10 @@ namespace InGame.Interact
         private async UniTask PlayCooldownEffect()
         {
             var effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
-            var uniqueEffectId = $"cooldown_{Object.Id}"; // オブジェクトIDを使って一意なIDを生成
             var effectTransform = _cooldownEffectTransform != null ? _cooldownEffectTransform : transform;
 
             // ループエフェクトを開始
-            effectSpawner.RequestPlayLoopEffect(uniqueEffectId, _cooldownEffectType,
+            var effectId = effectSpawner.RequestPlayLoopEffect(_cooldownEffectType,
                 effectTransform.position + _cooldownEffectOffset, Quaternion.Euler(_cooldownEffectRotation),
                 _cooldownEffectScale);
 
@@ -205,7 +204,7 @@ namespace InGame.Interact
             await UniTask.WaitUntil(this, s => !s.IsInCooldown(), cancellationToken: this.GetCancellationTokenOnDestroy());
 
             // エフェクトを停止
-            effectSpawner?.StopEffect(uniqueEffectId);
+            effectSpawner.StopEffect(effectId);
 
             // クールダウン回復音を全クライアントで再生
             Rpc_PlaySE(SoundCues.SE.Exhibit_Revive.Sheet, SoundCues.SE.Exhibit_Revive.Name, effectTransform.position);
@@ -265,13 +264,12 @@ namespace InGame.Interact
         }
 
         /// <summary>
-        /// 派生クラスで個別のバリデーション条件を追加する仮想メソッド
-        /// デフォルトではゲーム終了状態とプレイヤースタン状態をチェック
+        /// インタラクト可能条件
         /// </summary>
         /// <param name="context">インタラクトのコンテキスト</param>
         /// <param name="charaType">キャラクタータイプ</param>
         /// <returns>true: インタラクト可能、false: インタラクト不可</returns>
-        protected virtual bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
+        private bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
             // ゲーム終了状態の時はインタラクトを無効化
             if (IsGameEnded())

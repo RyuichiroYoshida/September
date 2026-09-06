@@ -76,7 +76,7 @@ MonoBehaviour:
     - 5
   _characterEffects:
   - rid: 3743209559181754454
-  _type: 0
+  _type: 20
   _interactEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectTransform: {fileID: 0}
   _cooldownEffectOffset: {x: 0, y: 0, z: 0}

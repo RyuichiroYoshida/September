@@ -322,7 +322,7 @@ namespace InGame.Exhibit
                 var direction =  hits[i].point - _firePoint.position;
                 var ray = new Ray(_firePoint.position, direction);
                 if(!Physics.Raycast(ray,out var info) || info.transform !=  hits[i].transform) continue;
-                var hitData = new HitData(HitActionType.Damage, _damageAmount, OwnerPlayerRef, damageable.OwnerPlayerRef, null,
+                var hitData = new HitData(HitActionType.RangedDamage, _damageAmount, OwnerPlayerRef, damageable.OwnerPlayerRef, null,
                     damageable);
                 damageable.TakeHit(ref hitData);
                 foreach (var muzzle in _muzzles)
@@ -353,6 +353,8 @@ namespace InGame.Exhibit
         {
             // 既に誰か乗っていたら乗れないよん
             if (!Runner.IsServer || OwnerPlayerRef != PlayerRef.None) return;
+
+            ForceSetInteractable = false;
 
             // set input authority
             OwnerPlayerRef = ownerPlayerRef;
@@ -388,6 +390,8 @@ namespace InGame.Exhibit
         void GetOff()
         {
             if (!Runner.IsServer || OwnerPlayerRef == PlayerRef.None) return;
+
+            ForceSetInteractable = true;
             
             PlayerDatabase.Instance.PlayerDataDic.TryGet(OwnerPlayerRef, out var playerData);
             RPC_ChangeDescriptionUI(OwnerPlayerRef, playerData.CharacterType == CharacterType.Sarutobi? ControlDescriptionType.Sarutobi : ControlDescriptionType.Player);
@@ -423,8 +427,8 @@ namespace InGame.Exhibit
             //隊列がある場合の処理
             if (_ownerPlayerManager.TryGetComponent<FormationManager>(out var formationManager))
             {
-                formationManager.WarpFriendNearPlayer(_ownerPlayerManager.transform.position,
-                    _ownerPlayerManager.transform.rotation);
+                formationManager.WarpFriendNearPlayerWhenGrounded(
+                    _ownerPlayerManager.GetComponent<PlayerMovement>());
             }
             AudioBroadcaster.RequestStopSound(SoundCues.SE.ZeroFighter_Interact.Name);          // 飛行中のループ音(サウンドデータの関係でInteractの音で判定)
             AudioBroadcaster.RequestStopSound(SoundCues.SE.ZeroFighter_TakeoffGunFire.Name);    // もしくは射撃音を止める
@@ -472,11 +476,6 @@ namespace InGame.Exhibit
             if (_currentAccelText) _currentAccelText.text = "current accel : " + CurrentAccel.ToString("F2");
             if (_angleText) _angleText.text = "angle : " + transform.eulerAngles.ToString("F2");
             if (_isUpText) _isUpText.text = "is up : " + (Vector3.Angle(transform.up, Vector3.up) <= 90);
-        }
-
-        protected override bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
-        {
-            return OwnerPlayerRef == PlayerRef.None;
         }
 
         protected override void OnInteract(IInteractableContext context)

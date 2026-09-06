@@ -330,7 +330,7 @@ namespace InGame.Exhibit
                 if (damageable == null) continue;
                 var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
                 if(damageable.OwnerPlayerRef == OwnerPlayerRef) continue;
-                var hitData = new HitData(HitActionType.Damage, _damage, ownerPlayerRef, damageable.OwnerPlayerRef);
+                var hitData = new HitData(HitActionType.RangedDamage, _damage, ownerPlayerRef, damageable.OwnerPlayerRef);
                 damageable.TakeHit(ref hitData);
             }
         }

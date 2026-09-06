@@ -1,4 +1,4 @@
-using Fusion;
+using InGame.Health;
 
 namespace September.InGame.Rules
 {
@@ -7,6 +7,6 @@ namespace September.InGame.Rules
     /// </summary>
     public interface IPlayerKilledStrategy
     {
-        public void ProcessKillEvent(PlayerRef killer, PlayerRef victim);
+        public void ProcessKillEvent(HitData hitData);
     }
 }

@@ -24890,6 +24890,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 55369622977779248, guid: 53376ac157ca36644a0e41e961b92d83, type: 3}
+      propertyPath: m_Size.y
+      value: 0.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 55369622977779248, guid: 53376ac157ca36644a0e41e961b92d83, type: 3}
+      propertyPath: m_Center.y
+      value: -0.33
+      objectReference: {fileID: 0}
     - target: {fileID: 59081474608309302, guid: 53376ac157ca36644a0e41e961b92d83, type: 3}
       propertyPath: m_Layer
       value: 7

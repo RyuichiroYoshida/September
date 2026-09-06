@@ -24,7 +24,7 @@ namespace September.InGame.Kraken.Animations
             }
         }
 
-        public override void FixedUpdateNetwork()
+        public override void Render()
         {
             if (_tentacles == null) return;
 

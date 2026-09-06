@@ -24,5 +24,18 @@ namespace September.Common
             }
             Gizmos.DrawLineStrip(points, true);
         }
+
+        public static void DrawMultiRay(MultiRay multiRay, Vector3 position, Quaternion rotation)
+        {
+            Vector3 forwardRayOrigin = position + rotation * multiRay.StartOrigin;
+            Vector3 backRayOrigin = position + rotation * multiRay.EndOrigin;
+
+            // 地面判定
+            for (int i = 0; i < multiRay.DivideCount + 2; i++)
+            {
+                Vector3 rayOrigin = Vector3.Lerp(forwardRayOrigin, backRayOrigin, i / (multiRay.DivideCount + 1f));
+                Gizmos.DrawRay(rayOrigin, rotation * multiRay.Direction * multiRay.Distance);
+            }
+        }
     }
 }

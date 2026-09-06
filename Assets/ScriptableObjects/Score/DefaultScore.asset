@@ -49,3 +49,24 @@ MonoBehaviour:
   - Type: 12
     Points: 120
     DestroyPoints: 0
+  - Type: 15
+    Points: 250
+    DestroyPoints: 0
+  - Type: 16
+    Points: 300
+    DestroyPoints: 0
+  - Type: 14
+    Points: 150
+    DestroyPoints: 0
+  - Type: 13
+    Points: 100
+    DestroyPoints: 0
+  - Type: 18
+    Points: 100
+    DestroyPoints: 0
+  - Type: 19
+    Points: 200
+    DestroyPoints: 0
+  - Type: 20
+    Points: 200
+    DestroyPoints: 0
