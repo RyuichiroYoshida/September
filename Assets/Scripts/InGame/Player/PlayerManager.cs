@@ -277,7 +277,6 @@ namespace InGame.Player
             foreach (NetworkObject target in inGameManager.PlayerDataDic.Values)
             {
                 if (!IsValidLockOnTarget(target)
-                    || target.GetComponent<PlayerManager>().IsStun
                     || IsOutsideLockOnVerticalRange(target.transform))
                     continue;
 
@@ -304,7 +303,7 @@ namespace InGame.Player
             if (!target || target == Object || !target.gameObject.activeInHierarchy)
                 return false;
 
-            return target.TryGetComponent(out PlayerManager _);
+            return target.TryGetComponent(out PlayerManager targetPlayer) && !targetPlayer.IsStun;
         }
 
         public void AfterTick()
