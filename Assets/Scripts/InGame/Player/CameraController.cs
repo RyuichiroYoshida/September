@@ -1,5 +1,7 @@
 using Common.UserSettings;
 using DG.Tweening;
+using NaughtyAttributes;
+using September.Common;
 using Unity.Cinemachine;
 using Unity.Mathematics;
 using UnityEngine;
@@ -21,10 +23,16 @@ namespace InGame.Player
         [Header("CameraMotion")]
         [SerializeField] private float _motionDuration;
         [SerializeField] private Ease _motionEase;
+        [Header("AngleLimit")]
+        [SerializeField] private bool _enablePitchAngleLimit;
+        [SerializeField, ShowIf(nameof(_enablePitchAngleLimit))] private MinMaxRange _pitchAngleLimit = new(-90, 90);
+        [SerializeField] private bool _enableYawAngleLimit;
+        [SerializeField, ShowIf(nameof(_enableYawAngleLimit))] private MinMaxRange _yawAngleLimit = new(-180, 180);
         
         // camera rotation
         Quaternion _defaultRotation;
         private float _defaultPitch;
+        private float _defaultYaw;
         private float _cameraPitch;
         private float _cameraYaw;
         private bool _isInRotation;
@@ -46,6 +54,7 @@ namespace InGame.Player
             // Prefabの初期状態をデフォルトとして保存
             _defaultRotation = _cameraPivot.localRotation;
             _defaultPitch = _defaultRotation.eulerAngles.x;
+            _defaultYaw = _cameraPivot.rotation.eulerAngles.y;
             _currentOffset = _cameraTf.localPosition;
             _defaultOffset = _cameraTf.localPosition;
             _cameraPitch = _characterTf.rotation.eulerAngles.x;
@@ -69,20 +78,23 @@ namespace InGame.Player
                 GameInput.I.UseDeviceType == GameInput.DeviceType.KeyboardMouse 
                 ? _sens * settings.MouseSensitivity 
                 : _padSens * settings.PadSensitivity;
-            
+
             float deltaX = mouseInput.y, deltaY = mouseInput.x;
             _cameraPitch -= deltaX * deltaTime * sens;
-            _cameraPitch = Mathf.Clamp(_cameraPitch, -90 + _defaultPitch, 90 - _defaultPitch);
-            _cameraYaw += deltaY * sens * deltaTime;
-            _cameraYaw = ToAngle(_cameraYaw);
-            
-            _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
+            _cameraYaw += deltaY * deltaTime * sens;
+            SetCameraRotate(_cameraPitch, _cameraYaw);
         }
 
         public void SetCameraRotate(float pitch, float yaw)
         {
-            _cameraPitch = Mathf.Clamp(pitch, -90 + _defaultPitch, 90 - _defaultPitch);
-            _cameraYaw = ToAngle(yaw);
+            _cameraPitch = _enablePitchAngleLimit
+                ? Mathf.Clamp(pitch, _defaultPitch - _pitchAngleLimit.Max, _defaultPitch - _pitchAngleLimit.Min)
+                : Mathf.Clamp(pitch, _defaultPitch - 90f, _defaultPitch + 90f);
+
+            _cameraYaw = _enableYawAngleLimit
+                ? Mathf.Clamp(yaw, _defaultYaw + _yawAngleLimit.Min, _defaultYaw + _yawAngleLimit.Max)
+                : ToAngle(yaw);
+
             _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
         }
         
@@ -201,7 +213,9 @@ namespace InGame.Player
             ChangeOffset(_defaultOffset, duration);
         }
 
-        /// <summary> 0 <= return < 360 </summary>
+        /// <summary>
+        /// 0 &lt;= return &lt; 360
+        /// </summary>
         private static float ToAngle(float angle)
         {
             while (true)

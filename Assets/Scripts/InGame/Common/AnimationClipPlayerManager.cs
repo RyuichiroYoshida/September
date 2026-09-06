@@ -108,7 +108,7 @@ namespace InGame.Common
             };
 
             _playerMovement.UpdateAsObservable()
-                .Select(_ => _playerMovement.IsGroundNet)
+                .Select(_ => _playerMovement.IsGroundNet || !EnableFallMotion) // EnableFallMotionが偽なら落下モーションを即時解除
                 .DistinctUntilChanged().Subscribe(x => SetFallAnim(x)).AddTo(this);
 
             // 回避開始 Tick の変化で発火する。Networked 状態由来なので、ホスト・予測中のクライアント・リモート表示の全てが同じ経路で再生される
@@ -328,8 +328,6 @@ namespace InGame.Common
             ClearGetUpVisualCorrection();
             _overrideCts = null;
         }
-
-
 
         private async UniTaskVoid PlayFaintSequenceAsync()
         {

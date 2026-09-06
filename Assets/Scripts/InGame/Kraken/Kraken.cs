@@ -30,6 +30,12 @@ namespace September.InGame.Kraken
         [SerializeField] private Vector3 _predictionSize;
         [SerializeField] private float _predictionEndTime;
 
+        [Header("攻撃目標表示設定")]
+        [Tooltip("視線の先に攻撃目標地点を表示するマーカー (ローカル表示のみ)")]
+        [SerializeField] private KrakenAimMarker _aimMarker;
+        [Tooltip("視線の先に何も無かった場合に目標地点とする距離")]
+        [SerializeField] private float _aimFallbackDistance = 20f;
+
         [Header("インタラクト設定")]
         [SerializeField] private InteractableBase _interactable;
 
@@ -53,6 +59,8 @@ namespace September.InGame.Kraken
         [SerializeField] private KrakenSettings _settings;
 
         private InputWrapper _attack;
+
+        private KrakenAimPointResolver _aimPointResolver;
 
         private Vector3 _initialPosition;
         private Quaternion _initialRotation;
@@ -78,6 +86,7 @@ namespace September.InGame.Kraken
 
             _cameraController.Init(true);
             _attackHandler.Initialize(_tentacles.Arms, _settings, this);
+            _aimPointResolver = new KrakenAimPointResolver(_settings.AttackPointRayHitLayer);
 
             SlamParticlePool = new ObjectPool<ParticleSystem>(
                 () => Instantiate(_settings.SlamEffect),
@@ -92,7 +101,12 @@ namespace September.InGame.Kraken
         /// </summary>
         private void LateUpdate()
         {
-            if (!HasInputAuthority) return;
+            if (!HasInputAuthority)
+            {
+                // 操作していないクライアントでは目標地点を表示しない
+                if (_aimMarker != null) _aimMarker.Hide();
+                return;
+            }
 
             if (GameInput.I.Player.Aim.triggered)
             {
@@ -100,6 +114,25 @@ namespace September.InGame.Kraken
             }
 
             _cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Runner.DeltaTime);
+
+            UpdateAimMarker();
+        }
+
+        /// <summary>
+        /// 視線の先の攻撃目標地点にマーカーを表示する (ローカルのみ)
+        /// </summary>
+        private void UpdateAimMarker()
+        {
+            if (_aimMarker == null) return;
+
+            if (_aimPointResolver.TryResolve(out KrakenAimPoint aimPoint))
+            {
+                _aimMarker.Show(aimPoint);
+            }
+            else
+            {
+                _aimMarker.Hide();
+            }
         }
 
         public override void Spawned()
@@ -115,20 +148,9 @@ namespace September.InGame.Kraken
             {
                 _attack.SetInput(input.Buttons.IsSet(PlayerButtons.Attack));
 
-                if (_attack.IsJustPressed)
+                if (_attack.IsJustPressed && _aimPointResolver.TryResolve(out KrakenAimPoint aimPoint))
                 {
-                    Camera mainCamera = Camera.main;
-                    if (mainCamera == null) return;
-                    Vector3 origin = mainCamera.transform.position;
-                    Vector3 forward = mainCamera.transform.forward;
-                    if (Physics.Raycast(origin, forward, out RaycastHit hit, Mathf.Infinity, _settings.AttackPointRayHitLayer))
-                    {
-                        RPC_Attack(hit.point);
-                    }
-                    else
-                    {
-                        RPC_Attack(forward * 20f);
-                    }
+                    RPC_Attack(aimPoint.Position);
                 }
             }
         }

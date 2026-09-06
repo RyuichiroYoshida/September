@@ -259,6 +259,9 @@ namespace InGame.Player
             _colliderObj.SetActive(!active);
             _meshObj.SetActive(!active);
             _rigidbody.useGravity = !active;
+            _rigidbody.constraints = active ?
+                RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation :
+                _defaultConstraints;
         }
 
         /// <summary> 非常用リスポーン </summary>
