@@ -1,5 +1,6 @@
 using Common.UserSettings;
 using DG.Tweening;
+using Fusion;
 using NaughtyAttributes;
 using September.Common;
 using Unity.Cinemachine;
@@ -8,7 +9,12 @@ using UnityEngine;
 
 namespace InGame.Player
 {
-    /// <summary> プレイヤーのカメラ操作 </summary>
+    /// <summary>
+    /// プレイヤーのカメラ操作。
+    /// LateUpdate は CinemachineBrain より前 (CameraRigExecutionOrder.Rig) に走らせ、
+    /// 「視点入力の適用 → 補間ターゲットへの追従 → 障害物判定」を Brain が Camera.main へ写す前に終える。
+    /// </summary>
+    [DefaultExecutionOrder(CameraRigExecutionOrder.Rig)]
     public class CameraController : MonoBehaviour, ILookInputReceiver
     {
         [SerializeField] private float _sens;
@@ -37,13 +43,16 @@ namespace InGame.Player
         private float _cameraYaw;
         private bool _isInRotation;
         private int _lastLookInputFrame = -1;
+        /// <summary> ローカルの視点入力 (Look / Aim) をこのリグ自身が LateUpdate で適用するか </summary>
+        private bool _appliesLocalLookInput;
         Tweener _rotateTweener;
-        
+
         // camera position
         private Vector3 _currentOffset;
         private Vector3 _defaultOffset;
+        private CameraPivotFollower _pivotFollower;
         Tweener _offsetTweener;
-        
+
         public float CameraPitch => _cameraPitch;
         public float CameraYaw => _cameraYaw;
 
@@ -60,11 +69,47 @@ namespace InGame.Player
             _defaultOffset = _cameraTf.localPosition;
             _cameraPitch = _characterTf.rotation.eulerAngles.x;
             _cameraYaw = _characterTf.rotation.eulerAngles.y;
+            _pivotFollower = CreatePivotFollower();
+        }
+
+        /// <summary>
+        /// Root に NetworkRigidbody / NetworkTransform があり補間ターゲットが別 Transform なら、
+        /// 見えているメッシュ側に Pivot を追従させる。展示物など補間ターゲット無しのリグでは何もしない。
+        /// </summary>
+        private CameraPivotFollower CreatePivotFollower()
+        {
+            if (!_characterTf.TryGetComponent(out NetworkTRSP trsp)) return null;
+
+            Transform target = trsp.InterpolationTarget;
+            if (target == null || target == _characterTf) return null;
+
+            return new CameraPivotFollower(_cameraPivot, target);
+        }
+
+        /// <summary>
+        /// ローカルプレイヤーのリグとして、視点入力 (Look 回転 / Aim リセット) を LateUpdate で自前適用する。
+        /// PlayerManager の LateUpdate から呼ぶと Brain との順序が保証できないため、リグ側に寄せている。
+        /// </summary>
+        public void SetLocalLookInputEnabled(bool enabled)
+        {
+            _appliesLocalLookInput = enabled;
         }
 
         private void LateUpdate()
         {
+            if (_appliesLocalLookInput) ApplyLocalLookInput();
+            _pivotFollower?.Apply();
             CheckCameraDistance();
+        }
+
+        /// <summary>
+        /// 同一フレームで InputProvider.OnInput が先に回していれば回転はスキップされる (TryApplyLookInput のガード)。
+        /// </summary>
+        private void ApplyLocalLookInput()
+        {
+            var player = GameInput.I.Player;
+            if (player.Aim.triggered) CameraReset();
+            TryApplyLookInput(player.Look.ReadValue<Vector2>(), Time.deltaTime);
         }
 
         /// <summary>
@@ -185,7 +230,8 @@ namespace InGame.Player
                     
                     CheckCameraDistance();
                 })
-                .SetUpdate(UpdateType.Late)
+                // Update 段で進めて、Brain より前に走るこのクラスの LateUpdate で結果を使えるようにする
+                .SetUpdate(UpdateType.Normal)
                 .SetEase(_motionEase);
         }
 
@@ -219,7 +265,8 @@ namespace InGame.Player
                 newOffset,
                 duration
                 )
-                .SetUpdate(UpdateType.Late)
+                // Update 段で進めて、Brain より前に走るこのクラスの LateUpdate で結果を使えるようにする
+                .SetUpdate(UpdateType.Normal)
                 .SetEase(_motionEase);
         }
 

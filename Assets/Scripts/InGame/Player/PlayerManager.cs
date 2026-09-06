@@ -101,8 +101,10 @@ namespace InGame.Player
                 _cameraController = cameraController;
                 cameraController.Init(IsLocalPlayer);
 
-                if (IsLocalPlayer)
+                if (UsesLocalLookInput)
                 {
+                    // 視点入力の適用はリグ側の LateUpdate (Brain より前の実行順) に任せる
+                    cameraController.SetLocalLookInputEnabled(true);
                     // InputProvider が入力収集の直前に視点入力を適用できるよう、ローカルのカメラリグを公開する
                     StaticServiceLocator.Instance.Register<ILookInputReceiver>(cameraController);
                 }
@@ -123,50 +125,12 @@ namespace InGame.Player
 #endif
         }
 
-        protected virtual void LateUpdate()
-        {
-            // if (_animationClipPlayer)
-            // {
-            //     var maxSpeed = _playerMovement.DashMoveSpeed;
-            //     var walkSpeed = _playerMovement.WalkSpeed;
-            //     var moveSpeed = _playerMovement._moveVelocity.magnitude;
-            //     var weight = 0f;
-            //     if (moveSpeed <= walkSpeed)
-            //     {
-            //         // 0..Walk -> 0..1
-            //         weight = Mathf.InverseLerp(0f, walkSpeed, moveSpeed);
-            //     }
-            //     else
-            //     {
-            //         // Walk..Max -> 1..2
-            //         weight = Mathf.InverseLerp(walkSpeed, maxSpeed, moveSpeed) + 1f;
-            //     }
-            //     
-            //     _animationClipPlayer.SetLocoWeight(weight);
-            //     
-            //     switch ()
-            //     {
-            //         case false when _playerMovement.DoingVault:
-            //             _animationClipPlayer.SetTopPriorityClip(true);
-            //             break;
-            //         case true when !_playerMovement.DoingVault:
-            //             _animationClipPlayer.SetTopPriorityClip(false);
-            //             break;
-            //     }
-            // }
-
-            // Localでの処理にInputを送る
-            if (HasInputAuthority)
-            {
-                if (GameInput.I.Player.Aim.triggered)
-                {
-                    _cameraController.CameraReset();
-                }
-
-                // 同一フレームで InputProvider.OnInput が先に回していれば、ここでは何もしない
-                _cameraController.TryApplyLookInput(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.deltaTime);
-            }
-        }
+        /// <summary>
+        /// ローカルの視点入力 (Look / Aim) でこのプレイヤーのカメラを回すか。
+        /// 旧実装では PlayerManager.LateUpdate で回していたが、CinemachineBrain の LateUpdate との順序が
+        /// 保証されず 1 フレーム遅れて写ることがあるため、CameraController 側 (Brain より前の実行順) へ移した。
+        /// </summary>
+        protected virtual bool UsesLocalLookInput => IsLocalPlayer;
 
         public override void FixedUpdateNetwork()
         {
