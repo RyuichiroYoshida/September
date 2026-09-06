@@ -653,6 +653,17 @@ public partial class @GameInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""f2412bba-9dea-433c-8b4d-5d7c4b6f126b"",
+                    ""path"": ""<Gamepad>/leftStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Aim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""d33f6de6-d76e-4acb-95b1-d6b3b68b42f6"",
                     ""path"": ""<Gamepad>/rightStickPress"",
                     ""interactions"": """",
