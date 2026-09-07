@@ -70,6 +70,8 @@ namespace September.InGame.Kraken
 
         private KrakenAppearanceState _appearanceState;
 
+        private bool _isGetOffRequested;
+
         [Networked] private TickTimer DisappearTimer { get; set; }
 
         public KrakenTentacles Tentacles => _tentacles;
@@ -142,6 +144,20 @@ namespace September.InGame.Kraken
 
         public override void FixedUpdateNetwork()
         {
+            if (OwnerPlayerRef.IsNone) return;
+
+            if (_isGetOffRequested)
+            {
+                // 搭乗解除が要求されたら現在出されている攻撃が全て終わるまで待機してから解除する
+                if (_tentacles.Arms.All(x => !x.IsAttacking))
+                {
+                    HandleGetOff(OwnerPlayerRef);
+                }
+
+                // 既に搭乗解除が要求されていたら新たに攻撃を出さない
+                return;
+            }
+
             if (!HasInputAuthority) return;
 
             if (GetInput<PlayerInput>(out var input))
@@ -211,6 +227,12 @@ namespace September.InGame.Kraken
         /// </summary>
         public void GetOff(PlayerRef owner)
         {
+            // 実際の解除タイミングを制御するためにリクエストとして保存する
+            _isGetOffRequested = true;
+        }
+
+        private void HandleGetOff(PlayerRef owner)
+        {
             // カメラを無効化する
             RPC_SetCameraPriority(owner, 0);
 
@@ -237,6 +259,8 @@ namespace September.InGame.Kraken
             Object.RemoveInputAuthority();
 
             OwnerPlayerRef = default;
+
+            _isGetOffRequested = false;
 
             Disappear().Forget();
         }
