@@ -460,6 +460,18 @@ PrefabInstance:
       value: 20241001
       objectReference: {fileID: 0}
     - target: {fileID: 2447315062394318487, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: _fallDown
+      value: 
+      objectReference: {fileID: 7400000, guid: 5ac91ad8e248c6547bf8c19bc58beb16, type: 2}
+    - target: {fileID: 2447315062394318487, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: _runAnimSpeed
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2447315062394318487, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: _walkAnimSpeed
+      value: 1.03785
+      objectReference: {fileID: 0}
+    - target: {fileID: 2447315062394318487, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _playerMovement
       value: 
       objectReference: {fileID: 1809326798388321474}
@@ -1174,15 +1186,15 @@ PrefabInstance:
     - target: {fileID: 3570017578186338863, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _run
       value: 
-      objectReference: {fileID: 7400000, guid: 1b75d33f3707cec46a636ae1779bb096, type: 2}
+      objectReference: {fileID: 7400000, guid: aed781f4fe4875e4ba72141928e7f676, type: 2}
     - target: {fileID: 3570017578186338863, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _wait
       value: 
-      objectReference: {fileID: 7400000, guid: e281b9c0b3aad9f49b64687001943220, type: 2}
+      objectReference: {fileID: 7400000, guid: 3d8a809d3cc5b494ebabe7e272cf108e, type: 2}
     - target: {fileID: 3570017578186338863, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _walk
       value: 
-      objectReference: {fileID: 7400000, guid: b0eef498192b4af4da58c49f42d6f6fe, type: 2}
+      objectReference: {fileID: 7400000, guid: 687a286046d7b6d469d11d5a1be9bdfc, type: 2}
     - target: {fileID: 3570017578186338863, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _layerInfo.Array.data[1].LayerMask
       value: 
@@ -1219,6 +1231,10 @@ PrefabInstance:
       propertyPath: _requiredScore
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7710838205980989238, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: _playerAudioController
+      value: 
+      objectReference: {fileID: 8500817171237990598}
     - target: {fileID: 8360875997416129576, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: m_Name
       value: Takamura
@@ -1430,9 +1446,9 @@ MonoBehaviour:
   _hookPower: 10
   _moveDumping: 0.5
   _flyingDamping: 8
-  _evasionData: {fileID: 0}
-  _playerHealth: {fileID: 0}
-  _playerJewelryRuntime: {fileID: 0}
+  _evasionData: {fileID: 11400000, guid: a5096594ea23bc742976e6998f7765a8, type: 2}
+  _playerHealth: {fileID: 1556169482628769857}
+  _playerJewelryRuntime: {fileID: 5329770465805717018}
   _printVaultFailedLog: 0
   _visibleGizmos: 0
   _vaultGizmoDebugger: {fileID: 0}
@@ -1578,6 +1594,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2053530933933095933, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
   m_PrefabInstance: {fileID: 6901102396210121396}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5329770465805717018 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1599483826122540206, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+  m_PrefabInstance: {fileID: 6901102396210121396}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 816edc2fc85d0644bbcdb2811294fc4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5632740062741920741 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1292013223828287825, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
