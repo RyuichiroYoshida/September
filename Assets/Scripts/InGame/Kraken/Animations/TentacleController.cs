@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
 using September.InGame.Kraken.Attack;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace September.InGame.Kraken.Animations
 {
