@@ -20,15 +20,20 @@ namespace InGame.Player
             Debug.DrawLine(position, position + moveDir3, Color.red);
 
             // ステップ1：キャラクターが歩くことができない壁やオブジェクトを見つけるために前方にCastします。
-            Vector3 point1 = position + Vector3.up * (parameter.maxLedgeHeight - parameter.capsuleRadius) + moveDir3 * 0.01f;
-            Vector3 point2 = position + Vector3.up * (parameter.minLedgeHeight + parameter.capsuleRadius) + moveDir3 * 0.01f;
+            const float castStartBackOffset = 0.05f;
+            Vector3 castStartOffset = -moveDir3 * castStartBackOffset;
+            float frontCastDistance = parameter.reachDistance + castStartBackOffset;
+            Vector3 point1 = position + Vector3.up * (parameter.maxLedgeHeight - parameter.capsuleRadius) + castStartOffset;
+            Vector3 point2 = position + Vector3.up * (parameter.minLedgeHeight + parameter.capsuleRadius) + castStartOffset;
             Debug.DrawLine(point1, point2, Color.red, 1f);
             if (!Physics.CapsuleCast(point1, point2, parameter.capsuleRadius + 0.01f, moveDir3,
-                out var frontHitInfo, parameter.reachDistance, ~0))
+                out var frontHitInfo, frontCastDistance, ~0))
             {
                 reason = VaultFailReason.NoFrontHit;
                 return false;
             }
+
+            float frontHitDistance = Mathf.Max(0f, frontHitInfo.distance - castStartBackOffset);
 
             // hit point が歩けるかどうか
             bool walkable = Vector3.Angle(Vector3.up, frontHitInfo.normal) <= parameter.groundSlopeThreshold;
@@ -90,7 +95,7 @@ namespace InGame.Player
             if (Physics.CapsuleCast(p1, p2, parameter.capsuleRadius,
                 -frontHitInfo.normal,
                 out var secondHit,
-                parameter.maxLedgeDepth + frontHitInfo.distance,
+                parameter.maxLedgeDepth + frontHitDistance,
                 parameter.groundLayer))
             {
                 reason = VaultFailReason.BlockedForward;
@@ -98,7 +103,7 @@ namespace InGame.Player
             }
 
             Vector3 reverseOrigin = p2 + Vector3.up * halfHeight
-                - frontHitInfo.normal * (parameter.maxLedgeDepth + frontHitInfo.distance);
+                - frontHitInfo.normal * (parameter.maxLedgeDepth + frontHitDistance);
 
             // 逆向きにCastして、障害物の奥行を求める
             if (!Physics.CapsuleCast(
@@ -107,7 +112,7 @@ namespace InGame.Player
                 parameter.capsuleRadius,
                 frontHitInfo.normal,
                 out var backHit,
-                parameter.maxLedgeDepth + frontHitInfo.distance,
+                parameter.maxLedgeDepth + frontHitDistance,
                 parameter.groundLayer))
             {
                 reason = VaultFailReason.NoBackHit;
@@ -115,7 +120,7 @@ namespace InGame.Player
             }
 
             // 奥行がありすぎたら終了
-            if (backHit.distance < frontHitInfo.distance)
+            if (backHit.distance < frontHitDistance)
             {
                 reason = VaultFailReason.BackTooClose;
                 return false;
@@ -123,7 +128,7 @@ namespace InGame.Player
 
             result.vaultEnd =
                 reverseOrigin
-                - frontHitInfo.normal * (frontHitInfo.distance)
+                - frontHitInfo.normal * frontHitDistance
                 + Vector3.down * (halfHeight + parameter.capsuleRadius);
 
             // 最終地点にCheckを入れる

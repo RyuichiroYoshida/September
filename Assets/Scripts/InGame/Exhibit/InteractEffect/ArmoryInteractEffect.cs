@@ -65,11 +65,14 @@ namespace InGame.Exhibit
         {
             await UniTask.WaitForSeconds(_duration, cancellationToken: token);
 
+            // 攻撃開始・終了処理の途中でAbilityを外すと、移動ロックの解除処理が実行されないため完了まで待つ
+            await UniTask.WaitUntil(
+                _addAbilities,
+                abilities => abilities.All(IsAbilityExecutionCompleted),
+                cancellationToken: token);
+
             //無効化していたAbilityを有効化
             abilityManager.SetAbilityEnabled(true, _overrideDisabledAbilities);
-
-            //アビリティ実行途中なら待機
-            await UniTask.WaitUntil(_addAbilities, abilities => abilities.All(x => x.Phase != AbilityBase.AbilityPhase.Active), cancellationToken: token);
 
             //追加したAbilityを消す
             foreach (var ability in _addAbilities)
@@ -79,6 +82,11 @@ namespace InGame.Exhibit
 
             //武器を元に戻す
             equipmentManager.RPC_ChangeEquipment(EquipmentType.NormalAttack);
+        }
+
+        private static bool IsAbilityExecutionCompleted(AbilityBase ability)
+        {
+            return ability.Phase is AbilityBase.AbilityPhase.Available or AbilityBase.AbilityPhase.Cooldown;
         }
     }
 }
