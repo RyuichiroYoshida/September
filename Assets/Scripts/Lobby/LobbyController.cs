@@ -22,13 +22,21 @@ namespace September.Lobby
         [SerializeField] private TextMeshProUGUI _roomNameText;
         [SerializeField] private Image _fadePanel;
         [SerializeField] private Transform _contentTransform;
-        [SerializeField] private MapType _mapType = MapType.Museum;
 
         readonly Dictionary<PlayerRef, PlayerConditionView> _lobbyPlayerUIDic = new();
         [Networked, OnChangedRender(nameof(OnChangedIsReady)), Capacity(8), HideInInspector]
         public NetworkDictionary<PlayerRef, NetworkBool> PlayerIsReadyDic => default;
+
+        [Networked, HideInInspector]
+        public MapType SelectedMapType { get; private set; } = MapType.Pirate;
+
         public override async void Spawned()
         {
+            if (HasStateAuthority)
+            {
+                SelectedMapType = NetworkManager.Instance.SelectedMapType;
+            }
+
             _roomNameText.text = Runner.SessionInfo.Name;
             Runner.AddCallbacks(this);
             foreach (var kv in PlayerDatabase.Instance.PlayerDataDic)
@@ -94,7 +102,7 @@ namespace September.Lobby
             if (_isStartingGame) return;
             _isStartingGame = true;
             await UniTask.WaitForSeconds(delay);
-            NetworkManager.Instance.StartGame(new GameStartContext(_mapType)).Forget();
+            NetworkManager.Instance.StartGame(new GameStartContext(SelectedMapType)).Forget();
         }
 
         void AddContents(PlayerRef playerRef)
