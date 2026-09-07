@@ -25,6 +25,9 @@ namespace September.InGame.Kraken
         [Header("カメラ")]
         [SerializeField] private CameraController _cameraController;
 
+        [Header("搭乗時にプレイヤーを隠す場所")]
+        [SerializeField] private Transform _mountedPlayerPosition;
+
         [Header("攻撃予測設定")]
         [SerializeField] private AttackPredictionFactory _attackPredictionFactory;
         [SerializeField] private Vector3 _predictionSize;
@@ -204,8 +207,8 @@ namespace September.InGame.Kraken
             _originalPlayerPosition = playerObject.transform.position;
             _originalPlayerRotation = playerObject.transform.rotation;
 
-            playerObject.transform.position = transform.position;
-            playerObject.transform.rotation = transform.rotation;
+            playerObject.transform.position = _mountedPlayerPosition.position;
+            playerObject.transform.rotation = _mountedPlayerPosition.rotation;
 
             // 元のプレイヤーオブジェクトを非表示にする
             if (playerObject.TryGetComponent<PlayerManager>(out var playerManager))
