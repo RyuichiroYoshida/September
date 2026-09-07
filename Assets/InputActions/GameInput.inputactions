@@ -42,7 +42,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Crouch",
+                    "name": "LockOn",
                     "type": "Button",
                     "id": "27c5f898-bc57-4ee1-8800-db469aca5fe3",
                     "expectedControlType": "",
@@ -447,7 +447,7 @@
                 {
                     "name": "",
                     "id": "8cbb2f4b-a784-49cc-8d5e-c010b8c7f4e6",
-                    "path": "<Gamepad>/rightTrigger",
+                    "path": "<Gamepad>/buttonEast",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
@@ -545,23 +545,12 @@
                 },
                 {
                     "name": "",
-                    "id": "4f4649ac-64a8-4a73-af11-b3faef356a4d",
-                    "path": "<Gamepad>/buttonEast",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Crouch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "36e52cba-0905-478e-a818-f4bfcb9f3b9a",
                     "path": "<Keyboard>/c",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard&Mouse",
-                    "action": "Crouch",
+                    "action": "LockOn",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -578,12 +567,23 @@
                 },
                 {
                     "name": "",
+                    "id": "f2412bba-9dea-433c-8b4d-5d7c4b6f126b",
+                    "path": "<Gamepad>/leftStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "Aim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "d33f6de6-d76e-4acb-95b1-d6b3b68b42f6",
                     "path": "<Gamepad>/rightStickPress",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
-                    "action": "Aim",
+                    "action": "LockOn",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -601,7 +601,7 @@
                 {
                     "name": "",
                     "id": "e62fce7c-b172-4657-bac3-4b65a7327236",
-                    "path": "<Gamepad>/buttonEast",
+                    "path": "<Gamepad>/leftShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
@@ -689,21 +689,10 @@
                 {
                     "name": "",
                     "id": "6a3045b2-2853-4159-9fa2-ff497727777b",
-                    "path": "<Gamepad>/rightShoulder",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Ability3",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "222cb2ab-4b3f-4f00-af11-56b6a32b7086",
-                    "path": "<Gamepad>/buttonWest",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";Gamepad",
                     "action": "Ability3",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -743,11 +732,11 @@
                 },
                 {
                     "name": "",
-                    "id": "f2412bba-9dea-433c-8b4d-5d7c4b6f126b",
-                    "path": "<Gamepad>/leftStickPress",
+                    "id": "7b9c7500-cc8e-43da-8a07-a516a76bfd97",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": ";Gamepad",
                     "action": "Ultimate",
                     "isComposite": false,
                     "isPartOfComposite": false
