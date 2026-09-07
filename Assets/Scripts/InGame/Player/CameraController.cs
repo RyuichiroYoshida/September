@@ -23,6 +23,8 @@ namespace InGame.Player
         [Header("CameraMotion")]
         [SerializeField] private float _motionDuration;
         [SerializeField] private Ease _motionEase;
+        [SerializeField, Min(0f), Tooltip("ロックオン対象へカメラを向ける角速度")]
+        private float _lockOnRotationSpeed = 360f;
         [Header("AngleLimit")]
         [SerializeField] private bool _enablePitchAngleLimit;
         [SerializeField, ShowIf(nameof(_enablePitchAngleLimit))] private MinMaxRange _pitchAngleLimit = new(-90, 90);
@@ -96,6 +98,30 @@ namespace InGame.Player
                 : ToAngle(yaw);
 
             _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
+        }
+
+        /// <summary>
+        /// カメラの上下角度を維持しながら、指定位置の水平方向へカメラを向ける
+        /// </summary>
+        public void RotateCameraYawTowards(Vector3 targetPosition, float deltaTime)
+        {
+            if (_rotateTweener.IsActive())
+                _rotateTweener.Kill();
+
+            _isInRotation = false;
+
+            Vector3 targetDirection = targetPosition - _cameraPivot.position;
+            targetDirection.y = 0f;
+            if (targetDirection.sqrMagnitude <= Mathf.Epsilon)
+                return;
+
+            float targetYaw = Quaternion.LookRotation(targetDirection).eulerAngles.y;
+            float nextYaw = Mathf.MoveTowardsAngle(
+                _cameraYaw,
+                targetYaw,
+                _lockOnRotationSpeed * deltaTime);
+
+            SetCameraRotate(_cameraPitch, nextYaw);
         }
         
         /// <summary>
