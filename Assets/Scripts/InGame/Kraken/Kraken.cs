@@ -130,7 +130,7 @@ namespace September.InGame.Kraken
         {
             if (_aimMarker == null) return;
 
-            if (_aimPointResolver.TryResolve(out KrakenAimPoint aimPoint))
+            if (_aimPointResolver.TryResolveLocal(out KrakenAimPoint aimPoint))
             {
                 _aimMarker.Show(aimPoint);
             }
@@ -167,7 +167,7 @@ namespace September.InGame.Kraken
             {
                 _attack.SetInput(input.Buttons.IsSet(PlayerButtons.Attack));
 
-                if (_attack.IsJustPressed && _aimPointResolver.TryResolve(out KrakenAimPoint aimPoint))
+                if (_attack.IsJustPressed && _aimPointResolver.TryResolveNetwork(input, out KrakenAimPoint aimPoint))
                 {
                     RPC_Attack(aimPoint.Position);
                 }
