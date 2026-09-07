@@ -147,6 +147,8 @@ namespace September.InGame.Kraken
 
         public override void FixedUpdateNetwork()
         {
+            if (!HasStateAuthority) return;
+
             if (OwnerPlayerRef.IsNone) return;
 
             if (_isGetOffRequested)
@@ -160,8 +162,6 @@ namespace September.InGame.Kraken
                 // 既に搭乗解除が要求されていたら新たに攻撃を出さない
                 return;
             }
-
-            if (!HasInputAuthority) return;
 
             if (GetInput<PlayerInput>(out var input))
             {
@@ -284,7 +284,7 @@ namespace September.InGame.Kraken
             if (HasStateAuthority) Runner.Despawn(Object);
         }
 
-        [Rpc(RpcSources.All, RpcTargets.All)]
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_Attack(Vector3 targetPosition)
         {
             Attack(targetPosition);
