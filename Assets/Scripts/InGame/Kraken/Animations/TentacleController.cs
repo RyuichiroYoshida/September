@@ -121,16 +121,18 @@ namespace September.InGame.Kraken.Animations
             alreadyHits.Add(hitCollider);
 
             IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
-            if (damageable != null)
-            {
-                HitData hitData = new()
-                {
-                    HitActionType = HitActionType.RangedDamage, Amount = _krakenSettings.Damage,
-                    ExecutorRef = _krakenSettings.OwnerPlayerRef, TargetRef = damageable.OwnerPlayerRef
-                };
+            if (damageable == null) return;
 
-                damageable.TakeHit(ref hitData);
-            }
+            // クラーケン搭乗中にクラーケン自身に攻撃が当たらないようにする。また、搭乗解除後にクラーケンを操作していたプレイヤーに攻撃が当たらないようにする。
+            if (damageable.OwnerPlayerRef == _krakenSettings.RecentOwnerPlayerRef) return;
+
+            HitData hitData = new()
+            {
+                HitActionType = HitActionType.RangedDamage, Amount = _krakenSettings.Damage,
+                ExecutorRef = _krakenSettings.RecentOwnerPlayerRef, TargetRef = damageable.OwnerPlayerRef
+            };
+
+            damageable.TakeHit(ref hitData);
         }
 
         public void LookAt(Vector3 target)
@@ -264,7 +266,7 @@ namespace September.InGame.Kraken.Animations
         public float EffectDistance = 5f;
         public int DefaultParticlePoolCapacity = 20;
 
-        [NonSerialized] public PlayerRef OwnerPlayerRef;
+        [NonSerialized] public PlayerRef RecentOwnerPlayerRef;
     }
 
     [Serializable]

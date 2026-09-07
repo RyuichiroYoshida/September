@@ -203,7 +203,7 @@ namespace September.InGame.Kraken
             _interactable.ForceSetInteractable = false;
 
             OwnerPlayerRef = owner;
-            _settings.OwnerPlayerRef = owner;
+            _settings.RecentOwnerPlayerRef = owner;
         }
 
         /// <summary>
@@ -237,7 +237,6 @@ namespace September.InGame.Kraken
             Object.RemoveInputAuthority();
 
             OwnerPlayerRef = default;
-            _settings.OwnerPlayerRef = default;
 
             Disappear().Forget();
         }
