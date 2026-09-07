@@ -35,6 +35,8 @@ namespace InGame.Player
         [SerializeField, Tooltip("最小高さ")] private float _minLedgeHeight;
         [SerializeField, Tooltip("最大奥行")] private float _maxLedgeDepth;
         [SerializeField] private float _reachDistance;
+        [SerializeField, Min(0f), Tooltip("停止・減速中でも乗り越え対象を検出する最低距離")]
+        private float _minimumVaultReachDistance = 0.5f;
         [SerializeField] private float _timeToVault;
         [SerializeField] private AnimationCurve _vaultCurve;
         [Header("Hook")]
@@ -521,15 +523,19 @@ namespace InGame.Player
                 return;
             }
 
+            Vector3 vaultDirection = new(moveDirection.x, 0f, moveDirection.y);
+            if (vaultDirection.sqrMagnitude <= Mathf.Epsilon)
+                vaultDirection = transform.forward;
+
             var p = new VaultParameter
             {
                 Position = transform.position,
-                moveDirection = new Vector3(moveDirection.x, 0, moveDirection.y),
+                moveDirection = vaultDirection,
 
                 capsuleRadius = _moveCapsuleCollider.radius,
                 capsuleHeight = _moveCapsuleCollider.height,
 
-                reachDistance = _reachDistance * GetSpeedOnPlane(),
+                reachDistance = Mathf.Max(_minimumVaultReachDistance, _reachDistance * GetSpeedOnPlane()),
 
                 maxLedgeHeight = _maxLedgeHeight,
                 minLedgeHeight = _minLedgeHeight,
