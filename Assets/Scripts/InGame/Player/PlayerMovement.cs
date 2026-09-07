@@ -164,12 +164,13 @@ namespace InGame.Player
                 _moveVelocity = followDirection * _hookPower;
             }
 
-            if (IgnoreMoveInput || IsHookLocked || IsEvading) moveInput = Vector2.zero;
+            bool isMoveInputLocked = IgnoreMoveInput || IsHookLocked;
+            if (isMoveInputLocked || IsEvading) moveInput = Vector2.zero;
 
             Vector2 moveDirection = GetMoveDirection(moveInput, cameraYaw);
 
             // set velocity
-            if (!IsEvading && isJump && HasStateAuthority) TryVault(moveDirection);
+            if (!isMoveInputLocked && !IsEvading && isJump && HasStateAuthority) TryVault(moveDirection);
 
             //回避 状態が Networked なので入力権限のみのクライアントでも予測し、再シミュレーションで補正される
             if (!IgnoreEvasionInput && IsGround && !DoingVault && isEvasion)
