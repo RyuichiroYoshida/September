@@ -451,22 +451,19 @@ namespace InGame.Player
         {
             if (!_knockBackActive)
             {
-                _rb.linearVelocity = _moveVelocity + _flyingVelocity;
-                NetworkVelocity = _moveVelocity + _flyingVelocity;
-            }
-            else
-            {
-                // 回避中は接地に依らず確定した水平移動を継続する (崖から踏み出した瞬間に回避が止まらないように)
-                var evasionVelocity = IsEvading ? _moveVelocity : Vector3.zero;
-                var linearVelocity = _flyingVelocity + evasionVelocity;
-                var networkVelocity = _flyingVelocity + evasionVelocity;
+                if (_isGround)
+                {
+                    _rb.linearVelocity = _moveVelocity + _flyingVelocity;
+                }
+                else
+                {
+                    _flyingMoveVelocity = Vector3.Lerp(_flyingMoveVelocity, Vector3.zero, _moveDumping * deltaTime);
 
-                linearVelocity.y = _rb.linearVelocity.y;
-                networkVelocity.y = NetworkVelocity.y;
-
+                    // 回避中は崖から踏み出しても確定した水平速度を維持する
+                    Vector3 horizontalVelocity = IsEvading ? _moveVelocity : _flyingMoveVelocity;
                     _rb.linearVelocity =
                         (_rb.useGravity ? _fallVelocity : Vector3.zero)
-                        + _flyingMoveVelocity
+                        + horizontalVelocity
                         + _flyingVelocity;
                 }
             }
