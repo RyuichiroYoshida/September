@@ -149,7 +149,7 @@ namespace September.InGame.Kraken
             if (_isGetOffRequested)
             {
                 // 搭乗解除が要求されたら現在出されている攻撃が全て終わるまで待機してから解除する
-                if (_tentacles.Arms.All(x => !x.IsAttacking))
+                if (_tentacles.Arms.All(x => !x.IsDismountLocked))
                 {
                     HandleGetOff(OwnerPlayerRef);
                 }

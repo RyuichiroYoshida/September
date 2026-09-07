@@ -4268,6 +4268,7 @@ MonoBehaviour:
     SlamEffect: {fileID: 6003807184151868501, guid: fa5746bd92107ca4b8b5f59d29d6aecf, type: 3}
     EffectDistance: 5
     DefaultParticlePoolCapacity: 100
+    DismountLockDuration: 5
 --- !u!114 &3240654230505181964
 MonoBehaviour:
   m_ObjectHideFlags: 0

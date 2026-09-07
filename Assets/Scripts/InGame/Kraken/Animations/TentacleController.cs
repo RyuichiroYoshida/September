@@ -4,6 +4,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
+using September.Common.Attribute;
 using September.InGame.Kraken.Attack;
 using UnityEngine;
 
@@ -34,6 +35,7 @@ namespace September.InGame.Kraken.Animations
             _armSettings.TentacleConstraintSolver.ResetState();
             _armSettings.IsAttacking = true;
             _armSettings.CollidedPoints.Clear();
+            _armSettings.IsDismountLocked = true; // 開始フレームで判定がすり抜けないようにフラグを立てておく
 
             // ローカルテスト用。実際のゲーム中では処理されない想定
             if (runner == null)
@@ -63,6 +65,7 @@ namespace September.InGame.Kraken.Animations
             UpdatePhysicsState(runner);
             UpdateArmAttackState(runner);
             UpdateAreaAttackState(runner);
+            UpdateIsAttackingState(runner);
         }
 
         private void UpdatePhysicsState(NetworkRunner runner)
@@ -97,6 +100,14 @@ namespace September.InGame.Kraken.Animations
             {
                 _armSettings.AreaHitCapsule.Cast();
             }
+        }
+
+        private void UpdateIsAttackingState(NetworkRunner runner)
+        {
+            int elapsedTick = runner.Tick - _armSettings.StartAttackTick;
+            int lockEndTick = (int)(_krakenSettings.DismountLockDuration * runner.TickRate);
+
+            _armSettings.IsDismountLocked = _armSettings.IsAttacking && elapsedTick < lockEndTick;
         }
 
         private void OnHitAction(HashSet<Collider> alreadyHits, Collider hitCollider)
@@ -167,6 +178,7 @@ namespace September.InGame.Kraken.Animations
             _armSettings.AlreadyHits.Clear();
             _armSettings.IsAttacking = false;
             _armSettings.EnablePhysics = false;
+            _armSettings.IsDismountLocked = false;
         }
 
         private static void OnPhysicalCollision(Vector3 hitPos, ArmSettings armSettings, KrakenSettings krakenSettings, Kraken kraken)
@@ -236,6 +248,8 @@ namespace September.InGame.Kraken.Animations
             get => _tentacleConstraintSolver.EnablePhysicsConstraint;
             set => _tentacleConstraintSolver.EnablePhysicsConstraint = value;
         }
+
+        public bool IsDismountLocked { get; set; }
     }
 
     [Serializable]
@@ -263,6 +277,18 @@ namespace September.InGame.Kraken.Animations
         public ParticleSystem SlamEffect;
         public float EffectDistance = 5f;
         public int DefaultParticlePoolCapacity = 20;
+
+        [Header("インタラクト解除設定")]
+        [Tooltip("（触手）搭乗解除を待機させる時間の長さ。攻撃開始時点から、この時間分は搭乗解除しないようにする。")]
+        [DynamicInfoBox(nameof(GetDismountLockDurationInfo))]
+        public float DismountLockDuration;
+
+        private string GetDismountLockDurationInfo()
+        {
+            return $"推奨値: {ArmEndTime}秒以上 (ArmEndTime基準)\n" +
+                   $"現在のArmEndTime: {ArmEndTime}秒\n" +
+                   $"現在の設定値: {DismountLockDuration}秒";
+        }
 
         [NonSerialized] public PlayerRef RecentOwnerPlayerRef;
     }
