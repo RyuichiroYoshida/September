@@ -482,6 +482,20 @@ namespace InGame.Player
             _setDirection = true;
         }
 
+        /// <summary>
+        /// プレイヤーを指定方向へ即座に回転させる
+        /// </summary>
+        public void SetRotationImmediately(Vector3 lookDirection)
+        {
+            lookDirection.y = 0f;
+            if (lookDirection.sqrMagnitude <= Mathf.Epsilon)
+                return;
+
+            _rotationDirection = lookDirection;
+            _setDirection = true;
+            _rb.rotation = Quaternion.LookRotation(lookDirection);
+        }
+
         /// <summary> 指定方向に回転する </summary>
         private void RotationByDirection(Vector3 direction, float deltaTime)
         {
