@@ -16,6 +16,7 @@ namespace September.Title
     {
         private const string NickNamePrompt = "プレイヤーの\n名前を決めてください";
         private const string NickNameRequiredMessage = "プレイヤー名を入力してください";
+        private const string TgsRoomName = "tgs2026";
 
         [Header("Create Lobby")]
         [SerializeField] TMP_InputField _createLobbyName;
@@ -37,6 +38,9 @@ namespace September.Title
         [SerializeField] TextMeshProUGUI _joinMessageText;
         [SerializeField] RoomErrorMessage _roomErrorMessage;
 
+        [Header("TGS")]
+        [SerializeField] bool _isTgsMode;
+
         private MapType[] _selectableMapTypes;
         private PendingLobbyOperation _pendingLobbyOperation;
         private string _pendingLobbyName;
@@ -51,6 +55,11 @@ namespace September.Title
             _selectableMapTypes = (MapType[])Enum.GetValues(typeof(MapType));
             InitializeMapTypeDropdown();
             UpdateSelectedMapText();
+
+            if (_isTgsMode)
+            {
+                SetTgsRoomName();
+            }
         }
 
         private void OnDestroy()
@@ -273,6 +282,12 @@ namespace September.Title
                 MapType.Pirate => "海賊船",
                 _ => mapType.ToString()
             };
+        }
+
+        private void SetTgsRoomName()
+        {
+            _createLobbyName.text = TgsRoomName;
+            _joinLobbyName.text = TgsRoomName;
         }
 
         private void ResetPendingLobbyEntry()
