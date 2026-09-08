@@ -36,8 +36,6 @@ namespace September.InGame.Kraken
         [Header("攻撃目標表示設定")]
         [Tooltip("視線の先に攻撃目標地点を表示するマーカー (ローカル表示のみ)")]
         [SerializeField] private KrakenAimMarker _aimMarker;
-        [Tooltip("視線の先に何も無かった場合に目標地点とする距離")]
-        [SerializeField] private float _aimFallbackDistance = 20f;
 
         [Header("インタラクト設定")]
         [SerializeField] private InteractableBase _interactable;
