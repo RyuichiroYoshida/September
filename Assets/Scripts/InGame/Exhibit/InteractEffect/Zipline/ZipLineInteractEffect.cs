@@ -68,6 +68,8 @@ namespace September
 
             _animator = _targetPlayerObject.GetComponentInChildren<Animator>();
             Trolley.transform.position = Spline.EvaluatePosition(0f);
+            // 乗車開始時はスプライン始点の接線方向から台車の向きを設定する。
+            FaceTravelDirection((Vector3)Spline.EvaluateTangent(0f));
             _timer = 0f;
             _currentState = State.Moving;
             MovePlayerToTrolley();
@@ -99,7 +101,8 @@ namespace September
             _timer += deltaTime;
             float t = Mathf.Clamp01(_timer / Duration);
             float evaluatedT = Mathf.Clamp01(SpeedCurve.Evaluate(t));
-            Trolley.transform.position = Spline.EvaluatePosition(evaluatedT);
+            // 速度カーブで求めたスプライン上の位置へ台車を進める。
+            MoveTrolley(evaluatedT);
             MovePlayerToTrolley();
 
             if (t >= 1f)
@@ -145,7 +148,8 @@ namespace September
             float t = Mathf.Clamp01(_timer / ReturnDuration);
 
             float evaluatedT = SpeedCurve.Evaluate(t);
-            Trolley.transform.position = Spline.EvaluatePosition(1f - evaluatedT);
+            // スプラインの終点から始点へ戻り、戻る方向に台車を向ける。
+            MoveTrolley(Mathf.Clamp01(1f - evaluatedT));
 
             if (t >= 1f)
             {
@@ -160,7 +164,26 @@ namespace September
             if (_targetPlayerObject == null) return;
             if (!_targetPlayerObject.HasStateAuthority) return;
             if (_targetPlayerObject.TryGetComponent(out PlayerMovement movement))
-                movement.TeleportImmediate(Trolley.transform.position + PlayerOffset);
+                // プレイヤー本体の位置と回転を台車に合わせて更新する。
+                movement.TeleportImmediate(Trolley.transform.position + PlayerOffset, Trolley.transform.rotation);
+        }
+
+        private void MoveTrolley(float splinePosition)
+        {
+            // スプライン上の座標を取得し、移動前の座標との差から進行方向を求める。
+            Vector3 position = Spline.EvaluatePosition(splinePosition);
+            Vector3 direction = position - Trolley.transform.position;
+            Trolley.transform.position = position;
+            // 座標の更新後、移動方向の水平成分へ向きを合わせる。
+            FaceTravelDirection(direction);
+        }
+
+        private void FaceTravelDirection(Vector3 direction)
+        {
+            // 高さの変化を除いた進行方向へ向ける。停止中・垂直移動中は直前の向きを保つ。
+            direction.y = 0f;
+            if (direction.sqrMagnitude > 0.000001f)
+                Trolley.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
 
         public override void OnInteractEnd()

@@ -7,6 +7,7 @@ using September.Common;
 using September.InGame.Common.Stats;
 using UniRx;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace InGame.Player
 {
@@ -622,9 +623,29 @@ namespace InGame.Player
             _teleportTarget = position;
         }
 
-        public void TeleportImmediate(Vector3 position)
+        // 指定位置へ移動する。回転が指定されている場合は向きも更新する。
+        public void TeleportImmediate(Vector3 position, Quaternion? rotation = null)
         {
-            transform.position = position;
+            if (TryGetComponent<Fusion.Addons.Physics.NetworkRigidbody3D>(out var networkBody))
+                // NetworkRigidbodyに位置と任意の回転を渡し、物理・同期状態へ反映する。
+                networkBody.Teleport(position, rotation);
+            else
+            {
+                _rb.position = position;
+                transform.position = position;
+                if (rotation.HasValue)
+                {
+                    // NetworkRigidbodyがない場合はRigidbodyとTransformの両方に回転を設定する。
+                    _rb.rotation = rotation.Value;
+                    transform.rotation = rotation.Value;
+                }
+            }
+            _teleportTarget = null;
+            _flyingVelocity = Vector3.zero;
+            _knockBackActive = false;
+            _isGround = false;
+            _isGroundTimer = 0f;
+            _rb.angularVelocity = Vector3.zero;
             _prevGroundedTime = Runner.SimulationTime;
             Stop();
         }
@@ -704,7 +725,7 @@ namespace InGame.Player
 
             Bounds bounds = _moveCapsuleCollider.bounds;
             Vector3 rayOrigin = new(bounds.center.x, bounds.min.y + GroundProbeOffset, bounds.center.z);
-            if (!Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit rayHit, probeDistance, _groundLayer)) return false;
+            if (!gameObject.scene.GetPhysicsScene().Raycast(rayOrigin, Vector3.down, out RaycastHit rayHit, probeDistance, _groundLayer)) return false;
             if (!IsWalkable(rayHit.normal)) return false;
 
             float radius = Mathf.Min(bounds.extents.x, bounds.extents.z);
@@ -724,7 +745,7 @@ namespace InGame.Player
             float radius = Mathf.Min(bounds.extents.x, bounds.extents.z);
             Vector3 sphereOrigin = new(bounds.center.x, bounds.min.y + radius + GroundProbeOffset, bounds.center.z);
 
-            if (!Physics.SphereCast(sphereOrigin, radius, Vector3.down, out RaycastHit sphereHit, probeDistance, _groundLayer)) return false;
+            if (!gameObject.scene.GetPhysicsScene().SphereCast(sphereOrigin, radius, Vector3.down, out RaycastHit sphereHit, probeDistance, _groundLayer)) return false;
             if (sphereHit.distance <= 0f || !IsWalkable(sphereHit.normal)) return false;
 
             float expectedContactHeight = bounds.min.y + radius * (1f - sphereHit.normal.y);

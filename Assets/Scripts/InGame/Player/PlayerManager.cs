@@ -42,6 +42,8 @@ namespace InGame.Player
         private Transform _rideVisualTarget;
         private Vector3 _rideVisualOffset;
         private Vector3 _savedMeshLocalPosition;
+        private Quaternion _savedMeshLocalRotation;
+        private Quaternion _rideMeshRotationOffset;
         private Vector3 _rideMeshWorldOffset;
         private bool _rideViewActive;
 
@@ -57,6 +59,9 @@ namespace InGame.Player
             if (_meshObj != null && _meshObj.transform != transform)
             {
                 _savedMeshLocalPosition = _meshObj.transform.localPosition;
+                _savedMeshLocalRotation = _meshObj.transform.localRotation;
+                // プレイヤー本体に対するモデルの相対回転を保存する。
+                _rideMeshRotationOffset = Quaternion.Inverse(transform.rotation) * _meshObj.transform.rotation;
                 _rideMeshWorldOffset = _meshObj.transform.position - transform.position;
             }
             if (HasInputAuthority && _cameraController != null)
@@ -70,7 +75,11 @@ namespace InGame.Player
             _rideViewActive = false;
             _rideVisualTarget = null;
             if (_meshObj != null && _meshObj.transform != transform)
+            {
                 _meshObj.transform.localPosition = _savedMeshLocalPosition;
+                // 乗車中の回転追従を終了し、モデルのローカル回転を乗車前の値へ戻す。
+                _meshObj.transform.localRotation = _savedMeshLocalRotation;
+            }
             if (HasInputAuthority && _cameraController != null) _cameraController.EndRideView();
         }
         private RigidbodyConstraints _defaultConstraints;
@@ -152,37 +161,12 @@ namespace InGame.Player
             {
                 if (_rideVisualTarget == null) EndRideView();
                 else if (_meshObj != null && _meshObj.transform != transform)
+                {
                     _meshObj.transform.position = _rideVisualTarget.position + _rideVisualOffset + _rideMeshWorldOffset;
+                    // モデル固有の向きの補正を保ち、台車の水平回転に合わせる。
+                    _meshObj.transform.rotation = _rideVisualTarget.rotation * _rideMeshRotationOffset;
+                }
             }
-            // if (_animationClipPlayer)
-            // {
-            //     var maxSpeed = _playerMovement.DashMoveSpeed;
-            //     var walkSpeed = _playerMovement.WalkSpeed;
-            //     var moveSpeed = _playerMovement._moveVelocity.magnitude;
-            //     var weight = 0f;
-            //     if (moveSpeed <= walkSpeed)
-            //     {
-            //         // 0..Walk -> 0..1
-            //         weight = Mathf.InverseLerp(0f, walkSpeed, moveSpeed);
-            //     }
-            //     else
-            //     {
-            //         // Walk..Max -> 1..2
-            //         weight = Mathf.InverseLerp(walkSpeed, maxSpeed, moveSpeed) + 1f;
-            //     }
-            //     
-            //     _animationClipPlayer.SetLocoWeight(weight);
-            //     
-            //     switch ()
-            //     {
-            //         case false when _playerMovement.DoingVault:
-            //             _animationClipPlayer.SetTopPriorityClip(true);
-            //             break;
-            //         case true when !_playerMovement.DoingVault:
-            //             _animationClipPlayer.SetTopPriorityClip(false);
-            //             break;
-            //     }
-            // }
 
             // Localでの処理にInputを送る
             if (HasInputAuthority)
@@ -221,9 +205,8 @@ namespace InGame.Player
                         input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Evasion), Runner.DeltaTime);
                 }
 
-                // 通常操作中のみ接地判定・落下速度・移動速度を更新する。
-                // Original: _playerMovement.MoveTick(Runner.DeltaTime);
-                if (CurrentPlayerControlState == PlayerControlState.Normal)
+                // ジップライン乗車中は台車に移動を任せ、それ以外は接地・落下・速度を更新する。
+                if (!_rideViewActive)
                     _playerMovement.MoveTick(Runner.DeltaTime);
 
                 if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Warp))
@@ -233,10 +216,9 @@ namespace InGame.Player
             }
             else if (HasStateAuthority)
             {
-                // Original: MoveTick was only called when an input packet was available.
                 // Ground probing and gravity must also run while input is missing.
-                // Original: _playerMovement.MoveTick(Runner.DeltaTime);
-                if (CurrentPlayerControlState == PlayerControlState.Normal)
+                // 入力がない場合も、ジップライン乗車中以外はホスト側で移動更新を継続する。
+                if (!_rideViewActive)
                     _playerMovement.MoveTick(Runner.DeltaTime);
             }
 
