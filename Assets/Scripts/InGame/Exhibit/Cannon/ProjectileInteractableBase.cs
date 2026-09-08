@@ -30,7 +30,7 @@ namespace September.InGame.Exhibit
 		protected IProjectileMovement _move;
 		protected PlayerManager _usingPlayer;
 		private AnimationClipPlayer _animationClipPlayer;
-		public event Action<int> OnAmmoChanged;
+		public event Action<int, float> OnAmmoChanged;
 
 		[Networked] private NetworkButtons _attackButton { get; set; }
 		[Networked] protected PlayerRef CurrentUsePlayerRef { get; set; }
@@ -111,6 +111,8 @@ namespace September.InGame.Exhibit
 			if (!_usingPlayer) return;
 			GetPlayerAnimatorClipPlayer(_usingPlayer);
 			PlayerActive(false);
+			
+			// モジュール関連の初期化
 			_move.InitializeStateAuthority(_usingPlayer.Object, playerRef);
 			FireBulletController.Init();
 			CurrentAmmo = FireBulletController.CurrentAmmo;
@@ -196,6 +198,11 @@ namespace September.InGame.Exhibit
 				{
 					animationClipPlayerManager.EnableFallMotion = isActive;
 				}
+
+				if (_usingPlayer.TryGetComponent(out Rigidbody rb))
+				{
+					rb.useGravity = isActive;
+				}
 			}
 		}
 
@@ -259,7 +266,7 @@ namespace September.InGame.Exhibit
 
 		private void AmmoChanged()
 		{
-			OnAmmoChanged?.Invoke(CurrentAmmo);
+			OnAmmoChanged?.Invoke(CurrentAmmo, LastFireTimer.RemainingTime(Runner) ?? 0f);
 		}
 
 		#region Helper
@@ -267,7 +274,7 @@ namespace September.InGame.Exhibit
 		[Rpc(RpcSources.All, RpcTargets.All)]
 		private void RPC_SetCameraPriority(PlayerRef playerRef, int priority)
 		{
-			if (Runner.LocalPlayer != playerRef) return;
+			if (Runner.LocalPlayer != playerRef || _cameraController == null) return;
 			_cameraController.Priority = priority;
 			_cameraController.MoveToTopOfPrioritySubqueue();
 		}

@@ -37,13 +37,14 @@ namespace September.InGame.Exhibit
 			public Vector3 CurrentForward;
 			public Vector3 Gravity;
 			public float Timer;
+			public float LifeTime;
 			public NetworkBool HasHit;
 		}
 
 		public override void Spawned()
 		{
 			base.Spawned();
-			_projectileHitEffect.Initialize();
+			_projectileHitEffect.Initialize(Runner);
 			_linePositions = new Vector3[(int)(_lifeTime / _simulationStepTime)];
 			_effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
 		}
@@ -60,8 +61,10 @@ namespace September.InGame.Exhibit
 				CurrentPosition = _projectileSpawnPoint.position,
 				Gravity = _gravity,
 				Timer = 0f,
+				LifeTime = _lifeTime,
 				HasHit = false
 			};
+			
 
 			Runner.Spawn(_projectilePrefab, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation,
 				onBeforeSpawned: (runner, obj) =>
@@ -143,7 +146,7 @@ namespace September.InGame.Exhibit
 
 	public interface IProjectileHitEffect
 	{
-		void Initialize();
+		void Initialize(NetworkRunner runner);
 
 		/// <summary>
 		///     ProjectileHit時に呼ばれるサーバ上でのゲームロジック処理

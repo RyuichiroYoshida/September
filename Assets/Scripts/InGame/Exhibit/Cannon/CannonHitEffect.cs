@@ -18,7 +18,7 @@ namespace September.InGame.Exhibit
 		[SerializeField] private LayerMask _hitLayer;
 		private ParticleSystem _explosionParticle;
 
-		public void Initialize()
+		public void Initialize(NetworkRunner runner)
 		{
 			_explosionParticle = Object.Instantiate(_explosionParticlePrefab);
 			_explosionParticle.Stop();

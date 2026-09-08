@@ -12,7 +12,7 @@ namespace September.InGame.Exhibit
 		[SerializeField] private EffectType _effectType;
 		private EffectSpawner _spawner;
 
-		public void Initialize()
+		public void Initialize(NetworkRunner runner)
 		{
 			_spawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
 		}
