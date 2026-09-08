@@ -30,6 +30,8 @@ namespace September.Lobby
         [Networked, HideInInspector]
         public MapType SelectedMapType { get; private set; } = MapType.Pirate;
 
+        PlayerDatabase _playerDatabase;
+
         public override async void Spawned()
         {
             if (HasStateAuthority)
@@ -39,31 +41,49 @@ namespace September.Lobby
 
             _roomNameText.text = Runner.SessionInfo.Name;
             Runner.AddCallbacks(this);
-            foreach (var kv in PlayerDatabase.Instance.PlayerDataDic)
+
+            _playerDatabase = await WaitForPlayerDatabaseAsync();
+            if (_playerDatabase == null) return;
+
+            foreach (var kv in _playerDatabase.PlayerDataDic)
             {
                 AddContents(kv.Key);
             }
             AddContents(Runner.LocalPlayer);
-            PlayerDatabase.Instance.AddPlayerData(Runner.LocalPlayer);
+            _playerDatabase.AddPlayerData(Runner.LocalPlayer);
             _readyButton.onClick.AddListener(() => Rpc_ToggleReady(Runner.LocalPlayer));
             _quitButton.onClick.AddListener(() => NetworkManager.Instance.QuitLobby().Forget());
 
             if (HasStateAuthority)
             {
-                _addBotButton.onClick.AddListener(() => PlayerDatabase.Instance.AddBotData());
+                _addBotButton.onClick.AddListener(() => _playerDatabase.AddBotData());
             }
             _addBotButton.gameObject.SetActive(HasStateAuthority);
 
-            PlayerDatabase.Instance.ChangedDataAction += ChangeLobbyPlayerUI;
+            _playerDatabase.ChangedDataAction += ChangeLobbyPlayerUI;
             OnChangedIsReady();
 
-            PlayerDatabase.Instance.OnBotJoin.Subscribe(x => OnBotJoined(x)).AddTo(this);
-            PlayerDatabase.Instance.OnBotLeft.Subscribe(x => OnBotLeft(x)).AddTo(this);
+            _playerDatabase.OnBotJoin.Subscribe(x => OnBotJoined(x)).AddTo(this);
+            _playerDatabase.OnBotLeft.Subscribe(x => OnBotLeft(x)).AddTo(this);
         }
+
+        async UniTask<PlayerDatabase> WaitForPlayerDatabaseAsync()
+        {
+            await UniTask.WaitUntil(() =>
+                PlayerDatabase.Instance != null
+                && PlayerDatabase.Instance.Runner == Runner
+                && PlayerDatabase.Instance.Object != null
+                && PlayerDatabase.Instance.Object.IsValid,
+                cancellationToken: this.GetCancellationTokenOnDestroy());
+
+            return PlayerDatabase.Instance;
+        }
+
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             Runner.RemoveCallbacks(this);
-            PlayerDatabase.Instance.ChangedDataAction -= ChangeLobbyPlayerUI;
+            if (_playerDatabase != null)
+                _playerDatabase.ChangedDataAction -= ChangeLobbyPlayerUI;
         }
 
         private void OnChangedIsReady()
@@ -76,7 +96,9 @@ namespace September.Lobby
                 value.IsReadyImage.enabled = kv.Value;
             }
             //  全員準備完了ならゲームを開始する
-            if (isReadyCount == PlayerDatabase.Instance.PlayerDataDic.Count && HasStateAuthority)
+            if (_playerDatabase == null || !_playerDatabase.Object.IsValid) return;
+
+            if (isReadyCount == _playerDatabase.PlayerDataDic.Count && HasStateAuthority)
             {
                 DelayStartGame(0.5f).Forget();
                 RPC_Fade();
@@ -143,7 +165,8 @@ namespace September.Lobby
             _lobbyPlayerUIDic.Remove(player);
             if (HasStateAuthority)
             {
-                PlayerDatabase.Instance.PlayerDataDic.Remove(player);
+                if (_playerDatabase != null && _playerDatabase.Object.IsValid)
+                    _playerDatabase.PlayerDataDic.Remove(player);
                 PlayerIsReadyDic.Remove(player);
             }
         }
@@ -172,7 +195,7 @@ namespace September.Lobby
                 {
                     RectTransform rect = value.CharacterChangeButton.GetComponent<RectTransform>();
                     value.CharacterChangeButton.onClick.AddListener(() => { _botCharacterSelect.ShowPanel(playerRef, value.BotRemoveButton.transform.position); });
-                    value.BotRemoveButton.onClick.AddListener(() => PlayerDatabase.Instance.RemoveBotData(playerRef));
+                    value.BotRemoveButton.onClick.AddListener(() => _playerDatabase.RemoveBotData(playerRef));
                 }
             }
         }
