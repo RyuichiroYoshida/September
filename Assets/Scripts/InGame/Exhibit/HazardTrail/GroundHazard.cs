@@ -12,14 +12,12 @@ namespace InGame.Exhibit.HazardTrail
         [SerializeField] private float _lifetime = 3.0f;
 
         [Networked] private TickTimer LifeTimer { get; set; }
-        [Networked] private Vector3 SpawnPosition { get; set; }
         [Networked] public PlayerRef OwnerPlayerRef { get; private set; }
         private IHazardEffect[] _effects;
 
         public void Initialize(PlayerRef owner,Vector3 position)
         {
             OwnerPlayerRef = owner;
-            SpawnPosition = position;
             transform.position = position;
             LifeTimer = TickTimer.CreateFromSeconds(Runner, _lifetime);
         }
@@ -27,14 +25,12 @@ namespace InGame.Exhibit.HazardTrail
         public override void Spawned()
         {
             _effects = GetComponentsInChildren<IHazardEffect>();
-            transform.position = SpawnPosition;
 
-            if (_effects != null)
+            if (!HasStateAuthority) return;
+
+            foreach (var effect in _effects)
             {
-                foreach (var effect in _effects)
-                {
-                    effect.OnHazardSpawn(Runner, OwnerPlayerRef);
-                }
+                effect.OnHazardSpawn(Runner, OwnerPlayerRef);
             }
         }
 

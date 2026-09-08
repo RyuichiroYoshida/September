@@ -23,7 +23,7 @@ namespace InGame.Exhibit.HazardTrail
         [SerializeField] private float _damageInterval = 1f;
 
         [Header("ハザード演出エフェクト")]
-        [SerializeField] private bool _useHazardEffect = true;
+
         [SerializeField] private EffectType _hazardEffectType = EffectType.CandleAura;
         [SerializeField] private Vector3 _hazardEffectOffset = Vector3.zero;
         [SerializeField] private Vector3 _hazardEffectScale = Vector3.one;
@@ -31,13 +31,13 @@ namespace InGame.Exhibit.HazardTrail
         private TickTimer _attackTimer;
         private EffectSpawner EffectSpawner => StaticServiceLocator.Instance.Get<EffectSpawner>();
         private EffectID _activeEffectId;
-        private bool _hasStartedEffect;
 
         private readonly Collider[] _hitColliders = new Collider[10];
         private readonly HashSet<IDamageable> _damagedTargets = new HashSet<IDamageable>();
 
         public void OnHazardSpawn(NetworkRunner runner, PlayerRef owner)
         {
+
             PlayHazardEffect();
         }
 
@@ -49,23 +49,27 @@ namespace InGame.Exhibit.HazardTrail
             Vector3 center = transform.position + _offset;
             int hitCount = Physics.OverlapSphereNonAlloc(center, _radius, _hitColliders, _targetLayer);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 攻撃判定が発生した瞬間にデバッグ描画
+            HitboxDebugUtility.DrawWireSphere(center, _radius, Color.red, _damageInterval);
+#endif
+
             _damagedTargets.Clear();
 
             for (int i = 0; i < hitCount; i++)
             {
                 var hit = _hitColliders[i];
                 if (hit == null) continue;
-                var root = hit.transform.root;
-                if (!root.TryGetComponent<IDamageable>(out var damageable)) continue;
-                if (damageable.OwnerPlayerRef == owner) continue;
-                // 同一キャラの複数コライダーによる重複ヒットを防止
-                if (_damagedTargets.Add(damageable))
+                if (hit.GetComponentInParent<IDamageable>() is IDamageable damageable && damageable.OwnerPlayerRef != owner)
                 {
-                    var hitData = new HitData(HitActionType.Damage, _damage, owner, damageable.OwnerPlayerRef);
-                    damageable.TakeHit(ref hitData);
+                    // 同一キャラの複数コライダーによる重複ヒットを防止
+                    if (_damagedTargets.Add(damageable))
+                    {
+                        var hitData = new HitData(HitActionType.Damage, _damage, owner, damageable.OwnerPlayerRef);
+                        damageable.TakeHit(ref hitData);
+                    }
                 }
             }
-
             // タイマー再設定
             _attackTimer = TickTimer.CreateFromSeconds(runner, _damageInterval);
         }
@@ -75,31 +79,31 @@ namespace InGame.Exhibit.HazardTrail
             StopHazardEffect();
         }
 
+        private void OnDestroy()
+        {
+            StopHazardEffect();
+        }
+
         private void PlayHazardEffect()
         {
-            if (!_useHazardEffect || _hasStartedEffect || EffectSpawner == null) return;
+            if (_hazardEffectType == EffectType.None || _activeEffectId.IsValid || EffectSpawner == null) return;
             _activeEffectId = EffectSpawner.RequestPlayLoopEffect(
             _hazardEffectType,
             transform.position + _hazardEffectOffset,
             Quaternion.identity,
             _hazardEffectScale
             );
-            _hasStartedEffect = true;
         }
 
         private void StopHazardEffect()
         {
             if (_activeEffectId.IsValid && EffectSpawner != null)
             {
-                EffectSpawner.StopEffect(_activeEffectId);
+                EffectSpawner.StopEffectGradually(_activeEffectId);
                 _activeEffectId = default;
             }
         }
 
-        private void OnDestroy()
-        {
-            StopHazardEffect();
-        }
 
 #if UNITY_EDITOR
         // エディタ上で判定範囲を可視化

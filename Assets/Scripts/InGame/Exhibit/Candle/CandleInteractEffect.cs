@@ -17,7 +17,7 @@ namespace InGame.Exhibit.Candle
             var invoker = _invoker;
             if (invoker != null)
             {
-                invoker.Rpc_StartAttack(context.Interactor);
+                invoker.StartAttack(context.Interactor);
             }
             else
             {

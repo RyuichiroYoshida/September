@@ -78,14 +78,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5fd26f0c3235cb4c8d9eec3dbea7f9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _radius: 1.2
+  _radius: 1
   _offset: {x: 0, y: 0.5, z: 0}
   _targetLayer:
     serializedVersion: 2
     m_Bits: 64
   _damage: 1
   _damageInterval: 1
-  _useHazardEffect: 1
   _hazardEffectType: 34
   _hazardEffectOffset: {x: 0, y: 0, z: 0}
-  _hazardEffectScale: {x: 1.5, y: 1.5, z: 1.5}
+  _hazardEffectScale: {x: 0.8, y: 0.8, z: 0.8}

@@ -20,7 +20,9 @@ namespace InGame.Exhibit.HazardTrail
         private TickTimer _intervalTimer;
         private bool _isEmitting;
 
-
+        /// <summary>
+        /// 追従対象と所有者を設定し、ハザード生成を開始。
+        /// </summary>
         public void StartEmitting(Transform targetTransform, PlayerRef owner)
         {
             _targetTransform = targetTransform;
@@ -29,18 +31,22 @@ namespace InGame.Exhibit.HazardTrail
             _intervalTimer = TickTimer.CreateFromSeconds(Runner, _minTimeInterval);
             _isEmitting = true;
         }
-
-
+        /// <summary>
+        /// ハザード生成を停止し、追従対象の参照をクリア。
+        /// </summary>
         public void StopEmitting()
         {
             _isEmitting = false;
             _targetTransform = null;
             _currentOwner = PlayerRef.None;
         }
-
+        /// <summary>
+        /// 移動距離と経過時間から条件を満たした場合にハザードを生成。
+        /// </summary>
         public void UpdateEmitter()
         {
-            if (!_isEmitting || _targetTransform == null || !HasStateAuthority) return;
+            if (!_isEmitting || _targetTransform == null) return;
+            // 直近の生成位置からの移動距離と、次回生成までのクールタイムを確認
             float dist = Vector3.Distance(_targetTransform.position, _lastSpawnPos);
             bool timePassed = _intervalTimer.ExpiredOrNotRunning(Runner);
 
@@ -51,13 +57,24 @@ namespace InGame.Exhibit.HazardTrail
                 _intervalTimer = TickTimer.CreateFromSeconds(Runner, _minTimeInterval);
             }
         }
+        /// <summary>
+        /// 指定位置にネットワークハザードオブジェクトをスポーンし、初期化。
+        /// </summary>
         private void SpawnHazard(Vector3 position)
         {
-            var netObj = Runner.Spawn(_hazardPrefab, position, Quaternion.identity, _currentOwner);
-            if (netObj != null && netObj.TryGetComponent<GroundHazard>(out var hazard))
-            {
-                hazard.Initialize(_currentOwner, position);
-            }
+            Runner.Spawn(
+                _hazardPrefab,
+                position,
+                Quaternion.identity,
+                _currentOwner,
+                (runner, obj) =>
+                {
+                    if (obj.TryGetComponent<GroundHazard>(out var hazard))
+                    {
+                        hazard.Initialize(_currentOwner, position);
+                    }
+                }
+            );
         }
     }
 }

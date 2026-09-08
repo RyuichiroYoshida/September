@@ -66,8 +66,7 @@ namespace InGame.Exhibit.Candle
             }
         }
 
-        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        public void Rpc_StartAttack(int interactor)
+        public void StartAttack(int interactor)
         {
             if (!_currentOwner.IsNone) return;
             var playerRef = PlayerRef.FromEncoded(interactor);
@@ -108,6 +107,12 @@ namespace InGame.Exhibit.Candle
             Vector3 center = _targetTransform.position + _auraOffset;
             int hitCount = Physics.OverlapSphereNonAlloc(center, _attackRadius, _hitColliders, _targetLayer);
             _damagedTargets.Clear();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 攻撃判定が発生した瞬間にデバッグ描画
+            HitboxDebugUtility.DrawWireSphere(center, _attackRadius, Color.red, _auraInterval);
+#endif
+
             for (int i = 0; i < hitCount; i++)
             {
                 var col = _hitColliders[i];
@@ -129,7 +134,7 @@ namespace InGame.Exhibit.Candle
         {
             if (_currentOwner.IsNone) return;
 
-            EffectSpawner?.StopEffect(_currentEffectId);
+            EffectSpawner?.StopEffectGradually(_currentEffectId);
             _trailEmitter?.StopEmitting();
 
             _currentOwner = PlayerRef.None;

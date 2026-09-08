@@ -36,7 +36,7 @@ namespace InGame.Interact
         /// <summary>キャラクタータイプごとのインタラクト効果リスト</summary>
         [SerializeReference, SubclassSelector] private List<CharacterInteractEffectBase> _characterEffects = new();
 
-        /// <summary>この展示物のタイプ</summary>
+        /// <summary>この展示物のタイプ</summary>F
         [SerializeField] private ExhibitType _type;
         /// <summary>インタラクトエフェクトの位置オフセット</summary>
         [SerializeField] private Vector3 _interactEffectOffset = Vector3.zero;
@@ -203,8 +203,8 @@ namespace InGame.Interact
             // クールダウン終了待機
             await UniTask.WaitUntil(this, s => !s.IsInCooldown(), cancellationToken: this.GetCancellationTokenOnDestroy());
 
-            // エフェクトを停止
-            effectSpawner.StopEffect(effectId);
+            // エフェクトをフェードアウトさせて停止
+            effectSpawner.StopEffectGradually(effectId);
 
             // クールダウン回復音を全クライアントで再生
             Rpc_PlaySE(SoundCues.SE.Exhibit_Revive.Sheet, SoundCues.SE.Exhibit_Revive.Name, effectTransform.position);
