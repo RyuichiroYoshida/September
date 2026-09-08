@@ -36,17 +36,36 @@ namespace September.Editor.HumanoidRig
 
         private static bool CheckAvatar(string assetPath, ModelImporter importer, HumanoidRigReport report)
         {
-            var avatar = AssetDatabase.LoadAssetAtPath<Avatar>(assetPath);
-            if (avatar == null || !avatar.isValid)
+            bool copied = importer.avatarSetup == ModelImporterAvatarSetup.CopyFromOther;
+            var avatar = ModelAvatarResolver.Resolve(assetPath, importer);
+
+            // Copy From Other Avatar のモデルは Avatar サブアセットを持たない。
+            // コピー元 Avatar を実効 Avatar として判定する。
+            if (avatar == null)
             {
+                if (copied)
+                {
+                    report.Add(HumanoidRigIssue.AvatarSourceMissing, "Copy From Other Avatar だがコピー元 Avatar が未設定");
+                    return false;
+                }
                 report.Add(HumanoidRigIssue.AvatarInvalid, "Avatar が生成されていないか無効");
                 AddMissingRequired(importer, report);
                 return false;
             }
+
+            if (!avatar.isValid)
+            {
+                report.Add(HumanoidRigIssue.AvatarInvalid,
+                    copied ? $"コピー元 Avatar が無効: {avatar.name}" : "Avatar が生成されていないか無効");
+                if (!copied) AddMissingRequired(importer, report);
+                return false;
+            }
+
             if (!avatar.isHuman)
             {
-                report.Add(HumanoidRigIssue.AvatarNotHuman, "Avatar が Humanoid として成立していない");
-                AddMissingRequired(importer, report);
+                report.Add(HumanoidRigIssue.AvatarNotHuman,
+                    copied ? $"コピー元 Avatar が Humanoid ではない: {avatar.name}" : "Avatar が Humanoid として成立していない");
+                if (!copied) AddMissingRequired(importer, report);
                 return false;
             }
             return true;

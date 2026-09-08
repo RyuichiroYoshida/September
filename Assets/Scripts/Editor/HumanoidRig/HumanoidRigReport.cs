@@ -10,6 +10,7 @@ namespace September.Editor.HumanoidRig
         NotHumanoid,
         AvatarInvalid,
         AvatarNotHuman,
+        AvatarSourceMissing,
         MissingRequiredBones,
         PoseInvalid,
         PoseUnknown,
