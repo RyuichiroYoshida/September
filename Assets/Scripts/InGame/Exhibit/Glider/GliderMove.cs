@@ -24,13 +24,14 @@ namespace September.InGame.Exhibit
 		[Header("傾きアニメーション設定")] [SerializeField]
 		private float _playerTiltAngle = 45f;
 
+		[SerializeField] private float _rotateSpeed = 50f;
+
 		private Vector3 _startPos;
-		private Quaternion _startRot;
 		private CameraController _cameraController;
-		private float _startTime;
-		[Networked] public bool IsFinished { get; private set; }
+		[Networked,HideInInspector] public bool IsFinished { get; private set; }
 		[Networked] private PlayerManager Player { get; set; }
 		[Networked] private Vector3 Velocity { get; set; }
+		[Networked] private Vector2 MoveDirection { get; set; }
 
 		public override void Spawned()
 		{
@@ -38,15 +39,14 @@ namespace September.InGame.Exhibit
 			_cameraController = GetComponent<CameraController>();
 			_cameraController.Init(true);
 			_startPos = _rb.position;
-			_startRot = _rb.rotation;
-			if(HasStateAuthority)
+			if (HasStateAuthority)
 				GliderInit();
 		}
 
 		void IProjectileMovement.Render()
 		{
 			base.Render();
-			PlayTiltAnimation(Velocity);
+			PlayTiltAnimation(Velocity, MoveDirection);
 
 			if (HasInputAuthority)
 			{
@@ -62,21 +62,18 @@ namespace September.InGame.Exhibit
 		public void InitializeStateAuthority(NetworkObject playerObject, PlayerRef playerRef)
 		{
 			GliderInit();
-			_startTime = Runner.Tick;
 			IsFinished = false;
 
 			Player = playerObject.GetComponent<PlayerManager>();
-			if (Player.TryGetComponent(out PlayerMovement playerMovement))
-			{
-				playerMovement.UseGravity = false;
-			}
+			if (Player.TryGetComponent(out PlayerMovement playerMovement)) playerMovement.UseGravity = false;
+			RPC_SetActive(true);
 		}
 
 		private void GliderInit()
 		{
 			_rb.position = _startPos;
-			_rb.rotation = _startRot;
-			
+			_rb.rotation = Quaternion.identity;
+
 			_rb.linearVelocity = Vector3.zero;
 			_rb.angularVelocity = Vector3.zero;
 		}
@@ -89,8 +86,8 @@ namespace September.InGame.Exhibit
 				IsFinished = true;
 				return;
 			}
-
-			var velocity = SetVelocity(_rb.linearVelocity, input.MoveDirection, input.CameraYaw);
+			var velocity = SetVelocity(_rb.linearVelocity, input.MoveDirection,
+				input.DesiredLookDirection);
 			_rb.linearVelocity = velocity;
 			SetPlayerPos();
 
@@ -99,6 +96,8 @@ namespace September.InGame.Exhibit
 
 			if (HasStateAuthority)
 			{
+				var dir = Quaternion.LookRotation(input.DesiredLookDirection) * input.MoveDirection;
+				MoveDirection = new Vector2(dir.x, dir.z);
 				Velocity = velocity;
 			}
 		}
@@ -108,31 +107,29 @@ namespace September.InGame.Exhibit
 			GliderInit();
 
 			IsFinished = true;
-			
-			if(!Player) return;
-			
-			if(Player.TryGetComponent(out Rigidbody playerRb))
+
+			if (!Player) return;
+
+			if (Player.TryGetComponent(out Rigidbody playerRb))
 			{
 				playerRb.linearVelocity = Vector3.zero;
 				playerRb.angularVelocity = Vector3.zero;
 			}
 
-			if (Player.TryGetComponent(out PlayerMovement playerMovement))
-			{
-				playerMovement.UseGravity = true;
-			}
-			
+			if (Player.TryGetComponent(out PlayerMovement playerMovement)) playerMovement.UseGravity = true;
+
 			Player.transform.rotation = Quaternion.identity;
 			Player = null;
 			RPC_SetActive(false);
 		}
 
-		private Vector3 SetVelocity(Vector3 velocity, Vector2 input, float cameraYaw)
-		{
-			var yawRotation = Quaternion.Euler(0f, cameraYaw, 0f);
+		private Vector3 SetVelocity(Vector3 velocity, Vector2 input, Vector3 cameraForward)
+		{   
+			cameraForward.y = 0f;
+			
+			// cameraForwardを+90度回転させたものがcameraRight
+			var cameraRight = new Vector3(cameraForward.z, 0f, -cameraForward.x);
 
-			var cameraForward = yawRotation * Vector3.forward;
-			var cameraRight = yawRotation * Vector3.right;
 			var inputDirection = cameraForward * input.y + cameraRight * input.x;
 			var targetVelocity = inputDirection.normalized * _maxSpeed;
 			velocity = Vector3.MoveTowards(velocity, targetVelocity, _acceleration * Time.fixedDeltaTime);
@@ -153,19 +150,24 @@ namespace September.InGame.Exhibit
 			_camera.rotation = _cameraPos.rotation;
 		}
 
-		private void PlayTiltAnimation(Vector3 velocity)
+		private void PlayTiltAnimation(Vector3 velocity, Vector2 moveDirection)
 		{
-			// 移動方向に回転を合わせる
+			var moveDri = new Vector3(moveDirection.x, 0f, moveDirection.y).normalized;
 			velocity.y = 0;
-			if (velocity.sqrMagnitude < 0.001f)
+
+			// 回転方向の基準はmoveDirection(入力)を優先。
+			// 入力が無い(≒moveDirectionがほぼ0)場合は、velocityの向きにフォールバック
+			var rotationSource = moveDri.sqrMagnitude >= 0.001f ? moveDri : velocity;
+			if (rotationSource.sqrMagnitude < 0.001f)
 				return;
+
 			var targetY =
-				Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
+				Mathf.Atan2(rotationSource.x, rotationSource.z) * Mathf.Rad2Deg;
 			var currentY = _controlObject.localEulerAngles.y;
 			var nextY = Mathf.MoveTowardsAngle(
 				currentY,
 				targetY,
-				50 * Time.fixedDeltaTime
+				_rotateSpeed * Time.fixedDeltaTime
 			);
 
 			var yawRotate = Quaternion.Euler(0, nextY, 0);

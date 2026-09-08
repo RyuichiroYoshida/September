@@ -10,8 +10,7 @@ namespace September
 		{
 			base.FixedUpdateNetwork();
 			if (CurrentUsePlayerRef.IsNone) return;
-			if(!HasStateAuthority) return;
-			Debug.Log($"GliderInteractable FixedUpdateNetwork CurrentUsePlayerRef: {CurrentUsePlayerRef}");
+			if(!HasStateAuthority) return; 
 			if (_move is GliderMove move && move.IsFinished) InteractEnd();
 		}
 	}

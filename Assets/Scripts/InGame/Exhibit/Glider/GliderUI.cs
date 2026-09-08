@@ -2,12 +2,13 @@ using Cysharp.Threading.Tasks;
 using September.InGame.Exhibit;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace September.InGame.Exhibit
 {
 	public class GliderUI : ProjectileAmmoViewBase
 	{
-		[SerializeField] private TMP_Text _ammoUI;
+		[SerializeField] private Image _coolTimeImage;
 		public override void UpdateAmmo(int ammo, float coolTime)
 		{
 			ReloadUiAnim(ammo, coolTime).Forget();
@@ -21,11 +22,9 @@ namespace September.InGame.Exhibit
 				{
 					await UniTask.WaitForFixedUpdate();
 					coolTime -= Time.fixedDeltaTime;
-					_ammoUI.text = $"{ammo} Reloading... {coolTime}";
+					_coolTimeImage.fillAmount = 1 - coolTime;
 				}
 			}
-
-			_ammoUI.text = $"{ammo} Fire Ready!";
 		}
 	}
 }
