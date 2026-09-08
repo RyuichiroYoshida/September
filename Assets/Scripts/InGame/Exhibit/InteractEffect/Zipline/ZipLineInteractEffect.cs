@@ -25,6 +25,7 @@ namespace September
         [Tooltip("Trolleyからプレイヤーへの相対オフセット(ぶら下がる位置調整用)")]
         public Vector3 PlayerOffset = new Vector3(0f, -1.5f, 0f);
         private InteractableBase _activeEffect;
+        private ZiplineNetworkController _networkController;
         private Animator _animator;
         private enum State
         {
@@ -40,6 +41,13 @@ namespace September
 
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
         {
+            _networkController = target.GetComponent<ZiplineNetworkController>();
+            if (_networkController == null)
+            {
+                Debug.LogError("ZiplineNetworkController is missing on the Zipline interactable.", target);
+                target.EndInteract();
+                return;
+            }
             PlayerRef playerRef = PlayerRef.FromEncoded(context.Interactor);
             if (PlayerDatabase.Instance.PlayerObjectDic.TryGet(playerRef, out var playerNetworkObject))
             {
@@ -60,6 +68,7 @@ namespace September
             else
             {
                 Debug.LogError("[ZipLineInteractEffect] Player not found");
+                return;
             }
             _activeEffect = target;
             _activeEffect.ForceSetInteractable = false;
@@ -79,6 +88,7 @@ namespace September
             playerManager.BeginRideView(Trolley.transform, PlayerOffset);
             playerManager.RPC_SetUseGrav(false);
             playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
+            _networkController.PublishZiplinePose(Trolley.transform, _targetPlayerObject, PlayerOffset);
         }
 
         public override void OnInteractUpdate(float deltaTime)
@@ -92,6 +102,9 @@ namespace September
                     UpdateReturning(deltaTime);
                     break;
             }
+            // 台車の移動・回転と乗降状態を同じ更新で共有する。
+            if (_activeEffect != null)
+                _networkController.PublishZiplinePose(Trolley.transform, _targetPlayerObject, PlayerOffset);
         }
 
         private void UpdateMoving(float deltaTime)
@@ -204,6 +217,7 @@ namespace September
 
             if (_activeEffect != null)
             {
+                _networkController.PublishZiplinePose(Trolley.transform, null, PlayerOffset);
                 _activeEffect.ForceSetInteractable = true; // ここで初めて使用可能に戻す
                 _activeEffect = null;
             }
