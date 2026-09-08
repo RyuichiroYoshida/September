@@ -25,6 +25,9 @@ namespace September.InGame.Kraken
         [Header("カメラ")]
         [SerializeField] private CameraController _cameraController;
 
+        [Header("搭乗時にプレイヤーを隠す場所")]
+        [SerializeField] private Transform _mountedPlayerPosition;
+
         [Header("攻撃予測設定")]
         [SerializeField] private AttackPredictionFactory _attackPredictionFactory;
         [SerializeField] private Vector3 _predictionSize;
@@ -33,8 +36,6 @@ namespace September.InGame.Kraken
         [Header("攻撃目標表示設定")]
         [Tooltip("視線の先に攻撃目標地点を表示するマーカー (ローカル表示のみ)")]
         [SerializeField] private KrakenAimMarker _aimMarker;
-        [Tooltip("視線の先に何も無かった場合に目標地点とする距離")]
-        [SerializeField] private float _aimFallbackDistance = 20f;
 
         [Header("インタラクト設定")]
         [SerializeField] private InteractableBase _interactable;
@@ -69,6 +70,8 @@ namespace September.InGame.Kraken
         private Quaternion _originalPlayerRotation;
 
         private KrakenAppearanceState _appearanceState;
+
+        private bool _isGetOffRequested;
 
         [Networked] private TickTimer DisappearTimer { get; set; }
 
@@ -125,7 +128,7 @@ namespace September.InGame.Kraken
         {
             if (_aimMarker == null) return;
 
-            if (_aimPointResolver.TryResolve(out KrakenAimPoint aimPoint))
+            if (_aimPointResolver.TryResolveLocal(out KrakenAimPoint aimPoint))
             {
                 _aimMarker.Show(aimPoint);
             }
@@ -142,28 +145,57 @@ namespace September.InGame.Kraken
 
         public override void FixedUpdateNetwork()
         {
-            if (!HasInputAuthority) return;
+            if (!HasStateAuthority) return;
+
+            // 未搭乗時の処理
+            if (!OwnerPlayerRef.IsRealPlayer)
+            {
+                // 一定時間放置されたら自動的に退場する
+                if (DisappearTimer.Expired(Runner) && _appearanceState == KrakenAppearanceState.Staying)
+                {
+                    RPC_Disappear();
+                }
+
+                return;
+            }
+
+            if (_isGetOffRequested)
+            {
+                // 搭乗解除が要求されたら現在出されている攻撃が全て終わるまで待機してから解除する
+                if (!IsDismountLocked())
+                {
+                    HandleGetOff(OwnerPlayerRef);
+                }
+
+                // 既に搭乗解除が要求されていたら新たに攻撃を出さない
+                return;
+            }
 
             if (GetInput<PlayerInput>(out var input))
             {
                 _attack.SetInput(input.Buttons.IsSet(PlayerButtons.Attack));
 
-                if (_attack.IsJustPressed && _aimPointResolver.TryResolve(out KrakenAimPoint aimPoint))
+                if (_attack.IsJustPressed && _aimPointResolver.TryResolveNetwork(input, out KrakenAimPoint aimPoint))
                 {
                     RPC_Attack(aimPoint.Position);
                 }
             }
-        }
 
-        public override void Render()
-        {
-            // 誰かに操作されている最中であれば自動退場しない
-            if (Object.InputAuthority != default) return;
 
-            // 一定時間放置されたら自動的に退場する
-            if (DisappearTimer.Expired(Runner) && _appearanceState == KrakenAppearanceState.Staying)
+            return;
+
+            bool IsDismountLocked()
             {
-                Disappear().Forget();
+                for (int i = 0; i < _tentacles.Arms.Count; i++)
+                {
+                    ArmSettings x = _tentacles.Arms[i];
+                    if (x.IsDismountLocked)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
@@ -188,8 +220,8 @@ namespace September.InGame.Kraken
             _originalPlayerPosition = playerObject.transform.position;
             _originalPlayerRotation = playerObject.transform.rotation;
 
-            playerObject.transform.position = transform.position;
-            playerObject.transform.rotation = transform.rotation;
+            playerObject.transform.position = _mountedPlayerPosition.position;
+            playerObject.transform.rotation = _mountedPlayerPosition.rotation;
 
             // 元のプレイヤーオブジェクトを非表示にする
             if (playerObject.TryGetComponent<PlayerManager>(out var playerManager))
@@ -203,13 +235,19 @@ namespace September.InGame.Kraken
             _interactable.ForceSetInteractable = false;
 
             OwnerPlayerRef = owner;
-            _settings.OwnerPlayerRef = owner;
+            _settings.RecentOwnerPlayerRef = owner;
         }
 
         /// <summary>
         /// 指定プレイヤーのクラーケン状態を解除する
         /// </summary>
         public void GetOff(PlayerRef owner)
+        {
+            // 実際の解除タイミングを制御するためにリクエストとして保存する
+            _isGetOffRequested = true;
+        }
+
+        private void HandleGetOff(PlayerRef owner)
         {
             // カメラを無効化する
             RPC_SetCameraPriority(owner, 0);
@@ -237,9 +275,10 @@ namespace September.InGame.Kraken
             Object.RemoveInputAuthority();
 
             OwnerPlayerRef = default;
-            _settings.OwnerPlayerRef = default;
 
-            Disappear().Forget();
+            _isGetOffRequested = false;
+
+            RPC_Disappear();
         }
 
         private async UniTaskVoid Appear()
@@ -250,6 +289,9 @@ namespace September.InGame.Kraken
             _appearanceState = KrakenAppearanceState.Staying;
         }
 
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_Disappear() => Disappear().Forget();
+
         private async UniTaskVoid Disappear()
         {
             _appearanceState = KrakenAppearanceState.Disappear;
@@ -258,7 +300,7 @@ namespace September.InGame.Kraken
             if (HasStateAuthority) Runner.Despawn(Object);
         }
 
-        [Rpc(RpcSources.All, RpcTargets.All)]
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_Attack(Vector3 targetPosition)
         {
             Attack(targetPosition);

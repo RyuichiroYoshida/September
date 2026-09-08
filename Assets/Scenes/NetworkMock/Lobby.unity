@@ -5535,7 +5535,6 @@ MonoBehaviour:
   _roomNameText: {fileID: 271244257}
   _fadePanel: {fileID: 535088577}
   _contentTransform: {fileID: 618147048}
-  _mapType: 1
   _PlayerIsReadyDic:
     _items: []
 --- !u!114 &1095449454
