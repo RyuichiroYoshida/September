@@ -7,6 +7,7 @@ using InGame.Health;
 using InGame.Interact;
 using InGame.Player;
 using September.Common;
+using September.InGame.Fields;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -150,10 +151,14 @@ namespace September.InGame.Exhibit
 		protected virtual void CheckInteractEnd(PlayerInput input)
 		{
 			if (!HasStateAuthority) return;
-
-			if (input.Buttons.IsSet(PlayerButtons.Interact) && InteractEndLockTimer.ExpiredOrNotRunning(Runner))
+			
+			// フィールド外に出た場合の強制終了
+			if ((OutOfFieldArea.I && OutOfFieldArea.I.IsOutOfField(_usingPlayer.transform.position)) ||
+			    // Interactボタンが押されたときの強制終了
+			    (input.Buttons.IsSet(PlayerButtons.Interact) && InteractEndLockTimer.ExpiredOrNotRunning(Runner)))
 				InteractEnd();
-
+			
+			// タイムラグをインタラクト後に発生させる場合の終了処理
 			if (WaitExitTimer.Expired(Runner))
 			{
 				WaitExitTimer = TickTimer.None;
