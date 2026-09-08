@@ -147,7 +147,17 @@ namespace September.InGame.Kraken
         {
             if (!HasStateAuthority) return;
 
-            if (OwnerPlayerRef.IsNone) return;
+            // 未搭乗時の処理
+            if (!OwnerPlayerRef.IsRealPlayer)
+            {
+                // 一定時間放置されたら自動的に退場する
+                if (DisappearTimer.Expired(Runner) && _appearanceState == KrakenAppearanceState.Staying)
+                {
+                    RPC_Disappear();
+                }
+
+                return;
+            }
 
             if (_isGetOffRequested)
             {
@@ -169,18 +179,6 @@ namespace September.InGame.Kraken
                 {
                     RPC_Attack(aimPoint.Position);
                 }
-            }
-        }
-
-        public override void Render()
-        {
-            // 誰かに操作されている最中であれば自動退場しない
-            if (Object.InputAuthority != default) return;
-
-            // 一定時間放置されたら自動的に退場する
-            if (DisappearTimer.Expired(Runner) && _appearanceState == KrakenAppearanceState.Staying)
-            {
-                Disappear().Forget();
             }
         }
 
@@ -263,7 +261,7 @@ namespace September.InGame.Kraken
 
             _isGetOffRequested = false;
 
-            Disappear().Forget();
+            RPC_Disappear();
         }
 
         private async UniTaskVoid Appear()
@@ -273,6 +271,9 @@ namespace September.InGame.Kraken
             DisappearTimer = TickTimer.CreateFromSeconds(Runner, _stayDuration);
             _appearanceState = KrakenAppearanceState.Staying;
         }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_Disappear() => Disappear().Forget();
 
         private async UniTaskVoid Disappear()
         {
