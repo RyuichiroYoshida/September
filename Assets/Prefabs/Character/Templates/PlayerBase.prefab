@@ -5643,6 +5643,7 @@ MonoBehaviour:
   _minLedgeHeight: 0.4
   _maxLedgeDepth: 0.9
   _reachDistance: 0.2
+  _minimumVaultReachDistance: 0.5
   _timeToVault: 0.5
   _vaultCurve:
     serializedVersion: 2

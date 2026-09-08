@@ -12,6 +12,9 @@ namespace InGame.Player
                 new Vector3(parameter.moveDirection.x, 0, parameter.moveDirection.z).normalized;
 
             Vector3 position = parameter.Position;
+            const float castStartBackOffset = 0.05f;
+            Vector3 castStartOffset = -moveDir3 * castStartBackOffset;
+            float frontCastDistance = parameter.reachDistance + castStartBackOffset;
 
             //==================================================
             // STEP1
@@ -21,20 +24,20 @@ namespace InGame.Player
             Vector3 point1 =
                 position
                 + Vector3.up * (parameter.maxLedgeHeight - parameter.capsuleRadius)
-                + moveDir3 * 0.01f;
+                + castStartOffset;
 
             Vector3 point2 =
                 position
                 + Vector3.up * (parameter.minLedgeHeight + parameter.capsuleRadius)
-                + moveDir3 * 0.01f;
+                + castStartOffset;
 
             Gizmos.color = Color.yellow;
             DrawCapsule(point1, point2, parameter.capsuleRadius);
 
             Gizmos.color = Color.cyan;
             DrawCapsule(
-                point1 + moveDir3 * parameter.reachDistance,
-                point2 + moveDir3 * parameter.reachDistance,
+                point1 + moveDir3 * frontCastDistance,
+                point2 + moveDir3 * frontCastDistance,
                 parameter.capsuleRadius);
 
             if (!Physics.CapsuleCast(
@@ -43,13 +46,15 @@ namespace InGame.Player
                 parameter.capsuleRadius + 0.01f,
                 moveDir3,
                 out var frontHitInfo,
-                parameter.reachDistance,
+                frontCastDistance,
                 ~0))
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawSphere(point2 + moveDir3 * parameter.reachDistance, 0.15f);
+                Gizmos.DrawSphere(point2 + moveDir3 * frontCastDistance, 0.15f);
                 return;
             }
+
+            float frontHitDistance = Mathf.Max(0f, frontHitInfo.distance - castStartBackOffset);
 
             bool walkable =
                 Vector3.Angle(Vector3.up, frontHitInfo.normal)
@@ -200,7 +205,7 @@ namespace InGame.Player
             Gizmos.DrawLine(
                 p1,
                 p1 - frontHitInfo.normal
-                * (parameter.maxLedgeDepth + frontHitInfo.distance));
+                * (parameter.maxLedgeDepth + frontHitDistance));
 
             if (Physics.CapsuleCast(
                 p1,
@@ -208,7 +213,7 @@ namespace InGame.Player
                 parameter.capsuleRadius,
                 -frontHitInfo.normal,
                 out var secondHit,
-                parameter.maxLedgeDepth + frontHitInfo.distance,
+                parameter.maxLedgeDepth + frontHitDistance,
                 parameter.groundLayer))
             {
                 Gizmos.color = Color.red;
@@ -224,7 +229,7 @@ namespace InGame.Player
                 p2
                 + Vector3.up * halfHeight
                 - frontHitInfo.normal
-                * (parameter.maxLedgeDepth + frontHitInfo.distance);
+                * (parameter.maxLedgeDepth + frontHitDistance);
 
             Vector3 reverseP1 =
                 reverseOrigin + Vector3.up * halfHeight;
@@ -245,7 +250,7 @@ namespace InGame.Player
                 parameter.capsuleRadius,
                 frontHitInfo.normal,
                 out var backHit,
-                parameter.maxLedgeDepth + frontHitInfo.distance,
+                parameter.maxLedgeDepth + frontHitDistance,
                 parameter.groundLayer))
             {
                 Gizmos.color = Color.red;
@@ -253,7 +258,7 @@ namespace InGame.Player
                 return;
             }
 
-            if (backHit.distance < frontHitInfo.distance)
+            if (backHit.distance < frontHitDistance)
             {
                 Gizmos.color = Color.red;
                 Gizmos.DrawSphere(backHit.point, 0.15f);
@@ -269,7 +274,7 @@ namespace InGame.Player
 
             Vector3 vaultEnd =
                 reverseOrigin
-                - frontHitInfo.normal * frontHitInfo.distance
+                - frontHitInfo.normal * frontHitDistance
                 + Vector3.down * (halfHeight + parameter.capsuleRadius);
 
             bool endBlocked =
