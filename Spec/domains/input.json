@@ -1,0 +1,15 @@
+{
+  "name": "input",
+  "description": "Input System のアクション定義と、そこから生成される入力アクセスコード。プレイヤー操作とボタン割り当ての正本。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/InputActions/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"input\" domain: Input System のアクション定義と、そこから生成される入力アクセスコード。プレイヤー操作とボタン割り当ての正本。",
+  "source": "manual",
+  "rationale": "player と bot の双方が入力インタフェースとして参照する共有の契約であり、どちらか一方の内部実装には属さない。"
+}

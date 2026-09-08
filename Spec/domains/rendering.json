@@ -1,0 +1,15 @@
+{
+  "name": "rendering",
+  "description": "URP のレンダリング拡張。ScriptableRendererFeature (ブラー・アウトライン・彩度) と VFX 用スクリプト。海面表現や光学迷彩など描画パイプラインに依存する表現を支える。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Graphics/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"rendering\" domain: URP のレンダリング拡張。ScriptableRendererFeature (ブラー・アウトライン・彩度) と VFX 用スクリプト。海面表現や光学迷彩など描画パイプラインに依存する表現を支える。",
+  "source": "manual",
+  "rationale": "URP のレンダーパイプラインへ直接差し込む層で、ゲームロジックからは参照されず描画順とレンダーターゲットという固有の制約を持つため presentation とは分離する。"
+}

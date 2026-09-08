@@ -1,0 +1,15 @@
+{
+  "name": "debug-tooling",
+  "description": "実行時のデバッグ支援。開発用の表示・操作補助。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/Debug/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"debug-tooling\" domain: 実行時のデバッグ支援。開発用の表示・操作補助。",
+  "source": "manual",
+  "rationale": "製品挙動を変えない開発補助であり、実行時に載るが機能ドメインには属さない。"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "game-flow",
+  "description": "ゲーム進行の制御。ルール判定・勝敗/終了処理・ステートマシン・シーン遷移 (タイトル/ロビー/リザルト) を担う。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Rules/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/GameEnd/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/StateMachine/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Common/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/GameEvent/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/Title/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/Lobby/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/Result/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/Result_Field/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/NewResult/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"game-flow\" domain: ゲーム進行の制御。ルール判定・勝敗/終了処理・ステートマシン・シーン遷移 (タイトル/ロビー/リザルト) を担う。",
+  "source": "manual",
+  "rationale": "InGameManager を中心にゲームの開始・進行・終了とシーン間遷移が一本の状態遷移として繋がっており、画面単位ではなく進行制御という関心事でまとまる。"
+}

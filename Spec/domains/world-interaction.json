@@ -1,0 +1,30 @@
+{
+  "name": "world-interaction",
+  "description": "フィールド上の相互作用対象。インタラクト基盤・展示物・宝飾・海図・騎乗・建築システム。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Interact/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Exhibit/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Jewelry/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/NauticalChart/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Mountable/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/BuildSystem/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"world-interaction\" domain: フィールド上の相互作用対象。インタラクト基盤・展示物・宝飾・海図・騎乗・建築システム。",
+  "source": "manual",
+  "rationale": "いずれも InteractableBase 系の入力を起点にワールド側オブジェクトの状態を変える点で共通し、ホスト権限とネットワーク同期の扱いも同じ制約を共有する。"
+}

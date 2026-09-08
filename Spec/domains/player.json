@@ -1,0 +1,18 @@
+{
+  "name": "player",
+  "description": "プレイヤーキャラクタの移動・状態・体力・アビリティ。操作入力からキャラクタ挙動までのループを担う。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Player/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Health/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"player\" domain: プレイヤーキャラクタの移動・状態・体力・アビリティ。操作入力からキャラクタ挙動までのループを担う。",
+  "source": "manual",
+  "rationale": "PlayerMovement / PlayerStatus / PlayerHealth と Ability 系はプレイヤー1体の振る舞いとして密結合しており、体力もダメージ処理を通じて同じ責務に属する。"
+}

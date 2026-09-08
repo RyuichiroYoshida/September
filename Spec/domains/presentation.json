@@ -1,0 +1,27 @@
+{
+  "name": "presentation",
+  "description": "プレイヤーへの提示層。ゲーム内 UI・エフェクト・デカール・カットシーン演出・ダメージ表示。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/InGame/UI/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Effect/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Decal/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Performances/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/InGame/DamageTextUI/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"presentation\" domain: プレイヤーへの提示層。ゲーム内 UI・エフェクト・デカール・カットシーン演出・ダメージ表示。",
+  "source": "manual",
+  "rationale": "ゲーム状態を読み取って描画・演出するだけで状態を所有しない、という共通の方向性を持つ層。"
+}

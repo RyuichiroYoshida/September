@@ -1,0 +1,15 @@
+{
+  "name": "kraken",
+  "description": "ボス「クラーケン」の挙動・アニメーション・攻撃と、その攻撃予測表示。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Kraken/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"kraken\" domain: ボス「クラーケン」の挙動・アニメーション・攻撃と、その攻撃予測表示。",
+  "source": "manual",
+  "rationale": "プレイヤーとは独立した敵側のライフサイクルを持ち、IK やカメラ制御を含む固有の実装群を成す。"
+}

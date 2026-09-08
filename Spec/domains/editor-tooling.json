@@ -1,0 +1,15 @@
+{
+  "name": "editor-tooling",
+  "description": "Unity Editor 拡張。アセットインポート自動化・リグ/アニメーション整備・ビルドコマンド・デバッグ用ウィンドウ。実行時ビルドには含まれない。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/Editor/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"editor-tooling\" domain: Unity Editor 拡張。アセットインポート自動化・リグ/アニメーション整備・ビルドコマンド・デバッグ用ウィンドウ。実行時ビルドには含まれない。",
+  "source": "manual",
+  "rationale": "UNITY_EDITOR 限定でランタイムから参照されない開発支援コードであり、実行時ドメインとは依存方向も配布先も異なる。"
+}

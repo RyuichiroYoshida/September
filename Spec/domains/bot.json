@@ -1,0 +1,15 @@
+{
+  "name": "bot",
+  "description": "非プレイヤーキャラクタ (Bot) の思考と行動制御。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/InGame/Bot/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"bot\" domain: 非プレイヤーキャラクタ (Bot) の思考と行動制御。",
+  "source": "manual",
+  "rationale": "プレイヤー入力の代替として振る舞う独立した意思決定であり、player ドメインとは入力源が異なる。"
+}

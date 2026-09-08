@@ -1,0 +1,18 @@
+{
+  "name": "networking",
+  "description": "Photon Fusion によるセッション接続・プレイヤー登録・オブジェクト生成/同期の基盤。ゲーム内容に依存しないマルチプレイ土台を担う。",
+  "role": "semantic",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "/Assets/Scripts/Common/"
+    },
+    {
+      "pathPattern": "/Assets/Scripts/NetworkTest/"
+    }
+  ],
+  "cardTemplate": "Summarise the \"networking\" domain: Photon Fusion によるセッション接続・プレイヤー登録・オブジェクト生成/同期の基盤。ゲーム内容に依存しないマルチプレイ土台を担う。",
+  "source": "manual",
+  "rationale": "NetworkManager / PhotonSpawner / PlayerDatabase / SessionPlayerData が同居し、ネットワーク接続とセッション状態という単一の関心事を構成する。"
+}
