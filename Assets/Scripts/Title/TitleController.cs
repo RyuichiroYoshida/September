@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using September.Common;
@@ -22,7 +21,6 @@ namespace September.Title
         [SerializeField] TMP_InputField _createLobbyName;
         [SerializeField] Slider _maxPlayers;
         [SerializeField] TextMeshProUGUI _selectedMapText;
-        [SerializeField] TMP_Dropdown _mapTypeDropdown;
         [SerializeField] MapType _selectedMapType = MapType.Pirate;
 
         [Header("Join Lobby")]
@@ -47,14 +45,17 @@ namespace September.Title
         private int _pendingMaxPlayers;
         private MapType _pendingMapType;
         private bool _isProcessingLobbyEntry;
+        private TitlePanelController.PanelType _lastPanel;
 
         public void Start()
         {
             _createMessageText?.gameObject.SetActive(false);
             _joinMessageText?.gameObject.SetActive(false);
             _selectableMapTypes = (MapType[])Enum.GetValues(typeof(MapType));
-            InitializeMapTypeDropdown();
             UpdateSelectedMapText();
+            _lastPanel = _titlePanelController != null
+                ? _titlePanelController.CurrentPanel
+                : TitlePanelController.PanelType.MainMenu;
 
             if (_isTgsMode)
             {
@@ -62,9 +63,19 @@ namespace September.Title
             }
         }
 
-        private void OnDestroy()
+        private void Update()
         {
-            _mapTypeDropdown?.onValueChanged.RemoveListener(SelectMap);
+            if (_titlePanelController == null) return;
+
+            TitlePanelController.PanelType currentPanel = _titlePanelController.CurrentPanel;
+            if (_lastPanel == TitlePanelController.PanelType.UserProfile
+                && currentPanel != TitlePanelController.PanelType.UserProfile
+                && !_isProcessingLobbyEntry)
+            {
+                ResetPendingLobbyEntry();
+            }
+
+            _lastPanel = currentPanel;
         }
 
         /// <summary>
@@ -169,6 +180,8 @@ namespace September.Title
         /// </summary>
         public void CancelLobbyEntry()
         {
+            if (_isProcessingLobbyEntry) return;
+
             PendingLobbyOperation canceledOperation = _pendingLobbyOperation;
             ResetPendingLobbyEntry();
 
@@ -193,7 +206,16 @@ namespace September.Title
         /// <param name="text">�G���[���b�Z�[�W��\������Text</param>
         private void ChangeErrorMessage(StartGameResult result, TextMeshProUGUI text)
         {
-            if (result == null || text == null || _roomErrorMessage == null) return;
+            if (text == null) return;
+
+            if (result == null)
+            {
+                text.gameObject.SetActive(true);
+                text.text = "現在別の接続処理を実行中です。しばらく待ってください。";
+                return;
+            }
+
+            if (_roomErrorMessage == null) return;
 
             if (result.Ok)
             {
@@ -212,25 +234,6 @@ namespace September.Title
             }
 
             _titlePanelController?.ShowUserProfile();
-        }
-
-        private void InitializeMapTypeDropdown()
-        {
-            if (_mapTypeDropdown == null) return;
-
-            var mapNames = new List<string>(_selectableMapTypes.Length);
-            foreach (MapType mapType in _selectableMapTypes)
-            {
-                mapNames.Add(GetMapDisplayName(mapType));
-            }
-
-            _mapTypeDropdown.ClearOptions();
-            _mapTypeDropdown.AddOptions(mapNames);
-
-            int selectedMapIndex = Array.IndexOf(_selectableMapTypes, _selectedMapType);
-            _mapTypeDropdown.SetValueWithoutNotify(Mathf.Max(0, selectedMapIndex));
-            _mapTypeDropdown.RefreshShownValue();
-            _mapTypeDropdown.onValueChanged.AddListener(SelectMap);
         }
 
         private async UniTask CreatePendingLobbyAsync()
@@ -295,6 +298,7 @@ namespace September.Title
             _pendingLobbyOperation = PendingLobbyOperation.None;
             _pendingLobbyName = string.Empty;
             _pendingMaxPlayers = 0;
+            _pendingMapType = default;
         }
 
         private enum PendingLobbyOperation

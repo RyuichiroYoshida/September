@@ -10817,7 +10817,6 @@ MonoBehaviour:
   _createLobbyName: {fileID: 1993155621}
   _maxPlayers: {fileID: 739140478}
   _selectedMapText: {fileID: 2200000013}
-  _mapTypeDropdown: {fileID: 0}
   _selectedMapType: 1
   _joinLobbyName: {fileID: 652170995}
   _titlePanelController: {fileID: 1972415467}
