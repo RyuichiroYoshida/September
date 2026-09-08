@@ -176,6 +176,7 @@ namespace September.InGame.Exhibit
 			RPC_StartAnimation(false);
 			Object.RemoveInputAuthority();
 			RPC_SetCameraPriority(CurrentUsePlayerRef, 5);
+			WaitExitTimer = TickTimer.None;
 
 			if (!_usingPlayer) return;
 			PlayerActive(true);

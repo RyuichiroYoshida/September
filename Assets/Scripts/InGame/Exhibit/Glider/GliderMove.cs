@@ -104,8 +104,6 @@ namespace September.InGame.Exhibit
 
 		public void Reset()
 		{
-			GliderInit();
-
 			IsFinished = true;
 
 			if (!Player) return;
@@ -117,9 +115,13 @@ namespace September.InGame.Exhibit
 			}
 
 			if (Player.TryGetComponent(out PlayerMovement playerMovement)) playerMovement.UseGravity = true;
-
+			
+			// _rb初期化前にplayerの位置をGliderに合わせる
+			Player.transform.position = _rb.position;
 			Player.transform.rotation = Quaternion.identity;
 			Player = null;
+			
+			GliderInit();
 			RPC_SetActive(false);
 		}
 
