@@ -6,12 +6,10 @@ using September.Common;
 
 namespace September.InGame.Exhibit
 {
-	[DefaultExecutionOrder(-10)]
 	public class GliderMove : NetworkBehaviour, IProjectileMovement
 	{
 		[SerializeField] private Rigidbody _rb;
 		[SerializeField] private NetworkRigidbody3D _networkRigidbody;
-		[SerializeField] private Transform _startPos;
 		[SerializeField] private Transform _controlObject;
 		[SerializeField] private Transform _gripObject;
 		[SerializeField] private Transform _camera;
@@ -26,7 +24,8 @@ namespace September.InGame.Exhibit
 		[Header("傾きアニメーション設定")] [SerializeField]
 		private float _playerTiltAngle = 45f;
 
-
+		private Vector3 _startPos;
+		private Quaternion _startRot;
 		private CameraController _cameraController;
 		private float _startTime;
 		[Networked] public bool IsFinished { get; private set; }
@@ -38,8 +37,10 @@ namespace September.InGame.Exhibit
 			base.Spawned();
 			_cameraController = GetComponent<CameraController>();
 			_cameraController.Init(true);
-			Reset();
-			Debug.Log($"Spawned: {_rb.position} / {_rb.rotation} startPos: {_startPos.position} / {_startPos.rotation}");
+			_startPos = _rb.position;
+			_startRot = _rb.rotation;
+			if(HasStateAuthority)
+				GliderInit();
 		}
 
 		void IProjectileMovement.Render()
@@ -73,14 +74,11 @@ namespace September.InGame.Exhibit
 
 		private void GliderInit()
 		{
-			_rb.position = _startPos.position;
-			_rb.rotation = _startPos.rotation;
-			Debug.Log($"GliderInit: {_rb.position} / {_rb.rotation}");
-			_networkRigidbody.Teleport(_rb.position, _rb.rotation);
+			_rb.position = _startPos;
+			_rb.rotation = _startRot;
 			
 			_rb.linearVelocity = Vector3.zero;
 			_rb.angularVelocity = Vector3.zero;
-			_rb.useGravity = false;
 		}
 
 		void IProjectileMovement.Update(PlayerInput input)
@@ -88,16 +86,13 @@ namespace September.InGame.Exhibit
 			if (IsFinished) return;
 			if (IsLanded())
 			{
-				Debug.Log($"startTime:{_startTime} Tick:{Runner.Tick}");
 				IsFinished = true;
-				Debug.Log("着地しました");
 				return;
 			}
 
 			var velocity = SetVelocity(_rb.linearVelocity, input.MoveDirection, input.CameraYaw);
 			_rb.linearVelocity = velocity;
 			SetPlayerPos();
-			RPC_SetActive(true);
 
 			_gripObject.position = _controlObject.position;
 			_gripObject.rotation = _controlObject.rotation;
@@ -106,20 +101,11 @@ namespace September.InGame.Exhibit
 			{
 				Velocity = velocity;
 			}
-			// Debug.Log(
-			// 	$"RB: {_rb.position} / " +
-			// 	$"Transform: {transform.position}"
-			// );
 		}
 
 		public void Reset()
 		{
-			Debug.Log($"Reset: {_rb.position} / {_rb.rotation}");
-			_rb.linearVelocity = Vector3.zero;
-			_rb.angularVelocity = Vector3.zero;
-
-			_rb.position = _startPos.position;
-			_rb.rotation = _startPos.rotation;
+			GliderInit();
 
 			IsFinished = true;
 			
@@ -183,14 +169,17 @@ namespace September.InGame.Exhibit
 			);
 
 			var yawRotate = Quaternion.Euler(0, nextY, 0);
-			// 移動方向に傾ける
+			// 現在の向きと移動方向のズレ
+			// 90度以降は0
+			var facingFactor = Mathf.Clamp01(Vector3.Dot(yawRotate * Vector3.forward, velocity.normalized));
+
+			// 移動方向に傾ける(ズレているほど傾きを抑える)
 			var localVelocity =
 				Quaternion.Inverse(yawRotate) * velocity;
 			var normalizedVelocity =
 				Vector3.ClampMagnitude(localVelocity / _maxSpeed, 1f);
-			var tiltAngle = normalizedVelocity * _playerTiltAngle;
+			var tiltAngle = normalizedVelocity * (_playerTiltAngle * facingFactor);
 
-			Debug.Log($"Render Animation {velocity} {tiltAngle} angleLimit:{_playerTiltAngle} normalized:{normalizedVelocity}");
 			_controlObject.rotation = yawRotate * Quaternion.Euler(tiltAngle.z, 0, tiltAngle.x);
 		}
 
