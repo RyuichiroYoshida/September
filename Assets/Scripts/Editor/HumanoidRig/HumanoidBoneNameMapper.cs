@@ -179,6 +179,13 @@ namespace September.Editor.HumanoidRig
         public IReadOnlyList<HumanBodyBones> MissingRequired =>
             HumanoidRequiredBones.Required.Where(b => !Assigned.ContainsKey(b)).ToList();
 
+        /// <summary>
+        /// 必須ボーンで競合したもの。命名規則が複数候補を拾っており、
+        /// どちらを採ったかは階層順まかせで正しい保証がないため、自動適用してはいけない。
+        /// </summary>
+        public IReadOnlyList<HumanBodyBones> ConflictingRequired =>
+            Conflicts.Select(c => c.bone).Where(b => HumanoidRequiredBones.Required.Contains(b)).Distinct().ToList();
+
         public void Assign(HumanBodyBones bone, Transform t)
         {
             if (Assigned.ContainsKey(bone))

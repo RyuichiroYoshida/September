@@ -24,6 +24,13 @@ namespace September.Editor.HumanoidRig
                 throw new InvalidOperationException(
                     $"命名規則から必須ボーンを特定できないため適用しません: {assetPath}\n{mapping.Summarize()}");
             }
+            if (mapping.ConflictingRequired.Count > 0)
+            {
+                // 必須ボーンに複数候補があると、階層順で選ばれた側が正しい保証がない。
+                // 誤ったリグを黙って書き込むより、手動確認を促して止める。
+                throw new InvalidOperationException(
+                    $"必須ボーンの候補が複数あり一意に決められないため適用しません: {assetPath}\n{mapping.Summarize()}");
+            }
 
             var importer = ModelReimporter.RequireImporter(assetPath);
             var description = importer.humanDescription;

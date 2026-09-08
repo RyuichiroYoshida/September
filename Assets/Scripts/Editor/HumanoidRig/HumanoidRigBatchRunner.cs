@@ -23,7 +23,7 @@ namespace September.Editor.HumanoidRig
         public static Outcome Run(string title, IReadOnlyList<string> assetPaths, Func<string, string> action)
         {
             var outcome = new Outcome();
-            AssetDatabase.StartAssetEditing();
+            ModelReimporter.BeginBatch();
             try
             {
                 for (int i = 0; i < assetPaths.Count; i++)
@@ -45,7 +45,7 @@ namespace September.Editor.HumanoidRig
             }
             finally
             {
-                AssetDatabase.StopAssetEditing();
+                ModelReimporter.EndBatch();
                 EditorUtility.ClearProgressBar();
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();

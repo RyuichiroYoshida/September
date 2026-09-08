@@ -53,14 +53,18 @@ namespace September.Editor.HumanoidRig
                 AvatarSetupToolBridge.MakePoseValid(humanBones);
                 AvatarSetupToolBridge.TransferPoseToDescription(
                     importerObject.FindProperty(AvatarSetupToolBridge.SkeletonArrayProperty), instance.transform);
+                // 補正した姿勢は SerializedObject 経由でしか書けないため、
+                // 再インポートを起こす前にここで .meta へ確定させる。
                 importerObject.ApplyModifiedPropertiesWithoutUndo();
+                AssetDatabase.WriteImportSettingsIfDirty(assetPath);
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(instance);
             }
 
-            ModelReimporter.Apply(importer);
+            // SetDirty で importer 側の未反映値に上書きされないよう、確定済み設定をそのまま読み直させる。
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
             return TPoseResult.Fixed;
         }
     }

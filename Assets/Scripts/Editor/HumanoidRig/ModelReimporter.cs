@@ -28,10 +28,38 @@ namespace September.Editor.HumanoidRig
             return prefab;
         }
 
+        /// <summary>
+        /// importer の変更を保存して再インポートする。
+        /// SaveAndReimport は StartAssetEditing/StopAssetEditing の一括編集中に呼ぶと
+        /// インポートが遅延して取りこぼされるため、バッチ中は SaveAssets + ImportAsset を使う
+        /// (RigHumanoidBatchPredefined と同じ形)。
+        /// </summary>
         public static void Apply(ModelImporter importer)
         {
             EditorUtility.SetDirty(importer);
+            if (IsBatching)
+            {
+                AssetDatabase.WriteImportSettingsIfDirty(importer.assetPath);
+                AssetDatabase.ImportAsset(importer.assetPath, ImportAssetOptions.ForceUpdate);
+                return;
+            }
             importer.SaveAndReimport();
+        }
+
+        /// <summary>AssetDatabase.StartAssetEditing による一括編集中かどうか。</summary>
+        public static bool IsBatching { get; private set; }
+
+        /// <summary>一括編集の開始/終了を ModelReimporter に伝える (HumanoidRigBatchRunner から使う)。</summary>
+        public static void BeginBatch()
+        {
+            AssetDatabase.StartAssetEditing();
+            IsBatching = true;
+        }
+
+        public static void EndBatch()
+        {
+            IsBatching = false;
+            AssetDatabase.StopAssetEditing();
         }
     }
 }

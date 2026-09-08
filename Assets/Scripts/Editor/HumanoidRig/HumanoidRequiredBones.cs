@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -30,11 +31,33 @@ namespace September.Editor.HumanoidRig
             HumanBodyBones.RightFoot,
         };
 
-        /// <summary>HumanBodyBones → HumanDescription.human で使う人間ボーン名。</summary>
+        private static readonly IReadOnlyDictionary<HumanBodyBones, string> HumanNames = BuildHumanNames();
+
+        /// <summary>
+        /// HumanBodyBones → HumanDescription.human で使う人間ボーン名。
+        /// HumanTrait.BoneName の並びは HumanBodyBones の enum 値順とは一致しない
+        /// (UpperChest が後方互換のため enum 末尾に追加されている等) ため、
+        /// 添字ではなく名前一致で引く。BoneName の各要素は enum 名と同じ綴り。
+        /// </summary>
         public static string ToHumanName(HumanBodyBones bone)
         {
-            // HumanTrait.BoneName は HumanBodyBones の enum 順 (LastBone を除く) と一致する。
-            return HumanTrait.BoneName[(int)bone];
+            if (HumanNames.TryGetValue(bone, out var name)) return name;
+            throw new ArgumentOutOfRangeException(
+                nameof(bone), bone, "HumanTrait.BoneName に対応する人間ボーン名がありません");
+        }
+
+        private static Dictionary<HumanBodyBones, string> BuildHumanNames()
+        {
+            var byName = new HashSet<string>(HumanTrait.BoneName, StringComparer.Ordinal);
+
+            var map = new Dictionary<HumanBodyBones, string>();
+            foreach (HumanBodyBones bone in Enum.GetValues(typeof(HumanBodyBones)))
+            {
+                if (bone == HumanBodyBones.LastBone) continue;
+                string name = bone.ToString();
+                if (byName.Contains(name)) map[bone] = name;
+            }
+            return map;
         }
 
         /// <summary>割当済み人間ボーン名の集合から、欠けている必須ボーンを列挙する。</summary>

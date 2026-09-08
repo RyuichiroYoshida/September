@@ -36,6 +36,7 @@ namespace September.Editor.HumanoidRig
         private readonly List<string> _paths = new List<string>();
         private readonly HashSet<string> _selected = new HashSet<string>(StringComparer.Ordinal);
         private Vector2 _scroll;
+        private GUIStyle _statusStyle;
 
         public int Count => _paths.Count;
 
@@ -102,9 +103,10 @@ namespace September.Editor.HumanoidRig
                     EditorGUIUtility.PingObject(AssetDatabase.LoadMainAssetAtPath(path));
                 }
 
-                var style = new GUIStyle(EditorStyles.label);
-                style.normal.textColor = info.StatusColor;
-                GUILayout.Label(info.Status, style, GUILayout.Width(StatusColumnWidth));
+                // GUIStyle は毎行・毎再描画で作ると無駄に GC を踏むため使い回す。
+                _statusStyle ??= new GUIStyle(EditorStyles.label);
+                _statusStyle.normal.textColor = info.StatusColor;
+                GUILayout.Label(info.Status, _statusStyle, GUILayout.Width(StatusColumnWidth));
 
                 EditorGUILayout.LabelField(info.Detail, EditorStyles.wordWrappedLabel);
             }
