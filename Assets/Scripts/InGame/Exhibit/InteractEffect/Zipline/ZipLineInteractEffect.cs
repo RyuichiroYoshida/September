@@ -17,6 +17,8 @@ namespace September
         public SplineContainer Spline;
         public GameObject Trolley;
         public float Duration = 5f;
+        [Min(1f), Tooltip("オカベ乗車時の速度倍率。1で通常速度、1.5で1.5倍、2で2倍。")]
+        public float OkabeSpeedMultiplier = 1.5f;
         public float ReturnDuration = 5f;
         [Header("横軸:経過時間の割合(0〜1) 縦軸:スプライン上の位置の割合(0〜1)" +
             "\n始点(t=0)は必ず0、終点(t=1)は必ず1に設定してください")]
@@ -37,6 +39,7 @@ namespace September
         private State _currentState = State.Idle;
 
         private float _timer;
+        private float _rideDuration;
         private NetworkObject _targetPlayerObject;
 
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
@@ -72,6 +75,12 @@ namespace September
             }
             _activeEffect = target;
             _activeEffect.ForceSetInteractable = false;
+
+            // 登録済みキャラクターがオカベの場合のみ、速度倍率に応じて所要時間を短縮する。
+            bool isOkabe = PlayerDatabase.Instance.PlayerDataDic.TryGet(playerRef, out var playerData) &&
+                playerData.CharacterType == CharacterType.OkabeWright;
+            float speedMultiplier = isOkabe ? Mathf.Max(1f, OkabeSpeedMultiplier) : 1f;
+            _rideDuration = Mathf.Max(0.01f, Duration) / speedMultiplier;
 
             _targetPlayerObject.GetComponent<FormationManager>()?.WarpFriendOutField();
 
@@ -112,7 +121,7 @@ namespace September
             if (_targetPlayerObject == null) return;
 
             _timer += deltaTime;
-            float t = Mathf.Clamp01(_timer / Duration);
+            float t = Mathf.Clamp01(_timer / _rideDuration);
             float evaluatedT = Mathf.Clamp01(SpeedCurve.Evaluate(t));
             // 速度カーブで求めたスプライン上の位置へ台車を進める。
             MoveTrolley(evaluatedT);
@@ -231,6 +240,7 @@ namespace September
                 Spline = Spline,
                 Trolley = Trolley,
                 Duration = Duration,
+                OkabeSpeedMultiplier = OkabeSpeedMultiplier,
                 ReturnDuration = ReturnDuration,
                 SpeedCurve = SpeedCurve,
                 PlayerOffset = PlayerOffset
