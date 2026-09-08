@@ -49,6 +49,14 @@ namespace September.Common
             }
         }
 
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            if (Instance == this)
+                Instance = null;
+
+            _serverTrackers.Clear();
+        }
+
         public void Server_AddExhibit(PlayerRef actor, ExhibitType type)
         {
             if (!Object.HasStateAuthority)
@@ -358,8 +366,10 @@ namespace September.Common
 
         private void OnDestroy()
         {
-            if (Object && Object.HasStateAuthority)
-                _serverTrackers.Clear();
+            if (Instance == this)
+                Instance = null;
+
+            _serverTrackers.Clear();
         }
     }
 }
