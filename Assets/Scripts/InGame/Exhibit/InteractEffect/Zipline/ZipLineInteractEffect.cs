@@ -1,4 +1,4 @@
-﻿using Fusion;
+using Fusion;
 using InGame.Common;
 using InGame.Interact;
 using September.Common;
@@ -73,6 +73,8 @@ namespace September
             MovePlayerToTrolley();
 
             var playerManager = _targetPlayerObject.GetComponent<PlayerManager>();
+            // 見た目とカメラの台車への追従を開始する。
+            playerManager.BeginRideView(Trolley.transform, PlayerOffset);
             playerManager.RPC_SetUseGrav(false);
             playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
         }
@@ -106,6 +108,8 @@ namespace September
 
                 // プレイヤーをここで降ろす
                 var playerManager = completedPlayer.GetComponent<PlayerManager>();
+                // 台車が始点へ戻り始める前に、見た目・カメラを通常の追従へ戻す。
+                playerManager.EndRideView();
                 playerManager.RPC_SetUseGrav(true);
                 playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
 
@@ -152,12 +156,26 @@ namespace September
 
         private void MovePlayerToTrolley()
         {
+            // 状態権限を持つ側で、プレイヤー本体を台車位置＋乗車オフセットへ移動する。
             if (_targetPlayerObject == null) return;
-            _targetPlayerObject.transform.position = Trolley.transform.position + PlayerOffset;
+            if (!_targetPlayerObject.HasStateAuthority) return;
+            if (_targetPlayerObject.TryGetComponent(out PlayerMovement movement))
+                movement.TeleportImmediate(Trolley.transform.position + PlayerOffset);
         }
 
         public override void OnInteractEnd()
         {
+            // 乗車中のプレイヤーの追従を終了し、重力・通常操作・落下モーションを戻す。
+            if (_targetPlayerObject != null)
+            {
+                var playerManager = _targetPlayerObject.GetComponent<PlayerManager>();
+                playerManager.EndRideView();
+                playerManager.RPC_SetUseGrav(true);
+                playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
+                if (_targetPlayerObject.TryGetComponent(out AnimationClipPlayer clip)) clip.StopClip(Anim);
+                if (_targetPlayerObject.TryGetComponent(out AnimationClipPlayerManager animation)) animation.EnableFallMotion = true;
+                _targetPlayerObject = null;
+            }
             // Returning完了後にInteractableBase.EndInteract()経由で呼ばれる
             _currentState = State.Idle;
 

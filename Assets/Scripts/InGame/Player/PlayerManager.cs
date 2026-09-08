@@ -39,6 +39,40 @@ namespace InGame.Player
         private Vector3 _targetPosition;
         private Quaternion _targetRotation;
         private bool _isVaultingLastFrame = false;
+        private Transform _rideVisualTarget;
+        private Vector3 _rideVisualOffset;
+        private Vector3 _savedMeshLocalPosition;
+        private Vector3 _rideMeshWorldOffset;
+        private bool _rideViewActive;
+
+        // 乗車中の見た目とカメラの追従を開始する。
+        // 台車と乗車オフセットを保存し、入力権限がある場合はカメラの追従も開始する。
+        // 降車時に復元できるよう、見た目の元のローカル位置を保存する。
+        public void BeginRideView(Transform trolley, Vector3 offset)
+        {
+            if (_rideViewActive) EndRideView();
+            _rideViewActive = true;
+            _rideVisualTarget = trolley;
+            _rideVisualOffset = offset;
+            if (_meshObj != null && _meshObj.transform != transform)
+            {
+                _savedMeshLocalPosition = _meshObj.transform.localPosition;
+                _rideMeshWorldOffset = _meshObj.transform.position - transform.position;
+            }
+            if (HasInputAuthority && _cameraController != null)
+                _cameraController.BeginRideView(trolley, offset);
+        }
+
+        public void EndRideView()
+        {
+            // 通常降車・途中終了の両方から呼ぶ。二重に呼ばれても復元は一度だけ行う。
+            if (!_rideViewActive) return;
+            _rideViewActive = false;
+            _rideVisualTarget = null;
+            if (_meshObj != null && _meshObj.transform != transform)
+                _meshObj.transform.localPosition = _savedMeshLocalPosition;
+            if (HasInputAuthority && _cameraController != null) _cameraController.EndRideView();
+        }
         private RigidbodyConstraints _defaultConstraints;
 
         [Networked] public PlayerControlState CurrentPlayerControlState { get; private set; } = PlayerControlState.Normal;
@@ -112,6 +146,14 @@ namespace InGame.Player
 
         protected virtual void LateUpdate()
         {
+            // 台車位置に乗車オフセットとモデルのオフセットを加え、見た目の位置を更新する。
+            // 台車がなくなった場合は追従を終了する。
+            if (_rideViewActive)
+            {
+                if (_rideVisualTarget == null) EndRideView();
+                else if (_meshObj != null && _meshObj.transform != transform)
+                    _meshObj.transform.position = _rideVisualTarget.position + _rideVisualOffset + _rideMeshWorldOffset;
+            }
             // if (_animationClipPlayer)
             // {
             //     var maxSpeed = _playerMovement.DashMoveSpeed;
@@ -179,12 +221,23 @@ namespace InGame.Player
                         input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Evasion), Runner.DeltaTime);
                 }
 
-                _playerMovement.MoveTick(Runner.DeltaTime);
+                // 通常操作中のみ接地判定・落下速度・移動速度を更新する。
+                // Original: _playerMovement.MoveTick(Runner.DeltaTime);
+                if (CurrentPlayerControlState == PlayerControlState.Normal)
+                    _playerMovement.MoveTick(Runner.DeltaTime);
 
                 if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Warp))
                 {
                     Respawn();
                 }
+            }
+            else if (HasStateAuthority)
+            {
+                // Original: MoveTick was only called when an input packet was available.
+                // Ground probing and gravity must also run while input is missing.
+                // Original: _playerMovement.MoveTick(Runner.DeltaTime);
+                if (CurrentPlayerControlState == PlayerControlState.Normal)
+                    _playerMovement.MoveTick(Runner.DeltaTime);
             }
 
             if (_shouldWarp)
@@ -391,6 +444,7 @@ namespace InGame.Player
             if (!HasStateAuthority) return;
 
             _playerMovement.TeleportImmediate(_respawnPosition);
+            Debug.Log($"[PlayerRespawn] {Object.InputAuthority}: returned to initial spawn {_respawnPosition}", this);
 
             //タニヒラ用の処理を追記
             if (this.gameObject.TryGetComponent<FormationManager>(out FormationManager formationManager))

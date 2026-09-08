@@ -48,6 +48,29 @@ namespace InGame.Player
         public float CameraPitch => _cameraPitch;
         public float CameraYaw => _cameraYaw;
 
+        // ジップライン使用時に台車の位置にカメラを追従させるための変数
+        private Transform _rideTarget;
+        private Vector3 _rideOffset;
+        private Vector3 _ridePivotOffset;
+        private Vector3 _savedPivotLocalPosition;
+
+        // カメラのローカル位置と本体からのオフセットを保存し、追従先の台車を設定する。
+        public void BeginRideView(Transform target, Vector3 offset)
+        {
+            if (_rideTarget != null) EndRideView();
+            _savedPivotLocalPosition = _cameraPivot.localPosition;
+            _ridePivotOffset = _cameraPivot.position - transform.position;
+            _rideTarget = target;
+            _rideOffset = offset;
+        }
+
+        // 台車への追従を終了し、カメラを保存したローカル位置へ戻す。
+        public void EndRideView()
+        {
+            _rideTarget = null;
+            _cameraPivot.localPosition = _savedPivotLocalPosition;
+        }
+
         public void Init(bool use)
         {
             _cameraPivot.gameObject.SetActive(use);
@@ -65,6 +88,9 @@ namespace InGame.Player
 
         private void LateUpdate()
         {
+            // 台車位置に乗車オフセットとカメラのオフセットを加え、カメラ支点の位置を更新する。
+            if (_rideTarget != null)
+                _cameraPivot.position = _rideTarget.position + _rideOffset + _ridePivotOffset;
             CheckCameraDistance();
         }
 
