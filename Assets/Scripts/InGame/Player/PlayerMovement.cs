@@ -92,6 +92,7 @@ namespace InGame.Player
         /// <summary> 回避の同期状態。Tick 基準なので入力権限側の予測でも決定的に再計算できる </summary>
         [Networked, HideInInspector] public EvasionState Evasion { get; private set; }
         [Networked, HideInInspector] public bool DoingVault { get; private set; }
+        [Networked] public bool UseGravity { get; set; }
         public event Action OnStartVault;
         [Networked, HideInInspector] public Vector3 NetworkVelocity { get; private set; }
         [Networked] public Vector2 MoveDirection { get; private set; }
@@ -129,6 +130,10 @@ namespace InGame.Player
         public override void Spawned()
         {
             _prevGroundedTime = Runner.SimulationTime;
+            if(HasStateAuthority)
+            {
+                UseGravity = true;
+            }
         }
 
         private void Awake()
@@ -224,7 +229,10 @@ namespace InGame.Player
             }
             else
             {
-                _fallVelocity += Physics.gravity * deltaTime;
+                if(UseGravity)
+                {
+                    _fallVelocity += Physics.gravity * deltaTime;
+                }
             }
 
             ApplyVelocity(deltaTime);
