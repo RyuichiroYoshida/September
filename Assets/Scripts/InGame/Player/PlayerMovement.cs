@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Jewelry;
 using September.Common;
 using September.InGame.Common.Stats;
-using UniRx;
 using UnityEngine;
 
 namespace InGame.Player
@@ -66,15 +64,10 @@ namespace InGame.Player
         // base move
         private Vector3 _moveVelocity;
         public Vector3 MoveVelocity => _moveVelocity;
-        private Vector3 _flyingVelocity;
-        private Vector3 _fallVelocity;
-        private Vector3 _flyingMoveVelocity;
 
         private Vector3 _rotationDirection;
         private bool _setDirection;
         private bool _isGround;
-        private float _isGroundTimer;
-        private float _prevGroundedTime;
         private Vector3 _groundNormal = Vector3.up;
         /// <summary> カプセルを接地面へ吸着させるための下方向移動量 </summary>
         private float _groundGap;
@@ -82,11 +75,18 @@ namespace InGame.Player
         private const float GroundProbeOffset = 0.1f;
         /// <summary> この値以下の浮きは吸着しない。毎Tickの微小な上下でガタつかせないため </summary>
         private const float GroundSnapTolerance = 0.02f;
-        private bool _isDashCoolTime;
-        private bool CanDash => !_isDashCoolTime && _status.CurrentStamina > 0 && IsGround;
+        private bool CanDash => !IsDashCoolTime && _status.CurrentStamina > 0 && IsGround;
         private bool _isDash;
         // vault
         private bool _doingVault;
+        // 空中挙動
+        private AirborneMotion _airborneMotion;
+        /// <summary> 落下・空中慣性・外力の同期状態。Tick 基準なので入力権限側の予測でも決定的に再計算できる </summary>
+        [Networked] private AirborneState Airborne { get; set; }
+        /// <summary> ノックバックで移動制御を奪われている間のタイマー </summary>
+        [Networked] private TickTimer KnockBackTimer { get; set; }
+        /// <summary> スタミナ切れによるダッシュのクールタイム </summary>
+        [Networked] private TickTimer DashCoolTimer { get; set; }
         // Roll
         private PlayerEvasion _playerEvasion;
         /// <summary> 回避の同期状態。Tick 基準なので入力権限側の予測でも決定的に再計算できる </summary>
@@ -103,14 +103,30 @@ namespace InGame.Player
         private Vector3 _vaultEndPos;
         // teleport
         private Vector3? _teleportTarget;
-        // knock back
-        private bool _knockBackActive = false;
         // Gizmo
         private List<CapsuleCastData> _capsuleCastData = new();
 
         public float WalkSpeed => GetCurrentMoveSpeed();
         public float DashMoveSpeed => GetCurrentDashSpeed();
-        public bool IsGround => (_isGround || _isGroundTimer > 0) && !_knockBackActive;
+
+        public bool IsGround
+        {
+            get
+            {
+                // Spawn 前は Networked 状態を読めない (デバッグ表示が FixedUpdate から参照する)
+                if (Runner == null) return _isGround;
+
+                return (_isGround || _airborneMotion.IsWithinCoyoteTime(Airborne, Runner.Tick, Runner.DeltaTime))
+                       && !IsKnockBack;
+            }
+        }
+
+        /// <summary> ノックバックで移動制御を奪われている間か </summary>
+        private bool IsKnockBack => Runner != null && !KnockBackTimer.ExpiredOrNotRunning(Runner);
+        private bool IsDashCoolTime => Runner != null && !DashCoolTimer.ExpiredOrNotRunning(Runner);
+        /// <summary> 減衰後の外力 (ノックバック・爆風・アビリティ) </summary>
+        private Vector3 ExternalVelocity => _airborneMotion.CalcExternalVelocity(Airborne, Runner.Tick, Runner.DeltaTime);
+
         [Networked, HideInInspector]
         public NetworkBool IsGroundNet { get; private set; }
         public Vector3 GroundNormal => _groundNormal;
@@ -128,7 +144,8 @@ namespace InGame.Player
 
         public override void Spawned()
         {
-            _prevGroundedTime = Runner.SimulationTime;
+            // 基準 Tick を初期化しないと、Spawn 直後に経過 Tick 数ぶんの巨大な落下速度が出る
+            if (HasStateAuthority) MarkGrounded();
         }
 
         private void Awake()
@@ -148,6 +165,7 @@ namespace InGame.Player
             _prePos = transform.position;
 
             _playerEvasion = new(_evasionData);
+            _airborneMotion = new(_coyoteTime, _moveDumping, _flyingDamping);
         }
 
 
@@ -216,18 +234,10 @@ namespace InGame.Player
                 _teleportTarget = null;
             }
 
-            if (IsGround)
-            {
-                _fallVelocity = Vector3.zero;
-                _prevGroundedTime = Runner.SimulationTime;
-                _flyingMoveVelocity = _moveVelocity;
-            }
-            else
-            {
-                _fallVelocity += Physics.gravity * deltaTime;
-            }
+            // 接地中は基準 Tick を更新し続ける。空中の落下速度と慣性はここからの経過 Tick だけで決まる
+            if (IsGround) MarkGrounded();
 
-            ApplyVelocity(deltaTime);
+            ApplyVelocity();
             // Character の回転
             RotationByDirection(_rotationDirection, deltaTime);
 
@@ -240,13 +250,45 @@ namespace InGame.Player
             }
 
             // is ground の管理
-            if (!_isGround && _isGroundTimer > 0)
-                _isGroundTimer = Mathf.Max(0f, _isGroundTimer - deltaTime);
-            if (!_isGround && _isGroundTimer <= 0f)
+            if (!_isGround && !_airborneMotion.IsWithinCoyoteTime(Airborne, Runner.Tick, Runner.DeltaTime))
                 _groundNormal = Vector3.up;
 
             if (_isGround) _moveVelocity = Vector3.zero;
             _isGround = false;
+        }
+
+        /// <summary> 接地した Tick と、そのときの水平速度を空中挙動の基準として記録する </summary>
+        private void MarkGrounded() => MarkGrounded(_moveVelocity);
+
+        private void MarkGrounded(Vector3 horizontalVelocity)
+        {
+            var state = Airborne;
+            _airborneMotion.MarkGrounded(ref state, Runner.Tick, horizontalVelocity);
+            Airborne = state;
+        }
+
+        /// <summary> コヨーテタイムを打ち切り、次の評価から空中扱いにする </summary>
+        private void CancelCoyoteTime()
+        {
+            var state = Airborne;
+            _airborneMotion.CancelCoyoteTime(ref state, Runner.Tick, Runner.DeltaTime);
+            Airborne = state;
+        }
+
+        /// <summary> 外力の初速と適用 Tick を記録する。減衰は経過 Tick 数から一括で求める </summary>
+        private void SetExternalVelocity(Vector3 velocity)
+        {
+            var state = Airborne;
+            _airborneMotion.SetExternalVelocity(ref state, Runner.Tick, velocity);
+            Airborne = state;
+        }
+
+        /// <summary> 落下・空中慣性・外力をすべて 0 に戻す </summary>
+        private void ResetAirborne()
+        {
+            var state = Airborne;
+            _airborneMotion.Reset(ref state, Runner.Tick);
+            Airborne = state;
         }
 
         /// <summary> 回避中の 1 Tick 分の更新。Tick 基準なので予測・再シミュレーションでも同じ結果になる </summary>
@@ -315,10 +357,8 @@ namespace InGame.Player
                 // スタミナなくなったら
                 if (_status.CurrentStamina <= 0)
                 {
-                    // クールタイムに入れて一定時間後に解除
-                    _isDashCoolTime = true;
-                    Observable.Timer(TimeSpan.FromSeconds(_dashCooldown))
-                        .Subscribe(_ => _isDashCoolTime = false).AddTo(this);
+                    // クールタイムに入れて一定時間後に解除。Tick 基準なので再シミュレーションでも同じ区間になる
+                    DashCoolTimer = TickTimer.CreateFromSeconds(Runner, _dashCooldown);
                 }
             }
 
@@ -341,8 +381,7 @@ namespace InGame.Player
             if (Vector3.Angle(_moveVelocity, _groundNormal) < 89)
             {
                 _isGround = false;
-                _isGroundTimer = 0.1f;
-                _isGroundTimer = 0;
+                CancelCoyoteTime();
             }
         }
 
@@ -424,7 +463,7 @@ namespace InGame.Player
         void AdsorptionOnGround()
         {
             // ノックバック中と上方向へ飛ばされている間は引き戻さない
-            if (_knockBackActive || _flyingVelocity.y > 0f) return;
+            if (IsKnockBack || ExternalVelocity.y > 0f) return;
 
             if (_isGround)
             {
@@ -442,38 +481,36 @@ namespace InGame.Player
             if (gap > GroundSnapTolerance)
                 transform.position += Vector3.down * gap;
             _isGround = true;
-            _isGroundTimer = _coyoteTime;
+            MarkGrounded();
             _groundNormal = normal;
             _groundGap = 0f;
         }
 
-        protected virtual void ApplyVelocity(float deltaTime)
+        /// <summary>
+        /// 速度を Rigidbody へ反映する。
+        /// 空中の各成分は経過 Tick 数から毎回求め直すので、再シミュレーションで多重に加算・減衰されない
+        /// </summary>
+        protected virtual void ApplyVelocity()
         {
-            if (!_knockBackActive)
+            if (!IsKnockBack)
             {
                 if (_isGround)
                 {
-                    _rb.linearVelocity = _moveVelocity + _flyingVelocity;
+                    _rb.linearVelocity = _moveVelocity + ExternalVelocity;
                 }
                 else
                 {
-                    _flyingMoveVelocity = Vector3.Lerp(_flyingMoveVelocity, Vector3.zero, _moveDumping * deltaTime);
+                    int tick = Runner.Tick;
+                    float tickDeltaTime = Runner.DeltaTime;
 
                     _rb.linearVelocity =
-                        (_rb.useGravity ? _fallVelocity : Vector3.zero)
-                        + _flyingMoveVelocity
-                        + _flyingVelocity;
+                        (_rb.useGravity ? _airborneMotion.CalcFallVelocity(Airborne, tick, tickDeltaTime) : Vector3.zero)
+                        + _airborneMotion.CalcAirMoveVelocity(Airborne, tick, tickDeltaTime)
+                        + ExternalVelocity;
                 }
             }
 
             NetworkVelocity = _rb.linearVelocity;
-
-            // 減衰
-            _flyingVelocity = Vector3.Lerp(_flyingVelocity, Vector3.zero, _flyingDamping * deltaTime);
-
-            // 微小値になったら0にする
-            if (_flyingVelocity.sqrMagnitude < 0.001f)
-                _flyingVelocity = Vector3.zero;
 
             // 回転の向きを代入
             if (!_setDirection) _rotationDirection = _moveVelocity;
@@ -513,7 +550,7 @@ namespace InGame.Player
         /// <summary> 条件付きでスタミナを回復させる </summary>
         private void UpdateStamina(bool dashInput, float deltaTime)
         {
-            if (!dashInput || _isDashCoolTime) _status.AddBaseValue(StatType.Stamina, _status.StaminaRegen * deltaTime);
+            if (!dashInput || IsDashCoolTime) _status.AddBaseValue(StatType.Stamina, _status.StaminaRegen * deltaTime);
         }
 
         private void TryVault(Vector2 moveDirection)
@@ -590,7 +627,8 @@ namespace InGame.Player
         void EndVault(Vector3 endVelocity)
         {
             _moveVelocity = endVelocity;
-            _flyingMoveVelocity = endVelocity;
+            // 乗り越え直後の速度を空中慣性の初速として引き継ぐ
+            MarkGrounded(endVelocity);
             _rb.linearVelocity = _moveVelocity;
             DoingVault = false;
         }
@@ -599,22 +637,21 @@ namespace InGame.Player
         public void Stop()
         {
             _moveVelocity = Vector3.zero;
-            _flyingMoveVelocity = Vector3.zero;
-            _fallVelocity = Vector3.zero;
+            ResetAirborne();
             _rb.linearVelocity = _moveVelocity;
         }
 
-        public async UniTask KnockBack(Vector3 force, float duration = 0)
+        /// <summary>
+        /// 外力で吹き飛ばす。持続中は移動入力による速度計算を止める。
+        /// 持続区間を <see cref="TickTimer"/> で同期するので、入力権限側でも同じ Tick 区間だけ制御が外れる
+        /// </summary>
+        public void KnockBack(Vector3 force, float duration = 0)
         {
             if (!HasStateAuthority) return;
 
             _rb.linearVelocity = force;
-            _flyingVelocity = force;
-            _knockBackActive = true;
-
-            await UniTask.Delay(TimeSpan.FromSeconds(duration), cancellationToken: this.GetCancellationTokenOnDestroy());
-
-            _knockBackActive = false;
+            SetExternalVelocity(force);
+            KnockBackTimer = TickTimer.CreateFromSeconds(Runner, duration);
         }
 
         public void Teleport(Vector3 position)
@@ -625,7 +662,6 @@ namespace InGame.Player
         public void TeleportImmediate(Vector3 position)
         {
             transform.position = position;
-            _prevGroundedTime = Runner.SimulationTime;
             Stop();
         }
 
@@ -657,17 +693,14 @@ namespace InGame.Player
             MoveDirection = Vector2.zero;
         }
 
-        public void AddFlyingVelocity(Vector3 force)
-        {
-            _flyingVelocity = force;
-        }
+        public void AddFlyingVelocity(Vector3 force) => SetExternalVelocity(force);
 
         private void CheckGroundManual()
         {
             if (!TryProbeGround(out Vector3 normal, out float gap)) return;
 
             _isGround = true;
-            _isGroundTimer = _coyoteTime;
+            MarkGrounded();
             _groundNormal = normal;
             _groundGap = gap;
         }

@@ -243,7 +243,7 @@ namespace InGame.Player.Sarutobi
             {
                 _grappleState = GrappleStateType.Landing;
                 _jumpTimer = 0;
-                _playerMovement.KnockBack(transform.rotation * _pullLastForce, 0.2f).Forget();
+                _playerMovement.KnockBack(transform.rotation * _pullLastForce, 0.2f);
                 RPC_DisplayWireEnd();
                 _clipPlayer.StopClip(_animMoveLoop);
                 _clipPlayerManager.EnableFallMotion = true;
