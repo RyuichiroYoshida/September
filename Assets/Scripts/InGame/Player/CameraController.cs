@@ -82,8 +82,8 @@ namespace InGame.Player
             _defaultYaw = _cameraPivot.rotation.eulerAngles.y;
             _currentOffset = _cameraTf.localPosition;
             _defaultOffset = _cameraTf.localPosition;
-            _cameraPitch = _characterTf.rotation.eulerAngles.x;
-            _cameraYaw = _characterTf.rotation.eulerAngles.y;
+
+            SetCameraRotate(_defaultPitch, _defaultYaw);
         }
 
         private void LateUpdate()
@@ -117,7 +117,7 @@ namespace InGame.Player
         {
             _cameraPitch = _enablePitchAngleLimit
                 ? Mathf.Clamp(pitch, _defaultPitch - _pitchAngleLimit.Max, _defaultPitch - _pitchAngleLimit.Min)
-                : Mathf.Clamp(pitch, _defaultPitch - 90f, _defaultPitch + 90f);
+                : Mathf.Clamp(pitch, -89.9f, 89.9f);
 
             _cameraYaw = _enableYawAngleLimit
                 ? Mathf.Clamp(yaw, _defaultYaw + _yawAngleLimit.Min, _defaultYaw + _yawAngleLimit.Max)
