@@ -460,9 +460,11 @@ namespace InGame.Player
                 {
                     _flyingMoveVelocity = Vector3.Lerp(_flyingMoveVelocity, Vector3.zero, _moveDumping * deltaTime);
 
+                    // 回避中は崖から踏み出しても確定した水平速度を維持する
+                    Vector3 horizontalVelocity = IsEvading ? _moveVelocity : _flyingMoveVelocity;
                     _rb.linearVelocity =
                         (_rb.useGravity ? _fallVelocity : Vector3.zero)
-                        + _flyingMoveVelocity
+                        + horizontalVelocity
                         + _flyingVelocity;
                 }
             }
