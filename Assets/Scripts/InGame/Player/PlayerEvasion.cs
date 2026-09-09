@@ -49,7 +49,8 @@ namespace InGame.Player
             state.IsEvading = true;
             state.StartTick = currentTick;
             state.RollDuration = _evasionData.RollDuration * weightCoefficient;
-            state.TurnDuration = _evasionData.MaxTurnDuration * turnProgress * weightCoefficient;
+            // 向き変更がロールより長いと移動方向を向き切らないままロールが終わり、モーションの向きと実際の移動方向がずれる
+            state.TurnDuration = Mathf.Min(_evasionData.MaxTurnDuration * turnProgress * weightCoefficient, state.RollDuration);
             state.RollDistance = _evasionData.RollDistance * weightCoefficient;
             state.MoveDirection = moveDirection;
             state.StartDirection = currentForward;

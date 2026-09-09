@@ -1,3 +1,4 @@
+using September.Common;
 using UnityEngine;
 
 namespace September.InGame.Kraken.Attack
@@ -9,7 +10,7 @@ namespace September.InGame.Kraken.Attack
     {
         private readonly LayerMask _hitLayer;
 
-        private Camera _camera;
+        private Camera _localCamera;
 
         /// <param name="hitLayer"> 目標地点の判定に使うレイヤー </param>
         public KrakenAimPointResolver(LayerMask hitLayer)
@@ -20,21 +21,38 @@ namespace September.InGame.Kraken.Attack
         /// <summary>
         /// 現在の視線の先の攻撃目標地点を求める
         /// </summary>
-        /// <returns> カメラが取得できなかった場合は false </returns>
-        public bool TryResolve(out KrakenAimPoint aimPoint)
+        /// <returns> カメラが取得できなかった場合と目標地点を見つけられなかった場合 false </returns>
+        public bool TryResolveLocal(out KrakenAimPoint aimPoint)
         {
-            if (_camera == null) _camera = Camera.main;
+            if (_localCamera == null) _localCamera = Camera.main;
 
-            if (_camera == null)
+            if (_localCamera == null)
             {
                 aimPoint = default;
                 return false;
             }
 
-            Transform cameraTransform = _camera.transform;
+            Transform cameraTransform = _localCamera.transform;
             Vector3 origin = cameraTransform.position;
             Vector3 forward = cameraTransform.forward;
 
+            return TryResolve(origin, forward, out aimPoint);
+        }
+
+        /// <summary>
+        /// 現在の視線の先の攻撃目標地点を求める
+        /// </summary>
+        /// <returns> 目標地点を見つけられなかった場合 false </returns>
+        public bool TryResolveNetwork(PlayerInput input, out KrakenAimPoint aimPoint)
+        {
+            Vector3 origin = input.CameraPosition;
+            Vector3 forward = input.DesiredLookDirection;
+
+            return TryResolve(origin, forward, out aimPoint);
+        }
+
+        private bool TryResolve(Vector3 origin, Vector3 forward, out KrakenAimPoint aimPoint)
+        {
             if (Physics.Raycast(origin, forward, out RaycastHit hit, Mathf.Infinity, _hitLayer))
             {
                 aimPoint = new KrakenAimPoint(hit.point, hit.normal, true);

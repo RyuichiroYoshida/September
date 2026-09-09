@@ -75,7 +75,10 @@ namespace InGame.Common
         private void Start()
         {
             ResolveLocoBaseSpeeds();
+        }
 
+        public override void Spawned()
+        {
             _playerManager.ObserveEveryValueChanged(x => x.IsStun)
                 .Subscribe(isStun =>
                 {
