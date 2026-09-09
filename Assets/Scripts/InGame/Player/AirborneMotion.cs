@@ -60,12 +60,25 @@ namespace InGame.Player
             return velocity.sqrMagnitude < ExternalVelocityCutoffSqr ? Vector3.zero : velocity;
         }
 
-        /// <summary> 接地した Tick と、そのときの水平速度を記録する </summary>
+        /// <summary>
+        /// 接地した Tick と、そのときの水平速度を記録する。
+        /// <para>
+        /// <b>実際に地面へ接触している Tick でのみ呼ぶこと。</b>
+        /// <see cref="IsWithinCoyoteTime"/> が真という理由で呼ぶと、接地判定が自身の記録した
+        /// Tick を参照して毎 Tick 更新され続け、永久に接地扱い (空中歩行) になる。
+        /// </para>
+        /// </summary>
         public void MarkGrounded(ref AirborneState state, int tick, Vector3 horizontalVelocity)
         {
             state.LastGroundedTick = tick;
             state.TakeoffVelocity = horizontalVelocity;
         }
+
+        /// <summary>
+        /// 離陸時の初速だけを更新する。基準 Tick は動かさないのでコヨーテタイム中に呼んでも安全。
+        /// </summary>
+        public void CaptureTakeoffVelocity(ref AirborneState state, Vector3 horizontalVelocity)
+            => state.TakeoffVelocity = horizontalVelocity;
 
         /// <summary> コヨーテタイムを打ち切り、次の評価から空中扱いにする </summary>
         public void CancelCoyoteTime(ref AirborneState state, int tick, float tickDeltaTime)

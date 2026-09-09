@@ -234,8 +234,10 @@ namespace InGame.Player
                 _teleportTarget = null;
             }
 
-            // 接地中は基準 Tick を更新し続ける。空中の落下速度と慣性はここからの経過 Tick だけで決まる
-            if (IsGround) MarkGrounded();
+            // 接地扱いの間は離陸速度を更新し続ける。
+            // 基準 Tick は CheckGroundManual / AdsorptionOnGround の実接地時にだけ更新する。
+            // ここで基準 Tick を触ると IsGround が自身の記録を参照して永久に接地扱いになる (空中歩行)
+            if (IsGround) CaptureTakeoffVelocity();
 
             ApplyVelocity();
             // Character の回転
@@ -257,13 +259,24 @@ namespace InGame.Player
             _isGround = false;
         }
 
-        /// <summary> 接地した Tick と、そのときの水平速度を空中挙動の基準として記録する </summary>
+        /// <summary>
+        /// 接地した Tick と、そのときの水平速度を空中挙動の基準として記録する。
+        /// 実接地している Tick でのみ呼ぶこと (理由は <see cref="AirborneMotion.MarkGrounded"/>)
+        /// </summary>
         private void MarkGrounded() => MarkGrounded(_moveVelocity);
 
         private void MarkGrounded(Vector3 horizontalVelocity)
         {
             var state = Airborne;
             _airborneMotion.MarkGrounded(ref state, Runner.Tick, horizontalVelocity);
+            Airborne = state;
+        }
+
+        /// <summary> 離陸時の初速だけを更新する。基準 Tick は動かさない </summary>
+        private void CaptureTakeoffVelocity()
+        {
+            var state = Airborne;
+            _airborneMotion.CaptureTakeoffVelocity(ref state, _moveVelocity);
             Airborne = state;
         }
 
