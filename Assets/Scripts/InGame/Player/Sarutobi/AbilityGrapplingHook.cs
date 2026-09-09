@@ -187,6 +187,8 @@ namespace InGame.Player.Sarutobi
 
             _playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
 
+            _clipPlayerManager.EnableFallMotion = false;
+
             Cooldown = TickTimer.CreateFromSeconds(Runner, _cooldown);
 
             // ボーナスカウントを更新する
@@ -225,7 +227,6 @@ namespace InGame.Player.Sarutobi
             {
                 _grappleState = GrappleStateType.PreJump;
                 _jumpTimer = 0;
-                _clipPlayerManager.EnableFallMotion = false;
 
                 PreJump().Forget();
             }
@@ -526,4 +527,3 @@ namespace InGame.Player.Sarutobi
         }
     }
 }
-
