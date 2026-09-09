@@ -32,6 +32,9 @@ namespace September
         private void OnDisable()
         {
             Spline.Changed -= OnSplineChanged;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.delayCall -= GenerateMeshAfterValidate;
+#endif
         }
 
         private void OnSplineChanged(Spline spline, int knotIndex, SplineModification modification)
@@ -49,7 +52,7 @@ namespace September
             if (_splineContainer == null) return;
             if (_meshFilter == null) _meshFilter = GetComponent<MeshFilter>();
             
-            _mesh ??= new Mesh { name = "SplineTube" };
+            if (_mesh == null) _mesh = new Mesh { name = "SplineTube" };
             _mesh.Clear();
 
             // メッシュの頂点数と三角形数を計算
@@ -135,12 +138,14 @@ namespace September
         private void OnValidate()
         {
             //エディタ上でスプラインが変更されたときにメッシュを更新するために、遅延コールを使用
-            UnityEditor.EditorApplication.delayCall += () =>
-            {
-                if (this == null) return;
-                GenerateMesh();
-                
-            };
+            UnityEditor.EditorApplication.delayCall -= GenerateMeshAfterValidate;
+            UnityEditor.EditorApplication.delayCall += GenerateMeshAfterValidate;
+        }
+
+        private void GenerateMeshAfterValidate()
+        {
+            if (this == null || !isActiveAndEnabled) return;
+            GenerateMesh();
         }
 #endif
     }

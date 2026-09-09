@@ -138,7 +138,6 @@ namespace InGame.Player
             _rb = GetComponent<Rigidbody>();
             _rb.useGravity = true;
             _movementOverride = GetComponent<IPlayerMovementOverride>();
-            _movementOverride = GetComponent<IPlayerMovementOverride>();
             _status = GetComponent<PlayerStatus>();
             _animator = GetComponentInChildren<Animator>();
             // ========== ビルドシステム ==========
@@ -666,9 +665,29 @@ namespace InGame.Player
             _teleportTarget = position;
         }
 
-        public void TeleportImmediate(Vector3 position)
+        // 指定位置へ移動する。回転が指定されている場合は向きも更新する。
+        public void TeleportImmediate(Vector3 position, Quaternion? rotation = null)
         {
-            transform.position = position;
+            if (TryGetComponent<Fusion.Addons.Physics.NetworkRigidbody3D>(out var networkBody))
+                // NetworkRigidbodyに位置と任意の回転を渡し、物理・同期状態へ反映する。
+                networkBody.Teleport(position, rotation);
+            else
+            {
+                _rb.position = position;
+                transform.position = position;
+                if (rotation.HasValue)
+                {
+                    // NetworkRigidbodyがない場合はRigidbodyとTransformの両方に回転を設定する。
+                    _rb.rotation = rotation.Value;
+                    transform.rotation = rotation.Value;
+                }
+            }
+            _teleportTarget = null;
+            NetworkedFlyingVelocity = Vector3.zero;
+            _knockBackActive = false;
+            _isGround = false;
+            GroundedGraceRemaining = 0f;
+            _rb.angularVelocity = Vector3.zero;
             _prevGroundedTime = Runner.SimulationTime;
             Stop();
         }
@@ -851,15 +870,9 @@ namespace InGame.Player
         }
 #endif
     }
+
     public interface IPlayerMovementOverride
     {
         bool TryOverrideMovement(PlayerMovement movement, float deltaTime);
     }
-
 }
-
-
-
-
-
-
