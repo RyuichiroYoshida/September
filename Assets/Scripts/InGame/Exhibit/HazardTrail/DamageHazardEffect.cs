@@ -37,10 +37,16 @@ namespace InGame.Exhibit.HazardTrail
 
         public void OnHazardSpawn(NetworkRunner runner, PlayerRef owner)
         {
-
-            PlayHazardEffect();
+            /// エフェクトの再生を開始。
+            if (_hazardEffectType == EffectType.None || _activeEffectId.IsValid || EffectSpawner == null) return;
+            _activeEffectId = EffectSpawner.RequestPlayLoopEffect(
+            _hazardEffectType,
+            transform.position + _hazardEffectOffset,
+            Quaternion.identity,
+            _hazardEffectScale
+            );
         }
-
+  
         public void OnHazardTick(NetworkRunner runner, PlayerRef owner)
         {
             // インターバルタイマーが切れた時だけ攻撃判定を行う
@@ -84,17 +90,9 @@ namespace InGame.Exhibit.HazardTrail
             StopHazardEffect();
         }
 
-        private void PlayHazardEffect()
-        {
-            if (_hazardEffectType == EffectType.None || _activeEffectId.IsValid || EffectSpawner == null) return;
-            _activeEffectId = EffectSpawner.RequestPlayLoopEffect(
-            _hazardEffectType,
-            transform.position + _hazardEffectOffset,
-            Quaternion.identity,
-            _hazardEffectScale
-            );
-        }
-
+        /// <summary>
+        /// ハザードのエフェクトを停止,フェードアウトさせ削除。
+        /// </summary>
         private void StopHazardEffect()
         {
             if (_activeEffectId.IsValid && EffectSpawner != null)
