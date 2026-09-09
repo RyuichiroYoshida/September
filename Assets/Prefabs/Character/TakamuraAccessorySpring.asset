@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d015e6cfc392ea078813cd1ff2163102, type: 3}
+  m_Name: TakamuraAccessorySpring
+  m_EditorClassIdentifier: 
+  RootPaths:
+  - TakamuraChara/Root/mn_c_main/mn_c_spine1/mn_c_tail_1
+  - TakamuraChara/Root/mn_c_main/mn_c_spine1/mn_c_spine2/mn_c_spine3/mn_c_neck/mn_muffller_1
+  RootTunings:
+  - RootPath: TakamuraChara/Root/mn_c_main/mn_c_spine1/mn_c_tail_1
+    GravityInfluence: 0.72
+  - RootPath: TakamuraChara/Root/mn_c_main/mn_c_spine1/mn_c_spine2/mn_c_spine3/mn_c_neck/mn_muffller_1
+    GravityInfluence: 1
+  Stiffness: 10
+  Damping: 13
+  MaxVelocity: 3.5
+  MaxTargetSpeed: 6
+  Inertia: 0.15
+  SimulationSpeed: 1
+  DefaultPoseSpeed: 18
+  DefaultPoseMotionThreshold: 0.35
+  Gravity: {x: 0, y: -9.81, z: 0}
+  Weight: 1
+  TipLength: 0.08
+  CollisionRadius: 0.025
+  TeleportDistance: 2
