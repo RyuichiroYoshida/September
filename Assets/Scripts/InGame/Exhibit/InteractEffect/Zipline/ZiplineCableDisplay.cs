@@ -49,7 +49,7 @@ namespace September
             if (_splineContainer == null) return;
             if (_meshFilter == null) _meshFilter = GetComponent<MeshFilter>();
             
-            _mesh ??= new Mesh { name = "SplineTube" };
+            if (_mesh == null) _mesh = new Mesh { name = "SplineTube" };
             _mesh.Clear();
 
             // メッシュの頂点数と三角形数を計算
