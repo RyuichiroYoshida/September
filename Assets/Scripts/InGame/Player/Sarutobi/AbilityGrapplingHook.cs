@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Common;
 using September.Common;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Splines;
 using UnityEngine.UI;
@@ -32,7 +31,7 @@ namespace InGame.Player.Sarutobi
         [SerializeField] private AnimationClip _animMoveStart;
         [SerializeField] private AnimationClip _animMoveLoop;
         [SerializeField] private AnimationClip _animLanding;
-        [Header("WireDisplay")] 
+        [Header("WireDisplay")]
         [SerializeField] private Transform _handSocket;
         [SerializeField] private Material _wireMaterial;
         [SerializeField] private float _wireWidth;
@@ -45,15 +44,16 @@ namespace InGame.Player.Sarutobi
         private Transform _targetUI;
         private Camera _mainCamera;
         private Transform _wireCyl;
-        
+
         private GrappleStateType _grappleState = GrappleStateType.ShotWait;
         private float _jumpTimer;
         private float _wireTimer;
         private Vector3 _targetPosition;
         private Vector3 _startPosition;
         private float _distanceMag;
-        private NetworkButtons PreviousButtons { get; set; }
-        
+        private bool _isLandingAnimationStarted;
+        [Networked] private NetworkButtons PreviousButtons { get; set; }
+
         [Networked, HideInInspector] public AbilityStateType AbilityState { get; private set; } = AbilityStateType.Ready;
         public event Action OnAbilityStart;
         [Networked, HideInInspector] public TickTimer Cooldown { get; set; }
@@ -67,7 +67,7 @@ namespace InGame.Player.Sarutobi
                 _clipPlayer = GetComponent<AnimationClipPlayer>();
                 _clipPlayerManager = GetComponent<AnimationClipPlayerManager>();
             }
-            
+
             if (HasInputAuthority)
             {
                 _playerManager = GetComponent<PlayerManager>();
@@ -88,9 +88,9 @@ namespace InGame.Player.Sarutobi
         public override void FixedUpdateNetwork()
         {
             GetInput<PlayerInput>(out var input);
-            
+
             // input authority で判定
-            if (HasInputAuthority)
+            if (HasInputAuthority && Runner.IsForward)
             {
                 if (_targetUI)
                 {
@@ -100,7 +100,7 @@ namespace InGame.Player.Sarutobi
                 {
                     return;
                 }
-                
+
                 // Abilityの状態と入力受付がされているときに判定に入る
                 if (AbilityState == AbilityStateType.Ready && GameInput.I.Player.Ability1.enabled && !IsRidingExhibit())
                 {
@@ -114,7 +114,7 @@ namespace InGame.Player.Sarutobi
                     }
                 }
             }
-            
+
             // state authority で移動とクールダウン
             if (HasStateAuthority)
             {
@@ -133,7 +133,7 @@ namespace InGame.Player.Sarutobi
                     {
                         LandingTick();
                     }
-                    
+
                     _playerMovement.SetRotationDirection(_targetPosition - _startPosition);
                 }
                 else if (AbilityState == AbilityStateType.Cooldown && Cooldown.ExpiredOrNotRunning(Runner))
@@ -156,8 +156,9 @@ namespace InGame.Player.Sarutobi
         [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
         void RPC_GrappleStart(Vector3 targetPosition)
         {
+            if (HasStateAuthority && (AbilityState != AbilityStateType.Ready || IsRidingExhibit())) return;
             OnAbilityStart?.Invoke();
-            
+
             if (!HasStateAuthority)
             {
                 _targetPosition = targetPosition + Vector3.up * 0.05f;
@@ -165,7 +166,7 @@ namespace InGame.Player.Sarutobi
                 _distanceMag = Vector3.Distance(_startPosition, _targetPosition);
                 return;
             }
-            
+
             AbilityState = AbilityStateType.Active;
             _grappleState = GrappleStateType.Shot;
             _targetPosition = targetPosition + Vector3.up * 0.05f;
@@ -173,18 +174,18 @@ namespace InGame.Player.Sarutobi
             _distanceMag = Vector3.Distance(_startPosition, _targetPosition);
             _jumpTimer = 0;
             Shot().Forget();
-            
+
             _playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
-            
+
             Cooldown = TickTimer.CreateFromSeconds(Runner, _cooldown);
-            
+
             // ボーナスカウントを更新する
             PlayerDatabase db = PlayerDatabase.Instance;
-            if (!db.PlayerDataDic.TryGet(Object.InputAuthority, out SessionPlayerData playerData)) 
+            if (!db.PlayerDataDic.TryGet(Object.InputAuthority, out SessionPlayerData playerData))
                 return;
-            if (playerData.CharacterType != CharacterType.Sarutobi) 
+            if (playerData.CharacterType != CharacterType.Sarutobi)
                 return;
-            
+
             if (HasStateAuthority)
             {
                 db.Server_AddGrapplingHook(Object.InputAuthority);
@@ -198,8 +199,9 @@ namespace InGame.Player.Sarutobi
             if (endType != EndClipType.Complete)
             {
                 GrappleEnd();
+                return;
             }
-            
+
             _grappleState = GrappleStateType.ShotWait;
             _clipPlayer.PlayClip(_animShotWait);
             RPC_DisplayWireStart();
@@ -208,7 +210,7 @@ namespace InGame.Player.Sarutobi
         void ShotWaitTick()
         {
             _jumpTimer += Runner.DeltaTime;
-                    
+
             if (_jumpTimer >= _distanceMag / _wireSpeed)
             {
                 _grappleState = GrappleStateType.PreJump;
@@ -226,42 +228,43 @@ namespace InGame.Player.Sarutobi
             if (endType != EndClipType.Complete)
             {
                 GrappleEnd();
+                return;
             }
-            
+
             _grappleState = GrappleStateType.Jumping;
+            Vector3 forward = _targetPosition - transform.position;
+            forward.y = 0f;
+            Quaternion rotation = forward.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(forward) : transform.rotation;
+            _playerMovement.StartGrappleMotion(_targetPosition, _pullingSpeed, rotation * _pullLastForce);
             _clipPlayer.PlayClipLoop(_animMoveLoop);
         }
 
         void JumpingTick()
         {
-            _jumpTimer += Runner.DeltaTime;
-            float t = Math.Clamp(_jumpTimer * _pullingSpeed / _distanceMag, 0, 1);
-            
-            transform.position = Vector3.Lerp(_startPosition, _targetPosition, t);
-
-            if (t >= 1)
+            if (!_playerMovement.IsGrappleMotionActive)
             {
                 _grappleState = GrappleStateType.Landing;
                 _jumpTimer = 0;
-                _playerMovement.KnockBack(transform.rotation * _pullLastForce, 0.2f).Forget();
+                _isLandingAnimationStarted = false;
                 RPC_DisplayWireEnd();
-                _clipPlayer.StopClip(_animMoveLoop);
-                _clipPlayerManager.EnableFallMotion = true;
+                // 接地するまで移動ループを保ち、通常姿勢・落下姿勢を間に挟まない。
+                LandingTick();
             }
         }
 
         void LandingTick()
         {
-            if (_playerMovement.IsGround)
+            if (!_isLandingAnimationStarted && _playerMovement.IsGroundNet)
             {
-                if (_jumpTimer == 0)
-                {
-                    _clipPlayer.PlayClip(_animLanding);
-                }
-                
-                _jumpTimer += Runner.DeltaTime;
+                _isLandingAnimationStarted = true;
+                _clipPlayer.PlayClip(_animLanding);
+                // 着地を先に再生する。同一レイヤーなら再生側が旧ループを置換する。
+                _clipPlayer.StopClip(_animMoveLoop);
             }
 
+            if (!_isLandingAnimationStarted) return;
+
+            _jumpTimer += Runner.DeltaTime;
             if (_jumpTimer >= _landingDuration)
             {
                 GrappleEnd();
@@ -270,6 +273,8 @@ namespace InGame.Player.Sarutobi
 
         void GrappleEnd()
         {
+            _playerMovement.CancelGrappleMotion();
+            _clipPlayer.StopClip(_animMoveLoop);
             AbilityState = AbilityStateType.Cooldown;
             _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _jumpTimer = 0;
@@ -281,14 +286,14 @@ namespace InGame.Player.Sarutobi
         {
             position = Vector3.zero;
             if (!HasInputAuthority || !_grappleableSpline || !_grappleableSpline.Splines.Any()) return false;
-            
+
             var splines = _grappleableSpline.Splines;
 
             // 粗い間隔で最もポイントが低い点を見つける
             Spline minSpline = null;
             float minT = float.MaxValue;
             float minPoint = float.MaxValue;
-            
+
             foreach (var t1 in splines)
             {
                 if (!GetMinPoint(t1, new MinMaxRange(0, 1), out var t, out _, out var newPoint)) continue;
@@ -300,15 +305,15 @@ namespace InGame.Player.Sarutobi
                     minPoint = newPoint;
                 }
             }
-            
+
             if (minSpline == null) return false;
 
             // そのポイント周辺で最もポイントが低い点を探す
             if (!GetMinPoint(minSpline, new MinMaxRange(minT - 0.05f, minT + 0.05f), out _, out var ansPosition,
                     out _)) return false;
-            
+
             position = ansPosition;
-            
+
             return true;
         }
 
@@ -326,22 +331,22 @@ namespace InGame.Player.Sarutobi
 
             // 角度判定
             float angle = Vector3.Angle(_mainCamera.transform.forward, position - _mainCamera.transform.position);
-            
+
             if (angle > _maxAngle)
             {
                 return false;
             }
-            
+
             // 障害物判定　カプセルの中心から同じRadiusの球でTargetまでCast
             Vector3 halfHeight = (_playerMovement.MoveCapsuleCollider.height * 0.5f + _playerMovement.MoveCapsuleCollider.radius) * Vector3.up;
-            
+
             if (Physics.CheckCapsule(transform.position + halfHeight, position + halfHeight, _playerMovement.MoveCapsuleCollider.radius, _playerMovement.GroundLayer))
             {
                 return false;
             }
-            
+
             point = posDiff.magnitude * _distanceReflectionRate + angle * _angleReflectionRate;
-            
+
             return true;
         }
 
@@ -350,7 +355,7 @@ namespace InGame.Player.Sarutobi
             t = -1;
             position = Vector3.zero;
             point = float.MaxValue;
-            
+
             for (int i = 0; i < iterations; i++)
             {
                 for (int j = 0; j < resolution; j++)
@@ -358,7 +363,7 @@ namespace InGame.Player.Sarutobi
                     float currentT = tRange.Min + (tRange.Max - tRange.Min) * (j / (float)resolution);
                     if (!spline.Evaluate(currentT, out var pos, out _, out _)) continue;
                     if (!GetEvaluatePoint(pos, out var newPoint)) continue;
-                    
+
                     if (point > newPoint)
                     {
                         t = currentT;
@@ -385,7 +390,7 @@ namespace InGame.Player.Sarutobi
                 _targetUI.gameObject.SetActive(false);
                 return;
             }
-            
+
             _targetUI.gameObject.SetActive(true);
             _targetUI.position = screenPos;
         }
@@ -420,7 +425,7 @@ namespace InGame.Player.Sarutobi
 
             if (len < 1e-5f)
             {
-                _wireCyl.gameObject.SetActive(false); 
+                _wireCyl.gameObject.SetActive(false);
                 return;
             }
 
