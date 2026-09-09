@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace InGame.Player.Sarutobi
 {
-    public class AbilityGrapplingHook : NetworkBehaviour, IAfterTick
+    public class AbilityGrapplingHook : NetworkBehaviour, IAfterTick, IPlayerMovementOverride
     {
         [Header("Ability")]
         [SerializeField] private GameObject _targetUIPrefab;
@@ -52,6 +52,16 @@ namespace InGame.Player.Sarutobi
         private Vector3 _startPosition;
         private float _distanceMag;
         private bool _isLandingAnimationStarted;
+
+        [Networked] private bool IsGrappleMoving { get; set; }
+        [Networked] private Vector3 GrappleStart { get; set; }
+        [Networked] private Vector3 GrappleTarget { get; set; }
+        [Networked] private int GrappleStartTick { get; set; }
+        [Networked] private float GrappleDuration { get; set; }
+        [Networked] private Vector3 GrappleReleaseVelocity { get; set; }
+        [Networked] private TickTimer GrappleReleaseTimer { get; set; }
+        public bool IsGrappleMotionActive => IsGrappleMoving || !GrappleReleaseTimer.ExpiredOrNotRunning(Runner);
+
         [Networked] private NetworkButtons PreviousButtons { get; set; }
 
         [Networked, HideInInspector] public AbilityStateType AbilityState { get; private set; } = AbilityStateType.Ready;
@@ -235,13 +245,13 @@ namespace InGame.Player.Sarutobi
             Vector3 forward = _targetPosition - transform.position;
             forward.y = 0f;
             Quaternion rotation = forward.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(forward) : transform.rotation;
-            _playerMovement.StartGrappleMotion(_targetPosition, _pullingSpeed, rotation * _pullLastForce);
+            StartGrappleMotion(_targetPosition, _pullingSpeed, rotation * _pullLastForce);
             _clipPlayer.PlayClipLoop(_animMoveLoop);
         }
 
         void JumpingTick()
         {
-            if (!_playerMovement.IsGrappleMotionActive)
+            if (!IsGrappleMotionActive)
             {
                 _grappleState = GrappleStateType.Landing;
                 _jumpTimer = 0;
@@ -273,13 +283,76 @@ namespace InGame.Player.Sarutobi
 
         void GrappleEnd()
         {
-            _playerMovement.CancelGrappleMotion();
+            CancelGrappleMotion();
             _clipPlayer.StopClip(_animMoveLoop);
             AbilityState = AbilityStateType.Cooldown;
             _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _jumpTimer = 0;
             RPC_DisplayWireEnd();
             _clipPlayerManager.EnableFallMotion = true;
+        }
+
+        private void StartGrappleMotion(Vector3 target, float speed, Vector3 releaseVelocity)
+        {
+            GrappleStart = _playerMovement.Rigidbody.position;
+            GrappleTarget = target;
+            GrappleStartTick = Runner.Tick + 1;
+            GrappleDuration = Mathf.Max(Runner.DeltaTime, Vector3.Distance(GrappleStart, target) / Mathf.Max(speed, 0.01f));
+            GrappleReleaseVelocity = releaseVelocity;
+            GrappleReleaseTimer = default;
+            IsGrappleMoving = true;
+        }
+
+        private void CancelGrappleMotion()
+        {
+            IsGrappleMoving = false;
+            GrappleReleaseTimer = default;
+        }
+
+        public bool TryOverrideMovement(PlayerMovement movement, float deltaTime)
+        {
+            if (IsGrappleMoving)
+            {
+                float elapsed = (Runner.Tick - GrappleStartTick) * deltaTime;
+                if (elapsed < 0f) return false;
+
+                if (elapsed < GrappleDuration)
+                {
+                    float progress = Mathf.Clamp01((elapsed + deltaTime) / GrappleDuration);
+                    Vector3 nextPosition = Vector3.Lerp(GrappleStart, GrappleTarget, progress);
+                    Vector3 velocity = (nextPosition - movement.Rigidbody.position) / deltaTime;
+                    if (movement.Rigidbody.useGravity) velocity -= Physics.gravity * deltaTime;
+                    movement.Rigidbody.linearVelocity = velocity;
+
+                    Vector3 direction = GrappleTarget - GrappleStart;
+                    direction.y = 0f;
+                    if (direction.sqrMagnitude > 0.0001f)
+                        movement.Rigidbody.rotation = Quaternion.RotateTowards(
+                            movement.Rigidbody.rotation, Quaternion.LookRotation(direction), movement.RotationSpeed * deltaTime);
+                    movement.SetRotationDirection(direction);
+                    movement.ApplyExternalMovementState(velocity, Vector3.zero, Vector3.zero);
+                    return true;
+                }
+
+                IsGrappleMoving = false;
+                movement.Rigidbody.linearVelocity = GrappleReleaseVelocity;
+                movement.ResetFlyingVelocity();
+                movement.ResetExternalGroundState();
+                GrappleReleaseTimer = TickTimer.CreateFromSeconds(Runner, 0.2f);
+            }
+
+            if (GrappleReleaseTimer.IsRunning)
+            {
+                Vector3 velocity = movement.Rigidbody.linearVelocity;
+                movement.ApplyExternalMovementState(
+                    velocity,
+                    Vector3.up * velocity.y,
+                    Vector3.ProjectOnPlane(velocity, Vector3.up));
+                if (!GrappleReleaseTimer.ExpiredOrNotRunning(Runner)) return true;
+                GrappleReleaseTimer = default;
+            }
+
+            return false;
         }
 
         bool FindGrappleablePosition(out Vector3 position)
@@ -453,3 +526,4 @@ namespace InGame.Player.Sarutobi
         }
     }
 }
+
