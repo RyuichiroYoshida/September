@@ -194,6 +194,7 @@ GameObject:
   - component: {fileID: 1603737275410755787}
   - component: {fileID: 1114119312988880207}
   - component: {fileID: 6536409901387145945}
+  - component: {fileID: 719623459874200001}
   - component: {fileID: 4098958804128321478}
   m_Layer: 0
   m_Name: Cube
@@ -354,6 +355,7 @@ MonoBehaviour:
         Spline: {fileID: 363866046024761354}
         Trolley: {fileID: 5316400206272108416}
         Duration: 3
+        OkabeSpeedMultiplier: 1.5
         ReturnDuration: 5
         SpeedCurve:
           serializedVersion: 2
@@ -380,6 +382,19 @@ MonoBehaviour:
           m_PostInfinity: 2
           m_RotationOrder: 4
         PlayerOffset: {x: 0, y: -2.5, z: 0}
+--- !u!114 &719623459874200001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5316400206272108416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 603477ea7abd4e80a0c0f193b1db9a80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _trolley: {fileID: 911753468616708066}
 --- !u!114 &4098958804128321478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,6 +414,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 1114119312988880207}
   - {fileID: 6536409901387145945}
+  - {fileID: 719623459874200001}
   ForceRemoteRenderTimeframe: 0
 --- !u!1 &6356409573864579361
 GameObject:
