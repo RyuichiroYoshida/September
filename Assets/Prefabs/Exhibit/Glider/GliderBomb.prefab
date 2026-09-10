@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 2682596993848756509}
   - component: {fileID: 3627884148062855928}
   m_Layer: 0
-  m_Name: Bomp
+  m_Name: GliderBomb
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

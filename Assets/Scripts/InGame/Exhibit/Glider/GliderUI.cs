@@ -16,13 +16,14 @@ namespace September.InGame.Exhibit
 
 		private async UniTask ReloadUiAnim(int ammo, float coolTime)
 		{
+			var timer = coolTime;
 			if (ammo == 0)
 			{
-				while (coolTime > 0)
+				while (timer > 0)
 				{
 					await UniTask.WaitForFixedUpdate();
-					coolTime -= Time.fixedDeltaTime;
-					_coolTimeImage.fillAmount = 1 - coolTime;
+					timer -= Time.fixedDeltaTime;
+					_coolTimeImage.fillAmount = 1 - timer / coolTime;
 				}
 			}
 		}

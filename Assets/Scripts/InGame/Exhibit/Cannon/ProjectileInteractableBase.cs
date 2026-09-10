@@ -31,6 +31,10 @@ namespace September.InGame.Exhibit
 		protected IProjectileMovement _move;
 		protected PlayerManager _usingPlayer;
 		private AnimationClipPlayer _animationClipPlayer;
+		/// <summary>
+		/// 現在の弾丸が減った時のコールバック
+		/// 変数は球数、クールタイム
+		/// </summary>
 		public event Action<int, float> OnAmmoChanged;
 
 		[Networked] private NetworkButtons _attackButton { get; set; }

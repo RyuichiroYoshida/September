@@ -68,7 +68,6 @@ namespace September.InGame.Exhibit
 			CurrentProjectileData = projectileData;
 			PlayerRef = playerRef;
 			OnHitCallback = onHitCallback;
-			Debug.Log(CurrentProjectileData.LifeTime + " : " + Runner.Tick);
 			_lifeTimer = TickTimer.CreateFromSeconds(Runner, CurrentProjectileData.LifeTime);
 		}
 		

@@ -15,11 +15,13 @@ namespace September.InGame.Exhibit
 		[SerializeField] private Transform _camera;
 		[SerializeField] private Transform _playerPos;
 		[SerializeField] private Transform _cameraPos;
-		[SerializeField] private LayerMask _groundLayer;
 		[SerializeField] private float _maxSpeed = 5f;
 		[SerializeField] private float _acceleration = 10f;
 		[SerializeField] private float _gravity = -9.81f;
+		[Header("接地判定")]
 		[SerializeField] private float _LandingHeight = 1f;
+		[SerializeField] private float _raycastRadius = 0.5f;
+		[SerializeField] private LayerMask _groundLayer;
 
 		[Header("傾きアニメーション設定")] [SerializeField]
 		private float _playerTiltAngle = 45f;
@@ -190,7 +192,7 @@ namespace September.InGame.Exhibit
 		private bool IsLanded()
 		{
 			var ray = new Ray(_rb.position, Vector3.down);
-			if (Physics.Raycast(ray, out _, _LandingHeight, _groundLayer)) return true;
+			if (Physics.SphereCast(ray, _raycastRadius, out _, _LandingHeight, _groundLayer)) return true;
 			return false;
 		}
 

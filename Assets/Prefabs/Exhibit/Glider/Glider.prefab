@@ -272,8 +272,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3407333633441724027}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 30, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -579,8 +579,8 @@ MonoBehaviour:
       type: {class: UseReload, ns: September.InGame.Exhibit, asm: Scripts}
       data:
         _maxAmmo: 1
-        _fireRate: 1
-        _reloadTime: 1
+        _fireRate: 2
+        _reloadTime: 2
     - rid: 7508585993411231831
       type: {class: GlidreReticle, ns: September.InGame.Exhibit.Glider, asm: Scripts}
       data:
@@ -608,13 +608,14 @@ MonoBehaviour:
   _camera: {fileID: 8418913508211974733}
   _playerPos: {fileID: 2670440023462752973}
   _cameraPos: {fileID: 3933080140822325884}
-  _groundLayer:
-    serializedVersion: 2
-    m_Bits: 128
   _maxSpeed: 20
   _acceleration: 10
   _gravity: -4
   _LandingHeight: 4
+  _raycastRadius: 0.5
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
   _playerTiltAngle: 25
   _rotateSpeed: 80
   _IsFinished: 0
