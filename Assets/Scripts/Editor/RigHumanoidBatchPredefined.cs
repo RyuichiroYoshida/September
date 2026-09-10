@@ -1,6 +1,8 @@
 // Assets/Editor/RigHumanoidBatchPredefined.cs
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,23 +20,64 @@ public static class RigHumanoidBatchPredefined
     [MenuItem("Tools/Rig/Convert Predefined Folders to Humanoid")]
     private static void ConvertPredefinedFolders()
     {
-        // Assets配下に存在するフォルダだけに絞る
         var validFolders = Array.FindAll(TARGET_FOLDERS, AssetDatabase.IsValidFolder);
         if (validFolders.Length == 0)
         {
-            Debug.LogWarning("[RigHumanoidBatch] 有効なフォルダが見つかりません。設定を確認してください。");
+            Debug.LogWarning("[RigHumanoidBatch] None of the predefined folders exist.");
             return;
         }
 
-        var guids = AssetDatabase.FindAssets("t:Model", validFolders); // 再帰検索
+        ConvertModels(AssetDatabase.FindAssets("t:Model", validFolders), "predefined folders");
+    }
+
+    [MenuItem("Tools/Rig/Convert Selected Models to Humanoid")]
+    private static void ConvertSelectedModels()
+    {
+        var selectedGuids = Selection.objects
+            .Select(AssetDatabase.GetAssetPath)
+            .Where(path => !string.IsNullOrEmpty(path))
+            .SelectMany(FindModelGuids)
+            .Distinct()
+            .ToArray();
+
+        ConvertModels(selectedGuids, "selection");
+    }
+
+    [MenuItem("Tools/Rig/Convert Selected Models to Humanoid", true)]
+    private static bool CanConvertSelectedModels()
+    {
+        return Selection.objects.Any(asset => !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(asset)));
+    }
+
+    private static IEnumerable<string> FindModelGuids(string path)
+    {
+        if (AssetDatabase.IsValidFolder(path))
+        {
+            return AssetDatabase.FindAssets("t:Model", new[] { path });
+        }
+
+        return AssetImporter.GetAtPath(path) is ModelImporter
+            ? new[] { AssetDatabase.AssetPathToGUID(path) }
+            : Array.Empty<string>();
+    }
+
+    private static void ConvertModels(IEnumerable<string> guids, string source)
+    {
+        var modelGuids = guids.ToArray();
+        if (modelGuids.Length == 0)
+        {
+            Debug.LogWarning($"[RigHumanoidBatch] No model assets were found in {source}.");
+            return;
+        }
+
         int changed = 0, skipped = 0, failed = 0, totalFbx = 0;
 
         AssetDatabase.StartAssetEditing();
         try
         {
-            for (int i = 0; i < guids.Length; i++)
+            for (int i = 0; i < modelGuids.Length; i++)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                var path = AssetDatabase.GUIDToAssetPath(modelGuids[i]);
                 if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) { skipped++; continue; }
                 totalFbx++;
 
@@ -82,14 +125,18 @@ public static class RigHumanoidBatchPredefined
             AssetDatabase.SaveAssets();
         }
 
-        // 存在しなかったフォルダの情報も出しておくと親切
-        foreach (var f in TARGET_FOLDERS)
+        if (source == "predefined folders")
         {
-            if (!AssetDatabase.IsValidFolder(f))
-                Debug.LogWarning($"[RigHumanoidBatch] フォルダが見つかりません: {f}");
+            foreach (var folder in TARGET_FOLDERS)
+            {
+                if (!AssetDatabase.IsValidFolder(folder))
+                {
+                    Debug.LogWarning($"[RigHumanoidBatch] Folder was not found: {folder}");
+                }
+            }
         }
 
-        Debug.Log($"[RigHumanoidBatch] Done. FBX: {totalFbx}, Changed: {changed}, Skipped: {skipped}, Failed: {failed}");
+        Debug.Log($"[RigHumanoidBatch] Complete ({source}). FBX: {totalFbx}, Changed: {changed}, Skipped: {skipped}, Failed: {failed}");
     }
 }
 #endif

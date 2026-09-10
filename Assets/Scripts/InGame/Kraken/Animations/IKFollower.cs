@@ -82,6 +82,12 @@ namespace September.InGame.Kraken
 
         private void Start()
         {
+            if (!TryValidateReferences())
+            {
+                enabled = false;
+                return;
+            }
+
             _pointProvider = new IKSolverPointProvider(_ik.GetIKSolver());
 
             // IKの長さをキャッシュ
@@ -117,6 +123,23 @@ namespace September.InGame.Kraken
             Debug.Assert(_maxDistances.Skip(1).All(x => x > float.Epsilon), "Max distance element is too small");
             Debug.Assert(_maxDistances.SequenceEqual(_maxDistances.OrderBy(x => x)), $"Max distance is not ordered\n{string.Join(",\n", _maxDistances)}");
             Debug.Assert(_defaultRotations.Length > 0, "Default rotation array is empty");
+        }
+
+        private bool TryValidateReferences()
+        {
+            if (_ik == null || _constraintSolver == null || _followers == null || _followers.Length < 2)
+            {
+                Debug.LogError("[IKFollower] Assign an IK solver, a constraint solver, and at least two follower transforms.", this);
+                return false;
+            }
+
+            if (_followers.Any(follower => follower == null))
+            {
+                Debug.LogError("[IKFollower] Follower transforms cannot contain null entries.", this);
+                return false;
+            }
+
+            return true;
         }
 
         private void Update()
@@ -181,17 +204,26 @@ namespace September.InGame.Kraken
         [ContextMenu("SetObjects")]
         private void SetObjects()
         {
-            Undo.RecordObject(this, "SetObjects");
+            Undo.RecordObject(this, "Configure IK Follower");
 
             _followers = GetChildFlat().ToArray();
+            _ik = GetComponent<IK>();
             _constraintSolver = GetComponent<TentacleConstraintSolver>();
 
             var hitChecker = GetComponent<HitChecker>();
-            hitChecker.HitPoint.Clear();
-            hitChecker.HitPoint.Add(transform);
-            hitChecker.HitPoint.AddRange(_followers);
+            if (hitChecker != null)
+            {
+                hitChecker.HitPoint.Clear();
+                hitChecker.HitPoint.Add(transform);
+                hitChecker.HitPoint.AddRange(_followers);
+                EditorUtility.SetDirty(hitChecker);
+            }
 
-            return;
+            EditorUtility.SetDirty(this);
+            if (!TryValidateReferences())
+            {
+                Debug.LogWarning("[IKFollower] Auto-setup completed with missing required components.", this);
+            }
 
             IEnumerable<Transform> GetChildFlat()
             {
