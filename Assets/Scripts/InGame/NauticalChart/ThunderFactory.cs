@@ -44,9 +44,8 @@ namespace September.InGame.NauticalChart
                 // 経過時間が総スカイボックス変更時間を超えたらループを終了
                 if (_tickTimer.Expired(Runner)) break;
 
-                var id = GenerateEffectId();
-                _effectSpawner.RequestPlayLoopEffect
-                    (id, EffectType.Thunder, SpawnTransform(), Quaternion.identity, transform);
+                var id = _effectSpawner.RequestPlayLoopEffect
+                    (EffectType.Thunder, SpawnTransform(), Quaternion.identity, transform);
                 ThunderDestroyAsync(id).Forget();
                 await UniTask.WaitForSeconds(_thunderSpawnIntervalTime, cancellationToken: _cts.Token);
 
@@ -55,16 +54,10 @@ namespace September.InGame.NauticalChart
 
         /// <summary> 雷のエフェクトを一定時間後に停止する非同期処理 </summary>
         /// <param name="effectId"> 停止するエフェクトのID </param>
-        private async UniTaskVoid ThunderDestroyAsync(string effectId)
+        private async UniTaskVoid ThunderDestroyAsync(EffectID effectId)
         {
             await UniTask.WaitForSeconds(_thunderLifeTime, cancellationToken: _cts.Token);
             _effectSpawner.StopEffect(effectId);
-        }
-
-        /// <summary> エフェクトIDを生成する </summary>
-        private static string GenerateEffectId()
-        {
-            return Guid.NewGuid().ToString();
         }
 
         /// <summary> 雷の生成位置をランダムに決定する </summary>

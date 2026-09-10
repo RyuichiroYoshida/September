@@ -44,6 +44,7 @@ namespace InGame.Player.Ability.Effect
 
             if (interactable
                 && !interactable.IsInCooldown()
+                && interactable.ForceSetInteractable
                 && _settings.TryGetDisableDuration(interactable.ExhibitType, out float duration))
             {
                 interactable.SetCooldown(duration);

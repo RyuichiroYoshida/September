@@ -18,7 +18,7 @@ namespace September.InGame.Rules
             var killer = hitData.ExecutorRef;
             var victim = hitData.TargetRef;
 
-            _strategy.ProcessKillEvent(killer, victim);
+            _strategy.ProcessKillEvent(hitData);
 
             UpdateStunData(killer, victim);
         }

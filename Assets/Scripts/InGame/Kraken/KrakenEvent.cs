@@ -34,7 +34,7 @@ namespace September.InGame.Kraken
             };
         }
 
-        private void FixedUpdate()
+        public override void FixedUpdateNetwork()
         {
             if (!Runner.IsServer) return;
 

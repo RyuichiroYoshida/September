@@ -5,6 +5,7 @@ using Fusion;
 using InGame.Health;
 using September.Common;
 using September.InGame.Common.Stats;
+using September.InGame.Rules;
 using UnityEngine;
 
 namespace InGame.Player
@@ -54,7 +55,9 @@ namespace InGame.Player
                 Debug.Log($"PlayerHealth: TakeHit - HitActionType: {hitData.HitActionType}, Amount: {hitData.Amount}, IsLastHit: {hitData.IsLastHit}");
                 if (!IsAlive) OnDeath?.Invoke(hitData);
                 hitData.Executor?.HitExecution(hitData);
-                
+
+                IGameRule.CurrentRule.PlayerHitStrategy?.OnHitTaken(ref hitData);
+
                 PlayerDatabase.Instance.Server_AddDamageDealt(hitData.ExecutorRef, hitData.Amount);
                 PlayerDatabase.Instance.Server_AddDamageReceived(hitData.TargetRef, hitData.Amount);
             }
@@ -70,7 +73,7 @@ namespace InGame.Player
                 return;
             }
 
-            if (hitData.HitActionType == HitActionType.Damage)
+            if (hitData.HitActionType.IsDamage())
             {
                 hitData.Amount = TakeDamage(hitData.Amount);
             }
@@ -106,7 +109,7 @@ namespace InGame.Player
         private async UniTask HitDebug(HitActionType actionType)
         {
             _renderer.GetPropertyBlock(_materialPropertyBlock);
-            _materialPropertyBlock.SetColor("_BaseColor", actionType == HitActionType.Damage ? Color.red : Color.green);
+            _materialPropertyBlock.SetColor("_BaseColor", actionType.IsDamage() ? Color.red : Color.green);
             _renderer.SetPropertyBlock(_materialPropertyBlock);
             try
             {

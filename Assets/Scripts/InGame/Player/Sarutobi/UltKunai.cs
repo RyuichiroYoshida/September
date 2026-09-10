@@ -169,7 +169,7 @@ namespace InGame.Player.Sarutobi
                 IDamageable damageable = _hitBuffer[i].GetComponentInParent<IDamageable>();
                 if (damageable == null) continue;
 
-                HitData hitData = new(HitActionType.Damage, _damage, Object.InputAuthority, damageable.OwnerPlayerRef);
+                HitData hitData = new(HitActionType.RangedDamage, _damage, Object.InputAuthority, damageable.OwnerPlayerRef);
                 damageable.TakeHit(ref hitData);
             }
         }

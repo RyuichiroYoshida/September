@@ -10,7 +10,7 @@ namespace InGame.Player.Ability.Condition
     public class AbilityUltCondition : IAbilityExecuteCondition
     {
         [SerializeField] private string _targetAbilityName;
-        [SerializeField] private PlayerButtons _button = PlayerButtons.Ability3;
+        [SerializeField] private PlayerButtons _button = PlayerButtons.Ultimate;
         
         private PlayerManager _playerManager;
         private IUltCondition _condition;

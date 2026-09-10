@@ -80,7 +80,7 @@ MonoBehaviour:
       RawGuidValue: 157ca9ed5c106ea4a952c1d4c0054347
     ExplainVideo: {fileID: 32900000, guid: 845c31cff8abdf145b125084cf6d4b51, type: 3}
     CharacterIcon: {fileID: 21300000, guid: b1858861a0d8ec74eb25f5086fb30cd5, type: 3}
-    EmoteAnimation: {fileID: 7400000, guid: 38623b8d90adb324cb3408d762de0fe2, type: 2}
+    EmoteAnimation: {fileID: -203655887218126122, guid: 2ba78ef63f6078d4085d57ccff7d3903, type: 3}
     SelectedVoice: VO_Koinuma_CharacterSelect
     StartVoice: VO_Koinuma_GameStart
     WinningVoice: VO_Koinuma_Win

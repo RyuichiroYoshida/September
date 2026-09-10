@@ -469,7 +469,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: NetworkedBehaviours.Array.size
-      value: 27
+      value: 28
       objectReference: {fileID: 0}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[3]'
@@ -542,35 +542,39 @@ PrefabInstance:
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[20]'
       value: 
-      objectReference: {fileID: 1809326798388321474}
+      objectReference: {fileID: 9024897267652910687}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[21]'
       value: 
-      objectReference: {fileID: 8185719115249892932}
+      objectReference: {fileID: 1809326798388321474}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[22]'
       value: 
-      objectReference: {fileID: 2091868695656259578}
+      objectReference: {fileID: 8185719115249892932}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[23]'
       value: 
-      objectReference: {fileID: 4779194346183889723}
+      objectReference: {fileID: 2091868695656259578}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[24]'
       value: 
-      objectReference: {fileID: 8500817171237990598}
+      objectReference: {fileID: 4779194346183889723}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[25]'
       value: 
-      objectReference: {fileID: 5851093174879335224}
+      objectReference: {fileID: 8500817171237990598}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[26]'
       value: 
-      objectReference: {fileID: 7310910699517085291}
+      objectReference: {fileID: 5851093174879335224}
     - target: {fileID: 2463801933549895597, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: 'NetworkedBehaviours.Array.data[27]'
       value: 
       objectReference: {fileID: 7310910699517085291}
+    - target: {fileID: 2520683386849973483, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: _playerMovement
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 2525442923973757293, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: m_Avatar
       value: 
@@ -1214,6 +1218,9 @@ MonoBehaviour:
   _moveCapsuleCollider: {fileID: 8407278150476530661}
   _moveSpeed: 1.8
   _groundSlopeThreshold: 45
+  _groundDistanceThreshold: 0.25
+  _groundSnapDistance: 0.4
+  _coyoteTime: 0.1
   _groundLayer:
     serializedVersion: 2
     m_Bits: 159
@@ -1501,6 +1508,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c7244242fca19c4caa942020db8defa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &9024897267652910687 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2520683386849973483, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+  m_PrefabInstance: {fileID: 6901102396210121396}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3153197567301881500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d6f1bbf38834db98ae4a378155fd874, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &9093673670605956131 stripped

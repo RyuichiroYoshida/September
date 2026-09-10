@@ -2,16 +2,14 @@ using Fusion;
 using InGame.Jewelry.Common;
 using System;
 using CRISound;
-using September.Common;
 using September.InGame;
-using September.InGame.Effect;
 using UnityEngine;
 
 namespace InGame.Jewelry
 {
     public class PlayerJewelryContainer : NetworkBehaviour, IJewelryContainer
     {
-        [SerializeField] private NetworkObject _jewelryPrefab;
+        [SerializeField] private SerializableDictionary<JewelryType, NetworkObject> _jewelryPrefabs;
         [Header("Throw")]
         [SerializeField] private float _horizontalThrowForce = 5f;
         [SerializeField] private float _upwardThrowForce = 3f;
@@ -19,9 +17,6 @@ namespace InGame.Jewelry
         [Header("Sound")]
         [SerializeField] private AudioBroadcaster _audioBroadcaster;
         [SerializeField] private string _pickUpSoundCueName;
-        [Header("Effect")]
-        [SerializeField] private EffectType _interactEffectType;
-        [SerializeField] private Vector3 _interactEffectOffset;
 
         event Action<JewelryType> _onGetJewelry;
         event Action<JewelryType> _onDropJewelry;
@@ -38,6 +33,13 @@ namespace InGame.Jewelry
 
         private const string JewelryTag = "Jewelry";
 
+        private PlayerJewelryRuntime _playerJewelryRuntime;
+
+        public override void Spawned()
+        {
+            _playerJewelryRuntime = GetComponentInChildren<PlayerJewelryRuntime>();
+        }
+
         /// <summary>
         /// 触れた宝石を拾う処理
         /// </summary>
@@ -52,16 +54,20 @@ namespace InGame.Jewelry
             }
         }
 
-        public int DropJewelry(int dropAmount, IJewelry[] resultDropped)
+        public int DropJewelry(JewelryType jewelryType, int dropAmount, IJewelry[] resultDropped)
         {
             Vector3 spawnCenter = transform.position + Vector3.up * _heightOffset;
 
             int result = 0;
             for (int i = 0; i < dropAmount; i++)
             {
-                NetworkObject jewelryObj = Runner.Spawn(_jewelryPrefab, spawnCenter, Quaternion.identity, onBeforeSpawned: InitializeSpawnedJewelry);
+                NetworkObject jewelryObj = Runner.Spawn(_jewelryPrefabs[jewelryType], spawnCenter, Quaternion.identity, onBeforeSpawned: InitializeSpawnedJewelry);
 
-                if (!jewelryObj.TryGetComponent<IJewelry>(out var jewelry)) continue;
+                if (!jewelryObj.TryGetComponent<IJewelry>(out var jewelry))
+                {
+                    Debug.LogWarning("[PlayerJewelryContainer] not found IJewelry component in spawned object");
+                    continue;
+                }
                 _onDropJewelry?.Invoke(jewelry.JewelryParams.JewelryType);
 
                 if (resultDropped == null) continue;
@@ -69,11 +75,11 @@ namespace InGame.Jewelry
                 if (resultDropped.Length > i)
                 {
                     resultDropped[i] = jewelry;
-                    result = i;
+                    result = i + 1;
                 }
                 else
                 {
-                    Debug.LogWarning("result buffer size is too small");
+                    Debug.LogWarning("[PlayerJewelryContainer] result buffer size is too small");
                 }
             }
 
@@ -86,6 +92,21 @@ namespace InGame.Jewelry
 
                 jewelry.RandomThrow(_horizontalThrowForce, _upwardThrowForce);
             }
+        }
+
+        public int GetJewelryCount(JewelryType jewelryType)
+        {
+            return _playerJewelryRuntime.GetJewelryQuantity(jewelryType);
+        }
+
+        public int GetJewelryCount()
+        {
+            return _playerJewelryRuntime.GetJewelryCount();
+        }
+
+        public int CalculateJewelryScore()
+        {
+            return _playerJewelryRuntime.CalculateJewelryScore();
         }
 
         public void PickUp(IJewelry jewelry)
@@ -106,8 +127,7 @@ namespace InGame.Jewelry
                     Destroy(jewelComponent.gameObject);
                 }
 
-                var effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
-                effectSpawner.RequestPlayOneShotEffect(_interactEffectType, jewelComponent.transform.position + _interactEffectOffset, transform.rotation);
+                jewelComponent.PlayPickupEffect();
             }
 
             _audioBroadcaster.RPC_PlaySoundFromCode(_pickUpSoundCueName, SoundTrackingType.Spot, Object, Object.InputAuthority);

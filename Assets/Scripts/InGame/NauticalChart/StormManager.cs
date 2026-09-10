@@ -14,7 +14,11 @@ namespace September.InGame.NauticalChart
         public void StartStorm(float stormDuration, float thunderDuration)
         {
             StartStorm(stormDuration, destroyCancellationToken).Forget();
-            StartThunder(thunderDuration);
+
+            if (HasStateAuthority)
+            {
+                StartThunder(thunderDuration);
+            }
         }
 
         private void StartThunder(float duration)

@@ -4,6 +4,7 @@ using InGame.Exhibit;
 using InGame.Interact;
 using September.Common;
 using September.InGame.Common;
+using September.InGame.Fields;
 
 public class SharkInteractable : MountableExhibitBase
 {
@@ -34,7 +35,7 @@ public class SharkInteractable : MountableExhibitBase
 
     private InteractableBase _interactableBase;
     private float _cooldownTimer; // 攻撃のクールダウンタイマー
-    private float _attackAnimationFrame; // 攻撃アニメーションの現在のフレーム
+    private int _attackTickCount; // 攻撃開始時からの経過ティック数（持続時間の計算用）
 
     private void OnAttackStateChanged()
     {
@@ -43,11 +44,39 @@ public class SharkInteractable : MountableExhibitBase
 
     private void OnInteractingStateChanged()
     {
-        _animator.enabled = IsSharkInteracting;
+        if (IsSharkInteracting)
+        {
+            _animator.enabled = true;
+            return;
+        }
+
+        ResetAnimator();
+    }
+
+    /// <summary>
+    /// アニメーターを待機ポーズへ戻してから停止する
+    /// <para>停止するだけでは終了時点のポーズが次のインタラクトまで残り続けるため</para>
+    /// </summary>
+    private void ResetAnimator()
+    {
+        _animator.enabled = true;
+        _animator.Rebind(); // ステートを既定へ、パラメータをコントローラの初期値へ戻す
+
+        // 既定ステートがロコモーションのブレンドツリーでも待機側で評価されるよう、
+        // コントローラの初期値任せにせず待機相当の値を明示する
+        _animator.ResetTrigger(Attack);
+        _animator.SetFloat(Speed, 0f);
+        _animator.SetBool(IsMoving, false);
+
+        _animator.Update(0f); // 待機ポーズを即時反映させてから停止する
+        _animator.enabled = false;
     }
 
     public override void Render()
     {
+        // インタラクト中以外はアニメーターを止めているため、パラメータも更新しない
+        // (停止中に更新すると、次に有効化した瞬間に古い値でポーズが決まってしまう)
+        if (!IsSharkInteracting) return;
         _animator.SetFloat(Speed, _movementProcessing.CurrentSpeedRatio);
         _animator.SetBool(IsMoving, _movementProcessing.CurrentSpeedRatio > _idleSpeedThreshold);
     }
@@ -56,7 +85,7 @@ public class SharkInteractable : MountableExhibitBase
     {
         base.Spawned();
         _interactableBase = GetComponent<InteractableBase>();
-        _animator.enabled = false;
+        ResetAnimator();
     }
 
     public override void GetOn(PlayerRef playerRef)
@@ -66,15 +95,23 @@ public class SharkInteractable : MountableExhibitBase
         _interactableBase.ForceSetInteractable = false;
         // 攻撃状態の初期化
         _cooldownTimer = _cooldownTime;
-        _attackAnimationFrame = 0;
+        _attackTickCount = 0;
         _movementProcessing.OnInteractStart();
     }
 
     public override void GetOff(PlayerRef playerRef)
     {
+        // baseでKinematicへ戻される前に、残留速度と速度カーブの蓄積時間をリセットする
+        _movementProcessing.OnInteractEnd(Rigidbody);
+
         base.GetOff(playerRef);
         IsSharkInteracting = false;
         _interactableBase.ForceSetInteractable = true;
+
+        // 攻撃状態を次のインタラクトへ持ち越さない
+        IsAttacking = false;
+        _attackTickCount = 0;
+        _cooldownTimer = _cooldownTime;
 
         // インタラクトしていたプレイヤーを取得し、海に落ちる直前の位置に移動させる
         var obj = StaticServiceLocator.Instance.Get<InGameManager>()
@@ -84,6 +121,15 @@ public class SharkInteractable : MountableExhibitBase
 
     public override void FixedUpdateNetwork()
     {
+        // 解除後も移動処理が走ると、リセットした速度と蓄積時間が復活してしまう
+        if (!IsSharkInteracting) return;
+
+        if (OutOfFieldArea.I && OutOfFieldArea.I.IsOutOfField(Rigidbody.position))
+        {
+            GetOff(OwnerPlayerRef);
+            return;
+        }
+
         if (!GetInput<PlayerInput>(out var playerInput)) return;
         _movementProcessing.UpdateMovement(playerInput, Runner.DeltaTime, Rigidbody, playerInput.DesiredLookDirection);
     }
@@ -131,28 +177,19 @@ public class SharkInteractable : MountableExhibitBase
         if (!IsAttacking) return;
 
         // フレームを進め、攻撃判定が有効なフレームだけヒット判定
-        _attackAnimationFrame++;
-        if (_attackAnimationFrame >= StartFrame && _attackAnimationFrame <= EndFrame)
+        _attackTickCount++;
+        if (_attackTickCount >= StartFrame && _attackTickCount <= EndFrame)
         {
             Executor?.Tick(deltaTime);
         }
 
         // 攻撃終了のフレームを超えたら、ヒットボックスを破棄する
-        if (!(_attackAnimationFrame >= EndFrame)) return;
+        if (!(_attackTickCount >= EndFrame)) return;
         Executor?.Init();
 
         // 攻撃状態を初期化
-        _attackAnimationFrame = 0;
+        _attackTickCount = 0;
         IsAttacking = false;
         Executor = null;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        // Seaは仮の海のタグで付けているので、あとで変更を行う
-        if (other.CompareTag("Sea"))
-        {
-            IsSharkInteracting = false;
-        }
     }
 }

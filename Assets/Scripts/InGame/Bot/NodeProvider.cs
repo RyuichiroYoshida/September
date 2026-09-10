@@ -4,7 +4,7 @@ using UnityEngine;
 namespace InGame.Bot
 {
     /// <summary>
-    /// NodeDataÇÇ«Ç±Ç≈Ç‡égÇ¶ÇÈÇÊÇ§Ç…Ç∑ÇÈÉNÉâÉX
+    /// NodeData„Çí„Å©„Åì„Åß„ÇÇ‰Ωø„Åà„Çã„Çà„ÅÜ„Å´„Åô„Çã„ÇØ„É©„Çπ
     /// </summary>
     public class NodeProvider : MonoBehaviour
     {
@@ -33,7 +33,7 @@ namespace InGame.Bot
         }
         private void OnDrawGizmos()
         {
-            if (Application.isPlaying && _isDrawGizmo)
+            if (_isDrawGizmo)
             {
                 NodeGanerator.DrawGizmos(Nodes);
             }
@@ -42,6 +42,11 @@ namespace InGame.Bot
         public NodeData GetRandomNode()
         {
             return Nodes[Random.Range(0, Nodes.Count)];
+        }
+
+        public void Reload()
+        {
+            _nodes = null;
         }
     }
 }

@@ -29,8 +29,17 @@ namespace InGame.Common
         [SerializeField] protected Animator _animator;
 
         private PlayableGraph _graph;
+        private AnimationPlayableOutput _output;
         private AnimationMixerPlayable _baseMixer;
         private AnimationLayerMixerPlayable _layerMixer;
+
+        /// <summary>グラフ評価 (LateUpdate) の直前に呼ばれる。足 IK など出力後処理のパラメータ更新用。</summary>
+        public event Action BeforeEvaluate;
+
+        public PlayableGraph Graph => _graph;
+        public Animator Animator => _animator;
+        public AnimationClip WalkClip => _walk;
+        public AnimationClip RunClip => _run;
 
         /// <summary>
         /// LayerMixerに登録しているInputSlotのindex
@@ -84,11 +93,11 @@ namespace InGame.Common
             _graph = PlayableGraph.Create("AnimationClipPlayerGraph");
             _graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
 
-            var output = AnimationPlayableOutput.Create(_graph, "AnimationOutput", _animator);
-            output.SetWeight(1f);
+            _output = AnimationPlayableOutput.Create(_graph, "AnimationOutput", _animator);
+            _output.SetWeight(1f);
 
             _layerMixer = AnimationLayerMixerPlayable.Create(_graph, _layerInfo.Count);
-            output.SetSourcePlayable(_layerMixer);
+            _output.SetSourcePlayable(_layerMixer);
 
             _baseMixer = AnimationMixerPlayable.Create(_graph, 3);
             var baseSlot = _slotOf[LayerInfo.LayerType.Base];
@@ -151,7 +160,28 @@ namespace InGame.Common
 
         public void LateUpdate()
         {
+            BeforeEvaluate?.Invoke();
             _graph.Evaluate(Time.deltaTime * _graphSpeed);
+        }
+
+        /// <summary>
+        /// レイヤーミキサーと Animator 出力の間に後処理 Playable (足 IK ジョブ等) を差し込む。
+        /// processor の入力 0 にレイヤーミキサーを接続する。グラフが無効なら false。
+        /// グラフは再初期化されることがあるため、呼び出し側は Playable の IsValid で再差し込みを判断すること。
+        /// </summary>
+        public bool TryInstallOutputProcessor(Playable processor)
+        {
+            if (!_graph.IsValid() || !processor.IsValid() || !_layerMixer.IsValid()) return false;
+            if (processor.GetInputCount() < 1)
+            {
+                Debug.LogError("[AnimationClipPlayer] 出力後処理 Playable は入力を 1 つ以上持つ必要があります。");
+                return false;
+            }
+
+            processor.ConnectInput(0, _layerMixer, 0);
+            processor.SetInputWeight(0, 1f);
+            _output.SetSourcePlayable(processor);
+            return true;
         }
         #endregion
 
@@ -189,11 +219,11 @@ namespace InGame.Common
         }
 
         /// <summary> TopLayerでアニメーションを再生 </summary>
-        public void PlayOnTopLayer(AnimationClip clip,float speed = 1f)
+        public void PlayOnLayer(AnimationClip clip, LayerInfo.LayerType layerType = LayerInfo.LayerType.TopLayer, float speed = 1f, bool loop = false)
         {
-            if (!_slotOf.TryGetValue(LayerInfo.LayerType.TopLayer, out var slot))
+            if (!_slotOf.TryGetValue(layerType, out var slot))
             {
-                Debug.LogWarning("[AnimationClipPlayer] TopLayer が設定されていません。_layerInfo の最後に追加してください。");
+                Debug.LogWarning($"[AnimationClipPlayer] {layerType} が設定されていません。_layerInfo の最後に追加してください。");
                 return;
             }
 
@@ -202,9 +232,9 @@ namespace InGame.Common
             {
                 _layerMixer.SetInputWeight(slot, 0f);
 
-                if (_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var current) && current.IsValid())
+                if (_runtimeClips.TryGetValue(layerType, out var current) && current.IsValid())
                 {
-                    DisconnectAndDestroy(LayerInfo.LayerType.TopLayer, current, slot);
+                    DisconnectAndDestroy(layerType, current, slot);
                 }
 
                 var li0 = _layerInfo[slot];
@@ -213,16 +243,120 @@ namespace InGame.Common
                 return;
             }
 
-            if (_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var prev) && prev.IsValid())
+            if (_runtimeClips.TryGetValue(layerType, out var prev) && prev.IsValid())
             {
-                DisconnectAndDestroy(LayerInfo.LayerType.TopLayer, prev, slot);
+                DisconnectAndDestroy(layerType, prev, slot);
             }
 
-            Play(clip, LayerInfo.LayerType.TopLayer, 1f,playSpeed: speed, additive: false);
+            Play(clip, layerType, 1f, playSpeed: speed, additive: false, loop: loop);
 
             var li = _layerInfo[slot];
             li.Weight = 1f; // Update() で毎フレーム反映されるので内部Weightも更新
             _layerInfo[slot] = li;
+        }
+
+        /// <summary>
+        /// TopLayerで現在のアニメーションから指定したアニメーションへクロスフェードします。
+        /// </summary>
+        /// <param name="clip">遷移先のアニメーション</param>
+        /// <param name="speed">遷移先の再生速度</param>
+        /// <param name="blendTime">クロスフェード時間</param>
+        /// <param name="blendCurve">クロスフェードの補間曲線</param>
+        /// <param name="token">外部から遷移を中断するトークン</param>
+        public async UniTask CrossFadeOnTopLayerAsync(
+            AnimationClip clip,
+            float speed,
+            float blendTime,
+            AnimationCurve blendCurve,
+            CancellationToken token = default)
+        {
+            if (!clip)
+            {
+                return;
+            }
+
+            if (!_slotOf.TryGetValue(LayerInfo.LayerType.TopLayer, out var slot))
+            {
+                Debug.LogWarning("[AnimationClipPlayer] TopLayer が設定されていません。_layerInfo の最後に追加してください。");
+                return;
+            }
+
+            if (!_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var currentClip)
+                || !currentClip.IsValid())
+            {
+                PlayOnLayer(clip, LayerInfo.LayerType.TopLayer, speed);
+                return;
+            }
+
+            var currentInput = _layerMixer.GetInput(slot);
+            if (!currentInput.IsValid())
+            {
+                PlayOnLayer(clip, LayerInfo.LayerType.TopLayer, speed);
+                return;
+            }
+
+            var nextClip = AnimationClipPlayable.Create(_graph, clip);
+            nextClip.SetApplyFootIK(!IsFootIKDisabledFor(clip));
+            nextClip.SetTime(0);
+            nextClip.SetDuration(clip.length);
+            nextClip.SetSpeed(speed);
+
+            var transitionMixer = AnimationMixerPlayable.Create(_graph, 2);
+            _layerMixer.DisconnectInput(slot);
+            transitionMixer.ConnectInput(0, currentInput, 0);
+            transitionMixer.ConnectInput(1, nextClip, 0);
+            transitionMixer.SetInputWeight(0, 1f);
+            transitionMixer.SetInputWeight(1, 0f);
+            _layerMixer.ConnectInput(slot, transitionMixer, 0);
+            _layerMixer.SetInputWeight(slot, 1f);
+            var transitionRoot = _layerMixer.GetInput(slot);
+
+            _runtimeClips[LayerInfo.LayerType.TopLayer] = nextClip;
+            _clipOf[LayerInfo.LayerType.TopLayer] = clip;
+
+            var blendDuration = Mathf.Max(blendTime, 0f);
+            if (blendDuration <= 0f)
+            {
+                transitionMixer.SetInputWeight(0, 0f);
+                transitionMixer.SetInputWeight(1, 1f);
+                return;
+            }
+
+            try
+            {
+                float elapsed = 0f;
+                while (elapsed < blendDuration)
+                {
+                    token.ThrowIfCancellationRequested();
+                    elapsed += Time.deltaTime;
+                    var progress = Mathf.Clamp01(elapsed / blendDuration);
+                    if (blendCurve != null)
+                    {
+                        progress = Mathf.Clamp01(blendCurve.Evaluate(progress));
+                    }
+
+                    transitionMixer.SetInputWeight(0, 1f - progress);
+                    transitionMixer.SetInputWeight(1, progress);
+                    await UniTask.Yield(PlayerLoopTiming.Update, token);
+                }
+
+                transitionMixer.SetInputWeight(0, 0f);
+                transitionMixer.SetInputWeight(1, 1f);
+            }
+            catch (OperationCanceledException)
+            {
+                if (_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var current)
+                    && current.Equals(nextClip)
+                    && current.IsValid())
+                {
+                    _layerMixer.DisconnectInput(slot);
+                    transitionRoot.DestroyTree();
+                    _runtimeClips.Remove(LayerInfo.LayerType.TopLayer);
+                    _clipOf.Remove(LayerInfo.LayerType.TopLayer);
+                }
+
+                throw;
+            }
         }
 
         public void Play(AnimationClip clip, bool forcePlay = false)
@@ -420,7 +554,9 @@ namespace InGame.Common
             _clipOf[layerType] = clip;
 
             var p = AnimationClipPlayable.Create(_graph, clip);
-            p.SetApplyFootIK(false);
+            // Humanoid の Foot IK はクリップに焼かれた足位置へ補正し、リターゲットによる足滑りを防ぐ。
+            // 意図的に切りたいクリップだけ AnimationClipsContainer 側で DisableFootIK を立てる。
+            p.SetApplyFootIK(!IsFootIKDisabledFor(clip));
             p.SetTime(0);
             p.SetDuration(clip.length);
             p.SetSpeed(playSpeed);
@@ -757,20 +893,34 @@ namespace InGame.Common
         #endregion
 
         #region Utility
-        public bool IsPlayingTargetClip(AnimationClip clip)
+        /// <summary>
+        /// アニメーションが再生中かどうかを判定します
+        /// </summary>
+        /// <param name="clip"></param>
+        /// <param name="includeIsEnded">再生しきったアニメーションを判定に含めるか。持続モーションやループモーションを判定する時に使う。</param>
+        /// <param name="includeZeroWeight">重みがゼロのアニメーションを判定に含めるか。ノードそのものの生存をチェックする時に使う。</param>
+        public bool IsPlayingTargetClip(AnimationClip clip, bool includeIsEnded = false, bool includeZeroWeight = false)
         {
             foreach (var kv in _clipOf)
             {
                 if (kv.Value == clip && _runtimeClips.TryGetValue(kv.Key, out var p) && p.IsValid())
                 {
                     // レイヤー重みもチェック
-                    if (_slotOf.TryGetValue(kv.Key, out int slot) && _layerMixer.GetInputWeight(slot) > 0.001f)
+                    if (_slotOf.TryGetValue(kv.Key, out int slot))
                     {
-                        // アニメーション完了状態もチェック
-                        if (p.GetTime() < p.GetDuration() - 0.01) // まだ再生中
+                        // 再生が完了していれば未再生判定（ワンショットモーションが再生完了後も持続しないようにするため）
+                        if (!includeIsEnded && p.GetTime() >= p.GetDuration() - 0.01)
                         {
-                            return true;
+                            continue;
                         }
+
+                        // Weightが0なら未再生判定。影響がない ＝ 再生していないものとしてあつかう
+                        if (!includeZeroWeight && _layerMixer.GetInputWeight(slot) <= 0.001f)
+                        {
+                            continue;
+                        }
+
+                        return true;
                     }
                 }
             }
@@ -846,6 +996,19 @@ namespace InGame.Common
                 _runtimeClips.Remove(layerType);
                 _clipOf.Remove(layerType);
             }
+        }
+
+        /// <summary>
+        /// AnimationClipsContainer で Foot IK を切る指定があるか。未登録クリップ (TopLayer 等) は既定で有効扱い。
+        /// TryGetMontageIndex と違い、未登録でも警告を出さない。
+        /// </summary>
+        private static bool IsFootIKDisabledFor(AnimationClip clip)
+        {
+            var montages = AnimationClipsContainer.Instance?.AnimationMontages;
+            if (montages == null) return false;
+
+            int index = Array.FindIndex(montages, x => x.AnimClip && (x.AnimClip == clip || x.AnimClip.name == clip.name));
+            return index >= 0 && montages[index].DisableFootIK;
         }
 
         private bool TryGetMontageIndex(AnimationClip clip, out int index)

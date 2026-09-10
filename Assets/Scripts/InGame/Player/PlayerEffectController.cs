@@ -9,7 +9,7 @@ public class PlayerEffectController : NetworkBehaviour
 {
     [SerializeField] private ParticleSystem _punchEffect;
     [SerializeField] private Vector3 _stunEffectPositionOffset;
-    private string _generateStunEffectId;
+    private EffectID _generateStunEffectId;
     private IDisposable _punchFollow;
 
     public void PlayPunchEffect()
@@ -50,19 +50,18 @@ public class PlayerEffectController : NetworkBehaviour
         var effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
         if (effectSpawner)
         {
-            _generateStunEffectId = System.Guid.NewGuid().ToString();
-            effectSpawner.RequestPlayLoopEffect(_generateStunEffectId, EffectType.StunNormal,
-                transform.position + _stunEffectPositionOffset, Quaternion.identity);
+            _generateStunEffectId = effectSpawner.RequestPlayLoopEffect(EffectType.StunNormal,
+                transform.position + _stunEffectPositionOffset, Quaternion.identity, transform);
         }
     }
 
     public void StopStunEffect()
     {
         var effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
-        if (effectSpawner && !string.IsNullOrEmpty(_generateStunEffectId))
+        if (effectSpawner && _generateStunEffectId.IsValid)
         {
             effectSpawner.StopEffect(_generateStunEffectId);
-            _generateStunEffectId = string.Empty;
+            _generateStunEffectId = default;
         }
     }
 }

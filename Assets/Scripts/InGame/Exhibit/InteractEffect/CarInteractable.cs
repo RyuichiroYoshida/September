@@ -46,7 +46,7 @@ namespace InGame.Exhibit.InteractEffect
         [SerializeField] private int _damage;
         private PlayerRef _ownerRef;
         [SerializeField] private List<Transform> _effectPositions = new();
-        private List<string> _ids = new();
+        private readonly List<EffectID> _ids = new();
 
         AudioBroadcaster _audioBroadcaster;
 
@@ -105,20 +105,17 @@ namespace InGame.Exhibit.InteractEffect
         {
             foreach (var trm in _effectPositions)
             {
-                var id = GenerateEffectId();
-                _effectSpawner?.RequestPlayLoopEffect(
-                    id,
+                if (_effectSpawner == null) continue;
+
+                EffectID id =
+                    _effectSpawner.RequestPlayLoopEffect(
                     EffectType.CarDash,
                     trm.position,
                     transform.rotation,
                     transform);
+
                 _ids.Add(id);
             }
-        }
-        
-        private static string GenerateEffectId()
-        {
-            return Guid.NewGuid().ToString();
         }
 
         private void OnInteractEnd()
@@ -127,7 +124,6 @@ namespace InGame.Exhibit.InteractEffect
             foreach (var id in _ids)
             {
                 _effectSpawner?.StopEffect(id);
-
             }
             CRIAudio.Stop3DSEFromCueName(SoundCues.SE.Car_Interact.Name);
         }
@@ -275,7 +271,7 @@ namespace InGame.Exhibit.InteractEffect
                 playerPos,
                 other.transform.rotation);
             var damage = other.GetComponentInParent<IDamageable>();
-            var hitData = new HitData(HitActionType.Damage, _damage, _ownerRef, damage.OwnerPlayerRef);
+            var hitData = new HitData(HitActionType.RangedDamage, _damage, _ownerRef, damage.OwnerPlayerRef);
             damage.TakeHit(ref hitData);
         }
     }

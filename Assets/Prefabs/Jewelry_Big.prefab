@@ -94,6 +94,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _jewelryParams: {fileID: 11400000, guid: 2147f865256d8764db1a7238cf3e0212, type: 2}
+  _jewelryControl: {fileID: 4243231678177404559}
+  _renderers:
+  - {fileID: 4497757948205896133}
+  - {fileID: 6072117707101810038}
+  - {fileID: 7714066239455273492}
+  - {fileID: 1022715991218858640}
 --- !u!114 &4243231678177404559
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114,6 +120,119 @@ MonoBehaviour:
   _getCoolTime: 5
   _collider: {fileID: 5553430812545105003}
   _rigidbody: {fileID: 7139659219292918844}
+  _offset: {x: 0, y: 1.5, z: 0}
+  _curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 5.8558044
+      outSlope: 5.8558044
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.11527235
+    - serializedVersion: 3
+      time: 0.40260166
+      value: 1.1200428
+      inSlope: -0.18238792
+      outSlope: -0.18238792
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.34102398
+    - serializedVersion: 3
+      time: 0.5610792
+      value: 0.9542358
+      inSlope: -0.2677266
+      outSlope: -0.2677266
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.5212453
+    - serializedVersion: 3
+      time: 0.7
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.31673932
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _heightOffsetCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 6.870892
+      outSlope: 6.870892
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.21659684
+    - serializedVersion: 3
+      time: 0.21936521
+      value: 0.9960861
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 2
+      inWeight: 0
+      outWeight: 0.3673701
+    - serializedVersion: 3
+      time: 0.53611803
+      value: -0.039205045
+      inSlope: -2.2529259
+      outSlope: -2.2529259
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0.33333334
+      outWeight: 0.31173298
+    - serializedVersion: 3
+      time: 0.67369574
+      value: 0.0389406
+      inSlope: 3.736449
+      outSlope: 3.736449
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.84440666
+      value: 1.2176802
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.6730936
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -14.490865
+      outSlope: -14.490865
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.20949173
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _heightOffsetScale: 1
 --- !u!54 &7139659219292918844
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -177,7 +296,7 @@ MonoBehaviour:
   _stateAuthorityChangeErrorCorrectionDelta: 0
   SyncScale: 0
   SyncParent: 1
-  _interpolationTarget: {fileID: 0}
+  _interpolationTarget: {fileID: 3053731650367936298}
   UsePreciseRotation: 0
   UseRenderSleepThresholds: 1
   RenderThresholds:
@@ -242,8 +361,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6708f9930695d324e988c7f1cb513acb, type: 3}
+--- !u!199 &1022715991218858640 stripped
+ParticleSystemRenderer:
+  m_CorrespondingSourceObject: {fileID: 262515112085612480, guid: 6708f9930695d324e988c7f1cb513acb, type: 3}
+  m_PrefabInstance: {fileID: 978915938424245584}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3053731650367936298 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2879143892692933242, guid: 6708f9930695d324e988c7f1cb513acb, type: 3}
+  m_PrefabInstance: {fileID: 978915938424245584}
+  m_PrefabAsset: {fileID: 0}
+--- !u!199 &4497757948205896133 stripped
+ParticleSystemRenderer:
+  m_CorrespondingSourceObject: {fileID: 3746697858930072725, guid: 6708f9930695d324e988c7f1cb513acb, type: 3}
+  m_PrefabInstance: {fileID: 978915938424245584}
+  m_PrefabAsset: {fileID: 0}
+--- !u!199 &6072117707101810038 stripped
+ParticleSystemRenderer:
+  m_CorrespondingSourceObject: {fileID: 6472147920120930342, guid: 6708f9930695d324e988c7f1cb513acb, type: 3}
+  m_PrefabInstance: {fileID: 978915938424245584}
+  m_PrefabAsset: {fileID: 0}
+--- !u!199 &7714066239455273492 stripped
+ParticleSystemRenderer:
+  m_CorrespondingSourceObject: {fileID: 7392676946346143556, guid: 6708f9930695d324e988c7f1cb513acb, type: 3}
   m_PrefabInstance: {fileID: 978915938424245584}
   m_PrefabAsset: {fileID: 0}

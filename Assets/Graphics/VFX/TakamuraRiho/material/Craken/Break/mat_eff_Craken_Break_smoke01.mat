@@ -71,7 +71,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 44cc15a6686dafb42b01ce1db7608298, type: 3}
+        m_Texture: {fileID: 2800000, guid: bb149de983263134c8cc8c75507b905c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap2DArray:
@@ -238,7 +238,7 @@ Material:
     - _BaseMapToneShadows: 0.25
     - _BaseMapToneShadowsCoord: 0
     - _Blend: 0
-    - _BlendDst: 1
+    - _BlendDst: 10
     - _BlendModePreserveSpecular: 1
     - _BlendSrc: 5
     - _BumpScale: 1
@@ -354,7 +354,7 @@ Material:
     - _TintRimProgressCoord: 0
     - _TintRimSharpness: 0.5
     - _TintRimSharpnessCoord: 0
-    - _TransparentBlendMode: 1
+    - _TransparentBlendMode: 0
     - _VertexAlphaMode: 0
     - _VertexDeformationBaseValue: 0
     - _VertexDeformationEnabled: 0

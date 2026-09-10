@@ -57,7 +57,7 @@ namespace September.InGame.Exhibit
 
 		private void TakeDamage(IDamageable damageable, PlayerRef usingPlayer)
 		{
-			var hitData = new HitData(HitActionType.Damage, _damage, usingPlayer,
+			var hitData = new HitData(HitActionType.RangedDamage, _damage, usingPlayer,
 				damageable.OwnerPlayerRef);
 			PlayerDatabase.Instance.PlayerDataDic.Get(damageable.OwnerPlayerRef);
 			PlayerDatabase.Instance.PlayerDataDic.Get(usingPlayer);

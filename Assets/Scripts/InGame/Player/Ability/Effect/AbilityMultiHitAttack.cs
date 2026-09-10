@@ -16,17 +16,21 @@ namespace InGame.Player.Ability
             int now    = Runner.Tick;
             int elapsed = now - _attackStartTick;
 
+            _playerMovement.SetRotationDirection(_attackDirection);
+
+            /*
             // 最も近い敵の方向を向く
             if (_closestEnemyTransform != null && _playerMovement != null)
             {
                 Vector3 directionToEnemy = (_closestEnemyTransform.position - Parameter.Owner.transform.position).normalized;
                 directionToEnemy.y = 0; // Y軸は無視して水平方向のみ
-                
+
                 if (directionToEnemy.magnitude > 0.1f)
                 {
                     _playerMovement.SetRotationDirection(directionToEnemy);
                 }
             }
+            */
 
             // ヒット窓
             bool inWindow = elapsed >= _startHitTick && elapsed < _endHitTick;

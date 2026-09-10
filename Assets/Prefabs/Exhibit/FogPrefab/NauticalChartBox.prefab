@@ -195,7 +195,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4223fe12100619c46b9e6a0336387851, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stormSkyboxMaterial: {fileID: 2100000, guid: 51b74d7bad397457d883c5940f7664d8, type: 2}
+  _easeType: 4
+  _duration: 0.5
+  _normalAmbient:
+    ambientMode: 0
+    skyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+    equatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+    groundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+    intensity: 1
+  _stormAmbient:
+    ambientMode: 0
+    skyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+    equatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+    groundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+    intensity: 0.7
+  _directionalLight: {fileID: 0}
+  _normalLight:
+    color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+    intensity: 1
+    shadowStrength: 1
+  _stormLight:
+    color: {r: 0.8467578, g: 0.8421146, b: 0.93962264, a: 1}
+    intensity: 0.5
+    shadowStrength: 0.7
 --- !u!114 &3758495252298258138
 MonoBehaviour:
   m_ObjectHideFlags: 0

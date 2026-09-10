@@ -38,7 +38,7 @@ namespace September.InGame.Exhibit
 		private void TakeDamage(IDamageable damageable, PlayerRef attackPlayer)
 		{
 			if (damageable == null) return;
-			var hitData = new HitData(HitActionType.Damage, _baseDamage, attackPlayer, damageable.OwnerPlayerRef);
+			var hitData = new HitData(HitActionType.RangedDamage, _baseDamage, attackPlayer, damageable.OwnerPlayerRef);
 			damageable.TakeHit(ref hitData);
 		}
 	}

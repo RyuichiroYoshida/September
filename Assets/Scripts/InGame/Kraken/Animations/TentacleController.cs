@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Health;
+using September.Common.Attribute;
 using September.InGame.Kraken.Attack;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace September.InGame.Kraken.Animations
 {
@@ -36,6 +35,7 @@ namespace September.InGame.Kraken.Animations
             _armSettings.TentacleConstraintSolver.ResetState();
             _armSettings.IsAttacking = true;
             _armSettings.CollidedPoints.Clear();
+            _armSettings.IsDismountLocked = true; // 開始フレームで判定がすり抜けないようにフラグを立てておく
 
             // ローカルテスト用。実際のゲーム中では処理されない想定
             if (runner == null)
@@ -65,6 +65,7 @@ namespace September.InGame.Kraken.Animations
             UpdatePhysicsState(runner);
             UpdateArmAttackState(runner);
             UpdateAreaAttackState(runner);
+            UpdateIsAttackingState(runner);
         }
 
         private void UpdatePhysicsState(NetworkRunner runner)
@@ -101,6 +102,14 @@ namespace September.InGame.Kraken.Animations
             }
         }
 
+        private void UpdateIsAttackingState(NetworkRunner runner)
+        {
+            int elapsedTick = runner.Tick - _armSettings.StartAttackTick;
+            int lockEndTick = (int)(_krakenSettings.DismountLockDuration * runner.TickRate);
+
+            _armSettings.IsDismountLocked = _armSettings.IsAttacking && elapsedTick < lockEndTick;
+        }
+
         private void OnHitAction(HashSet<Collider> alreadyHits, Collider hitCollider)
         {
             if (alreadyHits.Contains(hitCollider)) return;
@@ -121,16 +130,18 @@ namespace September.InGame.Kraken.Animations
             alreadyHits.Add(hitCollider);
 
             IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
-            if (damageable != null)
-            {
-                HitData hitData = new()
-                {
-                    HitActionType = HitActionType.Damage, Amount = _krakenSettings.Damage,
-                    ExecutorRef = _krakenSettings.OwnerPlayerRef, TargetRef = damageable.OwnerPlayerRef
-                };
+            if (damageable == null) return;
 
-                damageable.TakeHit(ref hitData);
-            }
+            // クラーケン搭乗中にクラーケン自身に攻撃が当たらないようにする。また、搭乗解除後にクラーケンを操作していたプレイヤーに攻撃が当たらないようにする。
+            if (damageable.OwnerPlayerRef == _krakenSettings.RecentOwnerPlayerRef) return;
+
+            HitData hitData = new()
+            {
+                HitActionType = HitActionType.RangedDamage, Amount = _krakenSettings.Damage,
+                ExecutorRef = _krakenSettings.RecentOwnerPlayerRef, TargetRef = damageable.OwnerPlayerRef
+            };
+
+            damageable.TakeHit(ref hitData);
         }
 
         public void LookAt(Vector3 target)
@@ -167,6 +178,7 @@ namespace September.InGame.Kraken.Animations
             _armSettings.AlreadyHits.Clear();
             _armSettings.IsAttacking = false;
             _armSettings.EnablePhysics = false;
+            _armSettings.IsDismountLocked = false;
         }
 
         private static void OnPhysicalCollision(Vector3 hitPos, ArmSettings armSettings, KrakenSettings krakenSettings, Kraken kraken)
@@ -236,6 +248,8 @@ namespace September.InGame.Kraken.Animations
             get => _tentacleConstraintSolver.EnablePhysicsConstraint;
             set => _tentacleConstraintSolver.EnablePhysicsConstraint = value;
         }
+
+        public bool IsDismountLocked { get; set; }
     }
 
     [Serializable]
@@ -264,7 +278,19 @@ namespace September.InGame.Kraken.Animations
         public float EffectDistance = 5f;
         public int DefaultParticlePoolCapacity = 20;
 
-        [NonSerialized] public PlayerRef OwnerPlayerRef;
+        [Header("インタラクト解除設定")]
+        [Tooltip("（触手）搭乗解除を待機させる時間の長さ。攻撃開始時点から、この時間分は搭乗解除しないようにする。")]
+        [DynamicInfoBox(nameof(GetDismountLockDurationInfo))]
+        public float DismountLockDuration;
+
+        private string GetDismountLockDurationInfo()
+        {
+            return $"推奨値: {ArmEndTime}秒以上 (ArmEndTime基準)\n" +
+                   $"現在のArmEndTime: {ArmEndTime}秒\n" +
+                   $"現在の設定値: {DismountLockDuration}秒";
+        }
+
+        [NonSerialized] public PlayerRef RecentOwnerPlayerRef;
     }
 
     [Serializable]

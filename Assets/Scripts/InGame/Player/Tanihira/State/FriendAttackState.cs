@@ -13,7 +13,7 @@ namespace Ingame.Tanihira
         public void OnEnter(FriendBase friend)
         {
             //navmeshでの処理
-            if (friend.Agent.enabled)
+            if (friend.Agent != null && friend.Agent.enabled && friend.Agent.isOnNavMesh)
             {
                 friend.Agent.isStopped = true;
                 _friendObject = friend.Agent.gameObject.transform;
@@ -25,7 +25,7 @@ namespace Ingame.Tanihira
 
         public void OnExit(FriendBase friend)
         {
-            if (friend.Agent.enabled)
+            if (friend.Agent != null && friend.Agent.enabled && friend.Agent.isOnNavMesh)
             {
                 //Navmeshを再開
                 friend.Agent.isStopped = false;

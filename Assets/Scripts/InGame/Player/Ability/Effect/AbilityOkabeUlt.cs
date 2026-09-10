@@ -16,7 +16,7 @@ namespace InGame.Player.Ability.Effect
         
         private StatusEffectManager _statusEffectManager;
         private EffectSpawner _effectSpawner;
-        private string _effectID;
+        private EffectID _effectID;
 
         protected override void OnCutInEnd()
         {
@@ -29,8 +29,7 @@ namespace InGame.Player.Ability.Effect
             }
             
             _effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
-            _effectID = Guid.NewGuid().ToString();
-            _effectSpawner?.RequestPlayLoopEffect(_effectID, _effectType, player.transform.position, Quaternion.identity, player.transform);
+            _effectID = _effectSpawner.RequestPlayLoopEffect(_effectType, player.transform.position, Quaternion.identity, player.transform);
         }
 
         protected override void OnUpdateUlt(float deltaTime)

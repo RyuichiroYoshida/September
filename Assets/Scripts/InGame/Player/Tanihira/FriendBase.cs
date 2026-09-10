@@ -113,16 +113,28 @@ namespace Ingame.Tanihira
         public override void FixedUpdateNetwork()
         {
             if (!HasStateAuthority) return;
+
+            if (_formationManager != null && _formationManager.IsPlayerAirborne)
+            {
+                if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
+                    _agent.isStopped = true;
+
+                _animator?.SetFloat("MoveBlend", 0);
+                return;
+            }
             
             // 現在のステートのUpdateを呼び出し
             _friendStateMappings[_currentState]?.OnUpdate(this);
-            transform.position = _agent.nextPosition;
-            if(_agent != null && _agent.enabled && _agent.isOnNavMesh)
-            //位置を更新する
-            if (_agent.remainingDistance >= _agent.stoppingDistance)
+            if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
             {
-                if(_agent.desiredVelocity.sqrMagnitude > 0.01f)
+                transform.position = _agent.nextPosition;
+
+                //位置を更新する
+                if (_agent.remainingDistance >= _agent.stoppingDistance &&
+                    _agent.desiredVelocity.sqrMagnitude > 0.01f)
+                {
                     transform.rotation = Quaternion.LookRotation(_agent.velocity);
+                }
             }
         }
 

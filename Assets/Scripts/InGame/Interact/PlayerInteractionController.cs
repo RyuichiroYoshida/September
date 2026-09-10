@@ -268,7 +268,9 @@ namespace InGame.Interact
 
         private void UpdateInteractUI()
         {
-            if (_focusedObj)
+            bool focusTargetIsValid = _focusedObj && _focusedObj.Id.IsValid;
+
+            if (focusTargetIsValid)
             {
                 var context = new InteractableContext
                 {
@@ -284,7 +286,7 @@ namespace InGame.Interact
             else
             {
                 if (UIController.I)
-                    UIController.I.ShowInteractUI(false, _focusedObj?.gameObject);
+                    UIController.I.ShowInteractUI(false);
             }
         }
 
