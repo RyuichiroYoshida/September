@@ -15,7 +15,7 @@ namespace InGame.Player.Takamura.Mimic
     public sealed class AbilityMimicUltCondition : IAbilityExecuteCondition
     {
         [SerializeField] private string _targetAbilityName = nameof(AbilityMimicUlt);
-        [SerializeField] private PlayerButtons _button = PlayerButtons.Ability3;
+        [SerializeField] private PlayerButtons _button = PlayerButtons.Ultimate;
 
         private PlayerManager _playerManager;
         private PlayerInputManager _inputManager;
