@@ -4,14 +4,13 @@ using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Common;
 using September.Common;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Splines;
 using UnityEngine.UI;
 
 namespace InGame.Player.Sarutobi
 {
-    public class AbilityGrapplingHook : NetworkBehaviour, IAfterTick, IMimicCleanup
+    public class AbilityGrapplingHook : NetworkBehaviour, IAfterTick, IPlayerMovementOverride
     {
         [Header("Ability")]
         [SerializeField] private GameObject _targetUIPrefab;
@@ -52,7 +51,18 @@ namespace InGame.Player.Sarutobi
         private Vector3 _targetPosition;
         private Vector3 _startPosition;
         private float _distanceMag;
-        private NetworkButtons PreviousButtons { get; set; }
+        private bool _isLandingAnimationStarted;
+
+        [Networked] private bool IsGrappleMoving { get; set; }
+        [Networked] private Vector3 GrappleStart { get; set; }
+        [Networked] private Vector3 GrappleTarget { get; set; }
+        [Networked] private int GrappleStartTick { get; set; }
+        [Networked] private float GrappleDuration { get; set; }
+        [Networked] private Vector3 GrappleReleaseVelocity { get; set; }
+        [Networked] private TickTimer GrappleReleaseTimer { get; set; }
+        public bool IsGrappleMotionActive => IsGrappleMoving || !GrappleReleaseTimer.ExpiredOrNotRunning(Runner);
+
+        [Networked] private NetworkButtons PreviousButtons { get; set; }
 
         [Networked, HideInInspector] public AbilityStateType AbilityState { get; private set; } = AbilityStateType.Ready;
         public event Action OnAbilityStart;
@@ -85,42 +95,12 @@ namespace InGame.Player.Sarutobi
             _wireCyl.gameObject.SetActive(false);
         }
 
-        // インターフェース実装
-        public void CleanupBeforeMimicDespawn()
-        {
-            if (HasStateAuthority && AbilityState == AbilityStateType.Active)
-                GrappleEnd();
-
-            CleanupLocalObjects();
-        }
-
-        public override void Despawned(NetworkRunner runner, bool hasState)
-        {
-            CleanupLocalObjects();
-        }
-
-        // インターフェース実装
-        private void CleanupLocalObjects()
-        {
-            if (_targetUI)
-            {
-                Destroy(_targetUI.gameObject);
-                _targetUI = null;
-            }
-
-            if (_wireCyl)
-            {
-                Destroy(_wireCyl.gameObject);
-                _wireCyl = null;
-            }
-        }
-
         public override void FixedUpdateNetwork()
         {
             GetInput<PlayerInput>(out var input);
 
             // input authority で判定
-            if (HasInputAuthority)
+            if (HasInputAuthority && Runner.IsForward)
             {
                 if (_targetUI)
                 {
@@ -186,6 +166,7 @@ namespace InGame.Player.Sarutobi
         [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
         void RPC_GrappleStart(Vector3 targetPosition)
         {
+            if (HasStateAuthority && (AbilityState != AbilityStateType.Ready || IsRidingExhibit())) return;
             OnAbilityStart?.Invoke();
 
             if (!HasStateAuthority)
@@ -205,6 +186,8 @@ namespace InGame.Player.Sarutobi
             Shot().Forget();
 
             _playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
+
+            _clipPlayerManager.EnableFallMotion = false;
 
             Cooldown = TickTimer.CreateFromSeconds(Runner, _cooldown);
 
@@ -228,6 +211,7 @@ namespace InGame.Player.Sarutobi
             if (endType != EndClipType.Complete)
             {
                 GrappleEnd();
+                return;
             }
 
             _grappleState = GrappleStateType.ShotWait;
@@ -243,7 +227,6 @@ namespace InGame.Player.Sarutobi
             {
                 _grappleState = GrappleStateType.PreJump;
                 _jumpTimer = 0;
-                _clipPlayerManager.EnableFallMotion = false;
 
                 PreJump().Forget();
             }
@@ -256,42 +239,43 @@ namespace InGame.Player.Sarutobi
             if (endType != EndClipType.Complete)
             {
                 GrappleEnd();
+                return;
             }
 
             _grappleState = GrappleStateType.Jumping;
+            Vector3 forward = _targetPosition - transform.position;
+            forward.y = 0f;
+            Quaternion rotation = forward.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(forward) : transform.rotation;
+            StartGrappleMotion(_targetPosition, _pullingSpeed, rotation * _pullLastForce);
             _clipPlayer.PlayClipLoop(_animMoveLoop);
         }
 
         void JumpingTick()
         {
-            _jumpTimer += Runner.DeltaTime;
-            float t = Math.Clamp(_jumpTimer * _pullingSpeed / _distanceMag, 0, 1);
-
-            transform.position = Vector3.Lerp(_startPosition, _targetPosition, t);
-
-            if (t >= 1)
+            if (!IsGrappleMotionActive)
             {
                 _grappleState = GrappleStateType.Landing;
                 _jumpTimer = 0;
-                _playerMovement.KnockBack(transform.rotation * _pullLastForce, 0.2f).Forget();
+                _isLandingAnimationStarted = false;
                 RPC_DisplayWireEnd();
-                _clipPlayer.StopClip(_animMoveLoop);
-                _clipPlayerManager.EnableFallMotion = true;
+                // 接地するまで移動ループを保ち、通常姿勢・落下姿勢を間に挟まない。
+                LandingTick();
             }
         }
 
         void LandingTick()
         {
-            if (_playerMovement.IsGround)
+            if (!_isLandingAnimationStarted && _playerMovement.IsGroundNet)
             {
-                if (_jumpTimer == 0)
-                {
-                    _clipPlayer.PlayClip(_animLanding);
-                }
-
-                _jumpTimer += Runner.DeltaTime;
+                _isLandingAnimationStarted = true;
+                _clipPlayer.PlayClip(_animLanding);
+                // 着地を先に再生する。同一レイヤーなら再生側が旧ループを置換する。
+                _clipPlayer.StopClip(_animMoveLoop);
             }
 
+            if (!_isLandingAnimationStarted) return;
+
+            _jumpTimer += Runner.DeltaTime;
             if (_jumpTimer >= _landingDuration)
             {
                 GrappleEnd();
@@ -300,11 +284,76 @@ namespace InGame.Player.Sarutobi
 
         void GrappleEnd()
         {
+            CancelGrappleMotion();
+            _clipPlayer.StopClip(_animMoveLoop);
             AbilityState = AbilityStateType.Cooldown;
             _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _jumpTimer = 0;
             RPC_DisplayWireEnd();
             _clipPlayerManager.EnableFallMotion = true;
+        }
+
+        private void StartGrappleMotion(Vector3 target, float speed, Vector3 releaseVelocity)
+        {
+            GrappleStart = _playerMovement.Rigidbody.position;
+            GrappleTarget = target;
+            GrappleStartTick = Runner.Tick + 1;
+            GrappleDuration = Mathf.Max(Runner.DeltaTime, Vector3.Distance(GrappleStart, target) / Mathf.Max(speed, 0.01f));
+            GrappleReleaseVelocity = releaseVelocity;
+            GrappleReleaseTimer = default;
+            IsGrappleMoving = true;
+        }
+
+        private void CancelGrappleMotion()
+        {
+            IsGrappleMoving = false;
+            GrappleReleaseTimer = default;
+        }
+
+        public bool TryOverrideMovement(PlayerMovement movement, float deltaTime)
+        {
+            if (IsGrappleMoving)
+            {
+                float elapsed = (Runner.Tick - GrappleStartTick) * deltaTime;
+                if (elapsed < 0f) return false;
+
+                if (elapsed < GrappleDuration)
+                {
+                    float progress = Mathf.Clamp01((elapsed + deltaTime) / GrappleDuration);
+                    Vector3 nextPosition = Vector3.Lerp(GrappleStart, GrappleTarget, progress);
+                    Vector3 velocity = (nextPosition - movement.Rigidbody.position) / deltaTime;
+                    if (movement.Rigidbody.useGravity) velocity -= Physics.gravity * deltaTime;
+                    movement.Rigidbody.linearVelocity = velocity;
+
+                    Vector3 direction = GrappleTarget - GrappleStart;
+                    direction.y = 0f;
+                    if (direction.sqrMagnitude > 0.0001f)
+                        movement.Rigidbody.rotation = Quaternion.RotateTowards(
+                            movement.Rigidbody.rotation, Quaternion.LookRotation(direction), movement.RotationSpeed * deltaTime);
+                    movement.SetRotationDirection(direction);
+                    movement.ApplyExternalMovementState(velocity, Vector3.zero, Vector3.zero);
+                    return true;
+                }
+
+                IsGrappleMoving = false;
+                movement.Rigidbody.linearVelocity = GrappleReleaseVelocity;
+                movement.ResetFlyingVelocity();
+                movement.ResetExternalGroundState();
+                GrappleReleaseTimer = TickTimer.CreateFromSeconds(Runner, 0.2f);
+            }
+
+            if (GrappleReleaseTimer.IsRunning)
+            {
+                Vector3 velocity = movement.Rigidbody.linearVelocity;
+                movement.ApplyExternalMovementState(
+                    velocity,
+                    Vector3.up * velocity.y,
+                    Vector3.ProjectOnPlane(velocity, Vector3.up));
+                if (!GrappleReleaseTimer.ExpiredOrNotRunning(Runner)) return true;
+                GrappleReleaseTimer = default;
+            }
+
+            return false;
         }
 
         bool FindGrappleablePosition(out Vector3 position)
@@ -437,14 +486,10 @@ namespace InGame.Player.Sarutobi
             }
         }
 
-        /// <summary>
-        /// ワイヤーを消すメソッド
-        /// </summary>
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         void RPC_DisplayWireEnd()
         {
-            if (_wireCyl)
-                _wireCyl.gameObject.SetActive(false);
+            _wireCyl.gameObject.SetActive(false);
         }
 
         void SetWirePosition(Vector3 otherPos)
