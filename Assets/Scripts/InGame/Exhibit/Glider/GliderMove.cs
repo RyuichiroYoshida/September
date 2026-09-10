@@ -10,11 +10,9 @@ namespace September.InGame.Exhibit
 	{
 		[SerializeField] private Rigidbody _rb;
 		[SerializeField] private NetworkRigidbody3D _networkRigidbody;
-		[SerializeField] private Transform _controlObject;
-		[SerializeField] private Transform _gripObject;
-		[SerializeField] private Transform _camera;
+		[SerializeField] private Transform _rotateObject;
+		[SerializeField] private Transform _viewObject;
 		[SerializeField] private Transform _playerPos;
-		[SerializeField] private Transform _cameraPos;
 		[SerializeField] private float _maxSpeed = 5f;
 		[SerializeField] private float _acceleration = 10f;
 		[SerializeField] private float _gravity = -9.81f;
@@ -52,13 +50,13 @@ namespace September.InGame.Exhibit
 
 			if (HasInputAuthority)
 			{
-				SetCameraPos();
 				_cameraController.RotateCamera(GameInput.I.Player.Look.ReadValue<Vector2>(), Time.fixedDeltaTime);
 			}
 		}
 
 		public void Initialize()
 		{
+			
 		}
 
 		public void InitializeStateAuthority(NetworkObject playerObject, PlayerRef playerRef)
@@ -67,7 +65,7 @@ namespace September.InGame.Exhibit
 			IsFinished = false;
 
 			Player = playerObject.GetComponent<PlayerManager>();
-			if (Player.TryGetComponent(out PlayerMovement playerMovement)) playerMovement.UseGravity = false;
+			RPC_PlayerRide(Player, true);
 			RPC_SetActive(true);
 		}
 
@@ -88,13 +86,10 @@ namespace September.InGame.Exhibit
 				IsFinished = true;
 				return;
 			}
+			
 			var velocity = SetVelocity(_rb.linearVelocity, input.MoveDirection,
 				input.DesiredLookDirection);
 			_rb.linearVelocity = velocity;
-			SetPlayerPos();
-
-			_gripObject.position = _controlObject.position;
-			_gripObject.rotation = _controlObject.rotation;
 
 			if (HasStateAuthority)
 			{
@@ -107,6 +102,7 @@ namespace September.InGame.Exhibit
 		public void Reset()
 		{
 			IsFinished = true;
+			RPC_SetActive(false);
 
 			if (!Player) return;
 
@@ -115,8 +111,8 @@ namespace September.InGame.Exhibit
 				playerRb.linearVelocity = Vector3.zero;
 				playerRb.angularVelocity = Vector3.zero;
 			}
-
-			if (Player.TryGetComponent(out PlayerMovement playerMovement)) playerMovement.UseGravity = true;
+			
+			RPC_PlayerRide(Player, false);
 			
 			// _rb初期化前にplayerの位置をGliderに合わせる
 			Player.transform.position = _rb.position;
@@ -124,7 +120,6 @@ namespace September.InGame.Exhibit
 			Player = null;
 			
 			GliderInit();
-			RPC_SetActive(false);
 		}
 
 		private Vector3 SetVelocity(Vector3 velocity, Vector2 input, Vector3 cameraForward)
@@ -141,38 +136,27 @@ namespace September.InGame.Exhibit
 			return velocity;
 		}
 
-		private void SetPlayerPos()
-		{
-			if (!Player) return;
-			Player.transform.position = _playerPos.position;
-			Player.transform.rotation = _playerPos.rotation;
-		}
-
-		private void SetCameraPos()
-		{
-			_camera.position = _cameraPos.position;
-			_camera.rotation = _cameraPos.rotation;
-		}
-
 		private void PlayTiltAnimation(Vector3 velocity, Vector2 moveDirection)
 		{
 			var moveDri = new Vector3(moveDirection.x, 0f, moveDirection.y).normalized;
 			velocity.y = 0;
 
-			// 回転方向の基準はmoveDirection(入力)を優先。
-			// 入力が無い(≒moveDirectionがほぼ0)場合は、velocityの向きにフォールバック
+			// Yawの更新 回転方向の基準は入力を優先。
+			// 入力が無い場合は、velocityの向きを基準に回転
 			var rotationSource = moveDri.sqrMagnitude >= 0.001f ? moveDri : velocity;
-			if (rotationSource.sqrMagnitude < 0.001f)
-				return;
+			var currentY = _rotateObject.localEulerAngles.y;
+			var nextY = currentY;
+			if (rotationSource.sqrMagnitude >= 0.001f)
+			{
+				var targetY =
+					Mathf.Atan2(rotationSource.x, rotationSource.z) * Mathf.Rad2Deg;
 
-			var targetY =
-				Mathf.Atan2(rotationSource.x, rotationSource.z) * Mathf.Rad2Deg;
-			var currentY = _controlObject.localEulerAngles.y;
-			var nextY = Mathf.MoveTowardsAngle(
-				currentY,
-				targetY,
-				_rotateSpeed * Time.fixedDeltaTime
-			);
+				nextY = Mathf.MoveTowardsAngle(
+					currentY,
+					targetY,
+					_rotateSpeed * Time.fixedDeltaTime
+				);
+			}
 
 			var yawRotate = Quaternion.Euler(0, nextY, 0);
 			// 現在の向きと移動方向のズレ
@@ -186,7 +170,7 @@ namespace September.InGame.Exhibit
 				Vector3.ClampMagnitude(localVelocity / _maxSpeed, 1f);
 			var tiltAngle = normalizedVelocity * (_playerTiltAngle * facingFactor);
 
-			_controlObject.rotation = yawRotate * Quaternion.Euler(tiltAngle.z, 0, tiltAngle.x);
+			_rotateObject.rotation = yawRotate * Quaternion.Euler(tiltAngle.z, 0, tiltAngle.x);
 		}
 
 		private bool IsLanded()
@@ -199,7 +183,20 @@ namespace September.InGame.Exhibit
 		[Rpc]
 		private void RPC_SetActive(bool isActive)
 		{
-			_gripObject.gameObject.SetActive(isActive);
+			_viewObject.gameObject.SetActive(isActive);
+		}
+
+		[Rpc]
+		private void RPC_PlayerRide(PlayerManager player, bool isRide)
+		{
+			if (isRide)
+			{
+				player.BeginRideView(_playerPos, Vector3.zero);
+			}
+			else
+			{
+				player.EndRideView();
+			}
 		}
 	}
 }
