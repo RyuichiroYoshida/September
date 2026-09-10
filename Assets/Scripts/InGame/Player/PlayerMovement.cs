@@ -60,22 +60,24 @@ namespace InGame.Player
         bool _moveBuildEnabled;
 
         private Rigidbody _rb;
+        private IPlayerMovementOverride _movementOverride;
         private PlayerStatus _status;
         private Animator _animator;
 
-        // base move
-        private Vector3 _moveVelocity;
-        public Vector3 MoveVelocity => _moveVelocity;
-        private Vector3 _flyingVelocity;
-        private Vector3 _fallVelocity;
-        private Vector3 _flyingMoveVelocity;
+        // 予測Tickを巻き戻した際、位置と同じ時点の速度から再計算する。
+        // 通常フィールドでは再シミュレーションのたびに重力加算・減衰が重複する。
+        [Networked] private Vector3 NetworkedMoveVelocity { get; set; }
+        public Vector3 MoveVelocity => NetworkedMoveVelocity;
+        [Networked] private Vector3 NetworkedFlyingVelocity { get; set; }
+        [Networked] private Vector3 NetworkedFallVelocity { get; set; }
+        [Networked] private Vector3 NetworkedAirMoveVelocity { get; set; }
 
         private Vector3 _rotationDirection;
         private bool _setDirection;
         private bool _isGround;
-        private float _isGroundTimer;
+        [Networked] private float GroundedGraceRemaining { get; set; }
         private float _prevGroundedTime;
-        private Vector3 _groundNormal = Vector3.up;
+        [Networked] private Vector3 NetworkedGroundNormal { get; set; } = Vector3.up;
         /// <summary> カプセルを接地面へ吸着させるための下方向移動量 </summary>
         private float _groundGap;
         /// <summary> 接地判定・吸着の探索開始オフセット。足裏からこの高さで探索を始める </summary>
@@ -110,10 +112,10 @@ namespace InGame.Player
 
         public float WalkSpeed => GetCurrentMoveSpeed();
         public float DashMoveSpeed => GetCurrentDashSpeed();
-        public bool IsGround => (_isGround || _isGroundTimer > 0) && !_knockBackActive;
+        public bool IsGround => (_isGround || GroundedGraceRemaining > 0) && !_knockBackActive;
         [Networked, HideInInspector]
         public NetworkBool IsGroundNet { get; private set; }
-        public Vector3 GroundNormal => _groundNormal;
+        public Vector3 GroundNormal => NetworkedGroundNormal;
         public bool InfiniteStamina { get; set; } = false;
         public CapsuleCollider MoveCapsuleCollider => _moveCapsuleCollider;
         public LayerMask GroundLayer => _groundLayer;
@@ -135,6 +137,7 @@ namespace InGame.Player
         {
             _rb = GetComponent<Rigidbody>();
             _rb.useGravity = true;
+            _movementOverride = GetComponent<IPlayerMovementOverride>();
             _status = GetComponent<PlayerStatus>();
             _animator = GetComponentInChildren<Animator>();
             // ========== ビルドシステム ==========
@@ -161,7 +164,7 @@ namespace InGame.Player
             {
                 var followDirection = _hookTarget.transform.position - this.transform.position;
                 followDirection.y = 0;
-                _moveVelocity = followDirection * _hookPower;
+                NetworkedMoveVelocity = followDirection * _hookPower;
             }
 
             bool isMoveInputLocked = IgnoreMoveInput || IsHookLocked;
@@ -202,6 +205,16 @@ namespace InGame.Player
         /// <summary> 入力無関係のTick UpdateMovementとの呼び出し順序を確定させるためにManagerから呼ばれる </summary>
         public virtual void MoveTick(float deltaTime)
         {
+            if (_movementOverride != null && _movementOverride.TryOverrideMovement(this, deltaTime))
+            {
+                // 軌道移動中も描画用の接地状態を更新する。前Tickの接地を持ち越さない。
+                _isGround = false;
+                CheckGroundManual();
+                if (HasStateAuthority) IsGroundNet = _isGround;
+                FinishGroundTick(deltaTime);
+                return;
+            }
+
             CheckGroundManual();
 
             //回避
@@ -212,19 +225,19 @@ namespace InGame.Player
             if (_teleportTarget.HasValue)
             {
                 transform.position = _teleportTarget.Value;
-                _moveVelocity = Vector3.zero;
+                NetworkedMoveVelocity = Vector3.zero;
                 _teleportTarget = null;
             }
 
             if (IsGround)
             {
-                _fallVelocity = Vector3.zero;
+                NetworkedFallVelocity = Vector3.zero;
                 _prevGroundedTime = Runner.SimulationTime;
-                _flyingMoveVelocity = _moveVelocity;
+                NetworkedAirMoveVelocity = NetworkedMoveVelocity;
             }
             else
             {
-                _fallVelocity += Physics.gravity * deltaTime;
+                NetworkedFallVelocity += Physics.gravity * deltaTime;
             }
 
             ApplyVelocity(deltaTime);
@@ -239,13 +252,18 @@ namespace InGame.Player
                 IsGroundNet = IsGround;
             }
 
-            // is ground の管理
-            if (!_isGround && _isGroundTimer > 0)
-                _isGroundTimer = Mathf.Max(0f, _isGroundTimer - deltaTime);
-            if (!_isGround && _isGroundTimer <= 0f)
-                _groundNormal = Vector3.up;
+            FinishGroundTick(deltaTime);
+        }
 
-            if (_isGround) _moveVelocity = Vector3.zero;
+        private void FinishGroundTick(float deltaTime)
+        {
+            // is ground の管理
+            if (!_isGround && GroundedGraceRemaining > 0)
+                GroundedGraceRemaining = Mathf.Max(0f, GroundedGraceRemaining - deltaTime);
+            if (!_isGround && GroundedGraceRemaining <= 0f)
+                NetworkedGroundNormal = Vector3.up;
+
+            if (_isGround) NetworkedMoveVelocity = Vector3.zero;
             _isGround = false;
         }
 
@@ -268,7 +286,7 @@ namespace InGame.Player
 
             // 速度ベースで移動する。Rigidbody が壁との衝突を解決するので座標直書きによる壁登りが起きない
             Vector3 horizontalVelocity = _playerEvasion.CalcVelocity(in state, tick, dt);
-            _moveVelocity = Quaternion.FromToRotation(Vector3.up, _groundNormal) * horizontalVelocity;
+            NetworkedMoveVelocity = Quaternion.FromToRotation(Vector3.up, NetworkedGroundNormal) * horizontalVelocity;
 
             Vector3 forward = _playerEvasion.CalcForward(in state, tick, dt);
             _rb.rotation = Quaternion.LookRotation(forward);
@@ -300,7 +318,7 @@ namespace InGame.Player
         {
             if (_animator && _animator.applyRootMotion)
             {
-                _moveVelocity = Vector3.zero;
+                NetworkedMoveVelocity = Vector3.zero;
                 return;
             }
             // Dash処理
@@ -335,14 +353,14 @@ namespace InGame.Player
 
         public void AddForce(Vector3 force)
         {
-            _moveVelocity += force;
-            if (Vector3.Angle(_moveVelocity, _groundNormal) < 89)
-                _moveVelocity += force;
-            if (Vector3.Angle(_moveVelocity, _groundNormal) < 89)
+            NetworkedMoveVelocity += force;
+            if (Vector3.Angle(NetworkedMoveVelocity, NetworkedGroundNormal) < 89)
+                NetworkedMoveVelocity += force;
+            if (Vector3.Angle(NetworkedMoveVelocity, NetworkedGroundNormal) < 89)
             {
                 _isGround = false;
-                _isGroundTimer = 0.1f;
-                _isGroundTimer = 0;
+                GroundedGraceRemaining = 0.1f;
+                GroundedGraceRemaining = 0;
             }
         }
 
@@ -352,8 +370,8 @@ namespace InGame.Player
             // 入力がある場合
             if (moveDir != Vector2.zero && IsGround)
             {
-                Vector3 moveDir3 = Quaternion.FromToRotation(Vector3.up, _groundNormal) * new Vector3(moveDir.x, 0, moveDir.y);
-                _moveVelocity = moveDir3 * (isDash ? GetCurrentDashSpeed() : GetCurrentMoveSpeed());
+                Vector3 moveDir3 = Quaternion.FromToRotation(Vector3.up, NetworkedGroundNormal) * new Vector3(moveDir.x, 0, moveDir.y);
+                NetworkedMoveVelocity = moveDir3 * (isDash ? GetCurrentDashSpeed() : GetCurrentMoveSpeed());
             }
         }
 
@@ -424,7 +442,7 @@ namespace InGame.Player
         void AdsorptionOnGround()
         {
             // ノックバック中と上方向へ飛ばされている間は引き戻さない
-            if (_knockBackActive || _flyingVelocity.y > 0f) return;
+            if (_knockBackActive || NetworkedFlyingVelocity.y > 0f) return;
 
             if (_isGround)
             {
@@ -442,8 +460,8 @@ namespace InGame.Player
             if (gap > GroundSnapTolerance)
                 transform.position += Vector3.down * gap;
             _isGround = true;
-            _isGroundTimer = _coyoteTime;
-            _groundNormal = normal;
+            GroundedGraceRemaining = _coyoteTime;
+            NetworkedGroundNormal = normal;
             _groundGap = 0f;
         }
 
@@ -453,32 +471,32 @@ namespace InGame.Player
             {
                 if (_isGround)
                 {
-                    _rb.linearVelocity = _moveVelocity + _flyingVelocity;
+                    _rb.linearVelocity = NetworkedMoveVelocity + NetworkedFlyingVelocity;
                 }
                 else
                 {
-                    _flyingMoveVelocity = Vector3.Lerp(_flyingMoveVelocity, Vector3.zero, _moveDumping * deltaTime);
+                    NetworkedAirMoveVelocity = Vector3.Lerp(NetworkedAirMoveVelocity, Vector3.zero, _moveDumping * deltaTime);
 
                     // 回避中は崖から踏み出しても確定した水平速度を維持する
-                    Vector3 horizontalVelocity = IsEvading ? _moveVelocity : _flyingMoveVelocity;
+                    Vector3 horizontalVelocity = IsEvading ? NetworkedMoveVelocity : NetworkedAirMoveVelocity;
                     _rb.linearVelocity =
-                        (_rb.useGravity ? _fallVelocity : Vector3.zero)
+                        (_rb.useGravity ? NetworkedFallVelocity : Vector3.zero)
                         + horizontalVelocity
-                        + _flyingVelocity;
+                        + NetworkedFlyingVelocity;
                 }
             }
 
             NetworkVelocity = _rb.linearVelocity;
 
             // 減衰
-            _flyingVelocity = Vector3.Lerp(_flyingVelocity, Vector3.zero, _flyingDamping * deltaTime);
+            NetworkedFlyingVelocity = Vector3.Lerp(NetworkedFlyingVelocity, Vector3.zero, _flyingDamping * deltaTime);
 
             // 微小値になったら0にする
-            if (_flyingVelocity.sqrMagnitude < 0.001f)
-                _flyingVelocity = Vector3.zero;
+            if (NetworkedFlyingVelocity.sqrMagnitude < 0.001f)
+                NetworkedFlyingVelocity = Vector3.zero;
 
             // 回転の向きを代入
-            if (!_setDirection) _rotationDirection = _moveVelocity;
+            if (!_setDirection) _rotationDirection = NetworkedMoveVelocity;
         }
 
         public void SetRotationDirection(Vector3 lookDirection)
@@ -591,19 +609,42 @@ namespace InGame.Player
 
         void EndVault(Vector3 endVelocity)
         {
-            _moveVelocity = endVelocity;
-            _flyingMoveVelocity = endVelocity;
-            _rb.linearVelocity = _moveVelocity;
+            NetworkedMoveVelocity = endVelocity;
+            NetworkedAirMoveVelocity = endVelocity;
+            _rb.linearVelocity = NetworkedMoveVelocity;
             DoingVault = false;
         }
 
         /// <summary> 速度ベクトルを0にする </summary>
+        public Rigidbody Rigidbody => _rb;
+        public float RotationSpeed => _rotationSpeed;
+
+        public void ApplyExternalMovementState(Vector3 velocity, Vector3 fallVelocity, Vector3 airMoveVelocity)
+        {
+            _rb.linearVelocity = velocity;
+            NetworkVelocity = velocity;
+            NetworkedFallVelocity = fallVelocity;
+            NetworkedAirMoveVelocity = airMoveVelocity;
+        }
+
+        public void ResetExternalGroundState()
+        {
+            _isGround = false;
+            GroundedGraceRemaining = 0f;
+            NetworkedGroundNormal = Vector3.up;
+        }
+
+        public void ResetFlyingVelocity()
+        {
+            NetworkedFlyingVelocity = Vector3.zero;
+        }
+
         public void Stop()
         {
-            _moveVelocity = Vector3.zero;
-            _flyingMoveVelocity = Vector3.zero;
-            _fallVelocity = Vector3.zero;
-            _rb.linearVelocity = _moveVelocity;
+            NetworkedMoveVelocity = Vector3.zero;
+            NetworkedAirMoveVelocity = Vector3.zero;
+            NetworkedFallVelocity = Vector3.zero;
+            _rb.linearVelocity = NetworkedMoveVelocity;
         }
 
         public async UniTask KnockBack(Vector3 force, float duration = 0)
@@ -611,7 +652,7 @@ namespace InGame.Player
             if (!HasStateAuthority) return;
 
             _rb.linearVelocity = force;
-            _flyingVelocity = force;
+            NetworkedFlyingVelocity = force;
             _knockBackActive = true;
 
             await UniTask.Delay(TimeSpan.FromSeconds(duration), cancellationToken: this.GetCancellationTokenOnDestroy());
@@ -624,16 +665,36 @@ namespace InGame.Player
             _teleportTarget = position;
         }
 
-        public void TeleportImmediate(Vector3 position)
+        // 指定位置へ移動する。回転が指定されている場合は向きも更新する。
+        public void TeleportImmediate(Vector3 position, Quaternion? rotation = null)
         {
-            transform.position = position;
+            if (TryGetComponent<Fusion.Addons.Physics.NetworkRigidbody3D>(out var networkBody))
+                // NetworkRigidbodyに位置と任意の回転を渡し、物理・同期状態へ反映する。
+                networkBody.Teleport(position, rotation);
+            else
+            {
+                _rb.position = position;
+                transform.position = position;
+                if (rotation.HasValue)
+                {
+                    // NetworkRigidbodyがない場合はRigidbodyとTransformの両方に回転を設定する。
+                    _rb.rotation = rotation.Value;
+                    transform.rotation = rotation.Value;
+                }
+            }
+            _teleportTarget = null;
+            NetworkedFlyingVelocity = Vector3.zero;
+            _knockBackActive = false;
+            _isGround = false;
+            GroundedGraceRemaining = 0f;
+            _rb.angularVelocity = Vector3.zero;
             _prevGroundedTime = Runner.SimulationTime;
             Stop();
         }
 
         public float GetSpeedOnPlane()
         {
-            Quaternion normalRot = Quaternion.FromToRotation(_groundNormal, Vector3.up);
+            Quaternion normalRot = Quaternion.FromToRotation(NetworkedGroundNormal, Vector3.up);
             Vector3 onPlaneVec = normalRot * _rb.linearVelocity;
             onPlaneVec.y = 0;
             return onPlaneVec.magnitude;
@@ -661,7 +722,7 @@ namespace InGame.Player
 
         public void AddFlyingVelocity(Vector3 force)
         {
-            _flyingVelocity = force;
+            NetworkedFlyingVelocity = force;
         }
 
         private void CheckGroundManual()
@@ -669,8 +730,8 @@ namespace InGame.Player
             if (!TryProbeGround(out Vector3 normal, out float gap)) return;
 
             _isGround = true;
-            _isGroundTimer = _coyoteTime;
-            _groundNormal = normal;
+            GroundedGraceRemaining = _coyoteTime;
+            NetworkedGroundNormal = normal;
             _groundGap = gap;
         }
 
@@ -808,5 +869,10 @@ namespace InGame.Player
             Gizmos.DrawLine(p1 - transform.forward * r, p2 - transform.forward * r);
         }
 #endif
+    }
+
+    public interface IPlayerMovementOverride
+    {
+        bool TryOverrideMovement(PlayerMovement movement, float deltaTime);
     }
 }

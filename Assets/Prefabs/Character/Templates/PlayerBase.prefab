@@ -367,7 +367,7 @@ Transform:
   m_Children:
   - {fileID: 6638110324921577417}
   - {fileID: 1793614457980045838}
-  m_Father: {fileID: 8736522266100138394}
+  m_Father: {fileID: 3154940791027620109}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &2525442923973757293
 Animator:
@@ -2524,13 +2524,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4179642519680677453}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.08715578, y: -0, z: -0, w: 0.9961947}
+  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
   m_LocalPosition: {x: 0, y: 1.65, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 339817392409267713}
-  m_Father: {fileID: 8736522266100138394}
+  m_Father: {fileID: 3154940791027620109}
   m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
 --- !u!1 &4234629462919546141
 GameObject:
@@ -2934,7 +2934,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1920212954294529003}
+  - {fileID: 8156254438002643843}
   m_Father: {fileID: 8736522266100138394}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4420029548402063522
@@ -5460,8 +5462,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3154940791027620109}
-  - {fileID: 1920212954294529003}
-  - {fileID: 8156254438002643843}
   - {fileID: 5242763545905317136}
   - {fileID: 8668728296515204595}
   - {fileID: 5750209683938712753}
@@ -5605,6 +5605,8 @@ MonoBehaviour:
   _stunTime: 8
   _respawnPosition: {x: 0, y: 0, z: 0}
   _attackWeapon: {fileID: 0}
+  _lockOnSearchRadius: 20
+  _lockOnVerticalRange: 1.5
   _buildGenerator: {fileID: 6116485311636888498}
   _playerStatus: {fileID: -3905644752378878134}
   _CurrentPlayerControlState: 0
@@ -5612,6 +5614,8 @@ MonoBehaviour:
     _value: 0
   _IsMovable:
     _value: 1
+  _IsLockOnActive:
+    _value: 0
 --- !u!114 &3242880713039265549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5670,6 +5674,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _hookPower: 10
+  _moveDumping: 0.5
   _flyingDamping: 8
   _evasionData: {fileID: 11400000, guid: a5096594ea23bc742976e6998f7765a8, type: 2}
   _playerHealth: {fileID: 5358505061852357365}
@@ -5711,6 +5716,15 @@ MonoBehaviour:
   _cameraRadius: 0.1
   _motionDuration: 0.3
   _motionEase: 9
+  _lockOnRotationSpeed: 360
+  _enablePitchAngleLimit: 0
+  _pitchAngleLimit:
+    Min: -90
+    Max: 90
+  _enableYawAngleLimit: 0
+  _yawAngleLimit:
+    Min: -180
+    Max: 180
 --- !u!114 &5358505061852357365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7061,19 +7075,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4789464629759807630, guid: d176495b4f968bf46837d10d26dfa0ba, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.99904823
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4789464629759807630, guid: d176495b4f968bf46837d10d26dfa0ba, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.043619413
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4789464629759807630, guid: d176495b4f968bf46837d10d26dfa0ba, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4789464629759807630, guid: d176495b4f968bf46837d10d26dfa0ba, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4789464629759807630, guid: d176495b4f968bf46837d10d26dfa0ba, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

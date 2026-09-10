@@ -48,6 +48,29 @@ namespace InGame.Player
         public float CameraPitch => _cameraPitch;
         public float CameraYaw => _cameraYaw;
 
+        // ジップライン使用時に台車の位置にカメラを追従させるための変数
+        private Transform _rideTarget;
+        private Vector3 _rideOffset;
+        private Vector3 _ridePivotOffset;
+        private Vector3 _savedPivotLocalPosition;
+
+        // カメラのローカル位置と本体からのオフセットを保存し、追従先の台車を設定する。
+        public void BeginRideView(Transform target, Vector3 offset)
+        {
+            if (_rideTarget != null) EndRideView();
+            _savedPivotLocalPosition = _cameraPivot.localPosition;
+            _ridePivotOffset = _cameraPivot.position - transform.position;
+            _rideTarget = target;
+            _rideOffset = offset;
+        }
+
+        // 台車への追従を終了し、カメラを保存したローカル位置へ戻す。
+        public void EndRideView()
+        {
+            _rideTarget = null;
+            _cameraPivot.localPosition = _savedPivotLocalPosition;
+        }
+
         public void Init(bool use)
         {
             _cameraPivot.gameObject.SetActive(use);
@@ -59,12 +82,15 @@ namespace InGame.Player
             _defaultYaw = _cameraPivot.rotation.eulerAngles.y;
             _currentOffset = _cameraTf.localPosition;
             _defaultOffset = _cameraTf.localPosition;
-            _cameraPitch = _characterTf.rotation.eulerAngles.x;
-            _cameraYaw = _characterTf.rotation.eulerAngles.y;
+
+            SetCameraRotate(_defaultPitch, _defaultYaw);
         }
 
         private void LateUpdate()
         {
+            // 台車位置に乗車オフセットとカメラのオフセットを加え、カメラ支点の位置を更新する。
+            if (_rideTarget != null)
+                _cameraPivot.position = _rideTarget.position + _rideOffset + _ridePivotOffset;
             CheckCameraDistance();
         }
 
@@ -91,7 +117,7 @@ namespace InGame.Player
         {
             _cameraPitch = _enablePitchAngleLimit
                 ? Mathf.Clamp(pitch, _defaultPitch - _pitchAngleLimit.Max, _defaultPitch - _pitchAngleLimit.Min)
-                : Mathf.Clamp(pitch, _defaultPitch - 90f, _defaultPitch + 90f);
+                : Mathf.Clamp(pitch, -89.9f, 89.9f);
 
             _cameraYaw = _enableYawAngleLimit
                 ? Mathf.Clamp(yaw, _defaultYaw + _yawAngleLimit.Min, _defaultYaw + _yawAngleLimit.Max)
