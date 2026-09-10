@@ -9,7 +9,6 @@ namespace InGame.Player.Ability
     [Serializable]
     public class AbilityLaserGun : ShootingAbilityBase
     {
-        [Header("参照")]
         [Header("PlayerInteractionController")]
         [SerializeField] private PlayerInteractionController _playerInteractionController;
         [Space(30)]

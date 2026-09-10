@@ -15,12 +15,14 @@ namespace InGame.Player.Ability
         [SerializeField] private AimCameraController _aimCameraController;
         [SerializeField] private HatanoSequenceManager _hatanoSequenceManager;
         [SerializeField] private HatanoAbilityStatusManagement _hatanoAbilityStatusManagement;
+        [SerializeField] private HatanoWeaponController _hatanoWeaponController;
         [Header("待機"), SerializeField] private AnimationClip _idleClip;
         [Header("必殺技終了時間"), SerializeField] private float _duration;
         [Header("ロケランの弾"), SerializeField] private GameObject _bulletPrefab;
         [Header("弾の速さ"), SerializeField] private float _bulletSpeed;
         [SerializeField] private EffectType _predictedLocation;
         [SerializeField] private EffectType _impact;
+        [Header("ロケランのアニメーター"), SerializeField] private Animator _rocketAnimator;
         [Header("必殺技の効果設定")]
         [Header("攻撃範囲"), SerializeField] private float _rocketLauncherRadius;
         [Header("射程距離"), SerializeField] private float _shootingDistance;
@@ -33,15 +35,14 @@ namespace InGame.Player.Ability
         private EffectSpawner _effectSpawner;
         private NetworkBool _isShoot;
         
-        private string _idPredictedLocation = "HatanoUltPredictedLocation";
+        private readonly string _idPredictedLocation = "HatanoUltPredictedLocation";
+        private readonly string _rocketAnimName = "IsOpenlid";
         
         protected override bool ManualCutInEnd => true;
 
         protected override void OnCutInStart()
         {
-            _hatanoAbilityStatusManagement.DisplayToggle(false);
-            _hatanoSequenceManager.RPC_WeaponFBXDisplayToggle(true);
-            _hatanoSequenceManager.RPC_WeaponPrefabHidden();
+            _rocketAnimator.SetBool(_rocketAnimName, true);
         }
 
         protected override void OnCutInEnd()
@@ -86,6 +87,7 @@ namespace InGame.Player.Ability
                 _isShoot = true;
                 _effectSpawner?.StopEffect(_idPredictedLocation);
                 _aimCameraController.RPC_NormalCamera();
+                _rocketAnimator.SetBool(_rocketAnimName, false);
                 _hatanoSequenceManager.RPC_SetEndTimeline();
                 RPC_Shooting();
             }
@@ -97,8 +99,20 @@ namespace InGame.Player.Ability
         {
             _isShoot = false;
             _hatanoSequenceManager.RPC_SetStartTimeline();
-            _hatanoSequenceManager.RPC_WeaponFBXDisplayToggle(false);
-            _hatanoAbilityStatusManagement.DisplayToggle(true);
+            // アニメーションイベントが発生しないときがあるため、ここで武器のソケットを変更する
+            _hatanoWeaponController.AttachRocketBody();
+            // 選択中の武器に合わせてソケットの変更を行う
+            if (_hatanoAbilityStatusManagement.AbilityStatus == HatanoAbilityStatus.DoubleBarreledGun)
+            {
+                _hatanoWeaponController.AttachDoubleGunHand();
+                _hatanoWeaponController.AttachLaserGunHip();
+            }
+            else // レーザー銃
+            {
+                _hatanoWeaponController.AttackLaserGunHand();
+                _hatanoWeaponController.AttachDoubleGunBody();
+            }
+            
             _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.Normal);
         }
         

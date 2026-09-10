@@ -15,13 +15,15 @@ namespace InGame.Player.Hatano
         [SerializeField] private HatanoChangeAnimationController _changeAnimation;
         [Header("切替アニメーション（D→L）"), SerializeField] private AnimationClip _changeDLClip;
         [Header("切替アニメーション（L→D）"), SerializeField] private AnimationClip _changeLDClip;
+        [Header("切替アニメーション（構えD→L）"), SerializeField] private AnimationClip _changeAimDLClip;
+        [Header("切替アニメーション（構えL→D）"), SerializeField] private AnimationClip _changeAimLDClip;
         [Header("レーザー銃"), SerializeField] private GameObject _laser;
         [Header("二丁拳銃"), SerializeField] private List<GameObject> _doubles;
         [Header("現在の選択中のAbility")]
         [Networked] private HatanoAbilityStatus _abilityStatus {get; set;}
         public HatanoAbilityStatus AbilityStatus => _abilityStatus;
         public HatanoAbilityStatus _lastAbilityStatus;
-        
+
         private HatanoAbilityStatusUIManager _abilityStatusUIManager;
         private AimCameraController _aimCameraController;
         private bool _isChangeAbilityInput; //Abilityの変更入力
@@ -48,9 +50,7 @@ namespace InGame.Player.Hatano
             if(!HasInputAuthority) return;
             //入力がなかったら処理を行わない
             if (!GetInput<PlayerInput>(out var input)) return;
-            //構えているときはアビリティの変更を行えないようにする
-            if(_aimCameraController.IsAim) return;
-
+            
             if (input.Buttons.IsSet(PlayerButtons.Ability1) && !_isChangeAbilityInput)
             {
                 _isChangeAbilityInput = true;
@@ -105,40 +105,16 @@ namespace InGame.Player.Hatano
             switch (status)
             {
                 case HatanoAbilityStatus.LaserGun:
-                    _laser.SetActive(true);
-                    foreach (var d in _doubles) d.SetActive(false);
-                    _animClipPlayer.PlayClip(_changeDLClip);
-                    _changeAnimation.ChangeMoveAnimation(status);
+                    _animClipPlayer.PlayOnUpperBody(null);
+                    _animClipPlayer.PlayClip(_aimCameraController.IsAim ? _changeAimDLClip : _changeDLClip);
                     break;
                 case HatanoAbilityStatus.DoubleBarreledGun:
-                    _laser.SetActive(false);
-                    foreach (var d in _doubles) d.SetActive(true);
-                    _animClipPlayer.PlayClip(_changeLDClip);
-                    _changeAnimation.ChangeMoveAnimation(status);
+                    _animClipPlayer.PlayOnUpperBody(null);
+                    _animClipPlayer.PlayClip(_aimCameraController.IsAim ? _changeAimLDClip : _changeLDClip);
                     break;
             }
-        }
-
-        public void DisplayToggle(bool flag)
-        {
-            if (!flag)
-            {
-                _laser.SetActive(false);
-                foreach (var d in _doubles) d.SetActive(false);
-            }
-            else
-            {
-                switch (_abilityStatus)
-                {
-                    case HatanoAbilityStatus.LaserGun:
-                        _laser.SetActive(true);
-                        break;
-                    
-                    case HatanoAbilityStatus.DoubleBarreledGun:
-                        foreach (var d in _doubles) d.SetActive(true);
-                        break;
-                }
-            }
+            
+            _changeAnimation.ChangeMoveAnimation(status);
         }
     }
 }

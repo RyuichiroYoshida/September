@@ -10,6 +10,8 @@ namespace InGame.Player.Hatano
     public class HatanoChangeAnimationController : NetworkBehaviour
     {
         [SerializeField] private AnimationClipPlayer _animationClipPlayer;
+        [Header("二丁拳銃（Aim）"), SerializeField] private AnimationClip _doubleAimPoseClip;
+        [Header("レーザー銃（Aim）"), SerializeField] private AnimationClip _laserAimPoseClip;
         [Header("二丁拳銃（移動）")]
         [SerializeField] private AnimationClip _doubleWaitClip;
         [SerializeField] private AnimationClip _doubleWalkClip;
@@ -37,6 +39,24 @@ namespace InGame.Player.Hatano
                     _animationClipPlayer.ChangeWaitAnimationClip(_laserWaitClip);
                     _animationClipPlayer.ChangeWalkAnimationClip(_laserWalkClip);
                     _animationClipPlayer.ChangeRunAnimationClip(_laserRunClip);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// アビリティに応じて構えアニメーションを再生する
+        /// </summary>
+        /// <param name="status">変更後のアビリティ</param>
+        public void ChangeAimPoseAnimation(HatanoAbilityStatus status)
+        {
+            switch (status)
+            {
+                case HatanoAbilityStatus.DoubleBarreledGun:
+                    _animationClipPlayer.PlayOnUpperBody(_doubleAimPoseClip);
+                    break;
+                
+                case HatanoAbilityStatus.LaserGun:
+                    _animationClipPlayer.PlayOnUpperBody(_laserAimPoseClip);
                     break;
             }
         }
