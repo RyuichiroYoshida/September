@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace InGame.Player.Sarutobi
 {
-    public class AbilityGrapplingHook : NetworkBehaviour, IAfterTick, IPlayerMovementOverride
+    public class AbilityGrapplingHook : NetworkBehaviour, IAfterTick, IPlayerMovementOverride, IMimicCleanup
     {
         [Header("Ability")]
         [SerializeField] private GameObject _targetUIPrefab;
@@ -93,6 +93,44 @@ namespace InGame.Player.Sarutobi
             wireObj.GetComponent<Renderer>().sharedMaterial = _wireMaterial;
             if (wireObj.TryGetComponent(out Collider col)) Destroy(col);
             _wireCyl.gameObject.SetActive(false);
+        }
+
+        // IMimicCleanupの実装。
+        // 擬態によってSarutobiプレハブが破棄される前に、進行中のフック移動とPrefab外へ生成した表示物を片付ける。
+        public void CleanupBeforeMimicDespawn()
+        {
+            if (HasStateAuthority)
+            {
+                if (AbilityState == AbilityStateType.Active)
+                    GrappleEnd();
+                else
+                    CancelGrappleMotion();
+            }
+
+            CleanupLocalObjects();
+        }
+
+        // 通常のDespawn経路でも、ローカルに生成したUIとワイヤーを残さない。
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            CleanupLocalObjects();
+        }
+
+        // NetworkObjectではないためRunner.DespawnではなくDestroyで破棄する。
+        // CleanupBeforeMimicDespawnとDespawnedの両方から呼ばれるので、存在確認をして多重実行を許容する。
+        private void CleanupLocalObjects()
+        {
+            if (_targetUI)
+            {
+                Destroy(_targetUI.gameObject);
+                _targetUI = null;
+            }
+
+            if (_wireCyl)
+            {
+                Destroy(_wireCyl.gameObject);
+                _wireCyl = null;
+            }
         }
 
         public override void FixedUpdateNetwork()
@@ -472,6 +510,9 @@ namespace InGame.Player.Sarutobi
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         void RPC_DisplayWireStart()
         {
+            // 擬態解除とRPCの到着が重なった場合、ワイヤーはすでに破棄されている。
+            if (!_wireCyl) return;
+
             _wireTimer = 0;
             _wireCyl.gameObject.SetActive(true);
         }
@@ -489,11 +530,16 @@ namespace InGame.Player.Sarutobi
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         void RPC_DisplayWireEnd()
         {
-            _wireCyl.gameObject.SetActive(false);
+            // CleanupLocalObjectsによる破棄後でも安全に終了できるようにする。
+            if (_wireCyl)
+                _wireCyl.gameObject.SetActive(false);
         }
 
         void SetWirePosition(Vector3 otherPos)
         {
+            // Despawn直前・直後は生成物や手の参照が先に無効になる場合がある。
+            if (!_wireCyl || !_handSocket) return;
+
             var dir = otherPos - _handSocket.position;
             var len = dir.magnitude;
 
