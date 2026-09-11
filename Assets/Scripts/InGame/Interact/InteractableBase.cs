@@ -38,6 +38,10 @@ namespace InGame.Interact
 
         /// <summary>この展示物のタイプ</summary>
         [SerializeField] private ExhibitType _type;
+        /// <summary> インタラクト位置オフセット </summary>
+        [SerializeField] private Vector3 _interactPositionOffset = Vector3.zero;
+        /// <summary> インタラクト範囲を表すコライダー。コライダー種類はClosestPointが使えるもののみ（凸包でないMeshCollider不可） </summary>
+        [SerializeField] private Collider _interactAreaCollider;
         /// <summary>インタラクトエフェクトの位置オフセット</summary>
         [SerializeField] private Vector3 _interactEffectOffset = Vector3.zero;
         /// <summary>クールダウンエフェクトを再生するTransform（未設定の場合は自身）</summary>
@@ -474,9 +478,22 @@ namespace InGame.Interact
         /// </summary>
         public Vector3 GetInteractPosition()
         {
-            Vector3 result = this.transform.position;
-            result.y += _cooldownEffectOffset.y;
-            return result;
+            return transform.TransformPoint(_interactPositionOffset);
+        }
+
+        /// <summary>
+        /// インタラクト範囲の中からpositionに最も近い点を返します
+        /// </summary>
+        public Vector3 GetNearestPointOnInteractArea(Vector3 position)
+        {
+            // インタラクト範囲コライダーが指定されている場合はコライダーを優先
+            if (_interactAreaCollider)
+            {
+                return _interactAreaCollider.ClosestPoint(position);
+            }
+
+            // コライダーが無ければOffsetを使用
+            return GetInteractPosition();
         }
 
 #if UNITY_EDITOR
@@ -502,6 +519,14 @@ namespace InGame.Interact
             // インタラクトエフェクトの位置を表示
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position + _interactEffectOffset, 0.2f);
+
+            // インタラクト地点
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.TransformPoint(_interactPositionOffset), 0.2f);
+            if (_interactAreaCollider)
+            {
+                GizmosUtility.DrawCollider(_interactAreaCollider);
+            }
         }
 #endif
     }

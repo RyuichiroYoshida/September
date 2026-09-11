@@ -26,7 +26,7 @@ namespace InGame.Bot
                 return;
             }
 
-            Vector3 targetPosition = _targetInteractable.GetInteractPosition();
+            Vector3 targetPosition = _targetInteractable.GetNearestPointOnInteractArea(stateMachine.transform.position);
             stateMachine.Navigation.GetDestinationInput(stateMachine.transform.position, targetPosition);
 
             //ターゲットがクールダウンになったら終了

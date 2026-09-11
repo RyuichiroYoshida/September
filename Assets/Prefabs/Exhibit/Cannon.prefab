@@ -77,6 +77,8 @@ MonoBehaviour:
   _characterEffects:
   - rid: 3743209559181754454
   _type: 20
+  _interactPositionOffset: {x: -1.66, y: 1.48, z: 0.85}
+  _interactAreaCollider: {fileID: 0}
   _interactEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectTransform: {fileID: 0}
   _cooldownEffectOffset: {x: 0, y: 0, z: 0}
@@ -270,6 +272,15 @@ MonoBehaviour:
   _cameraRadius: 0.1
   _motionDuration: 0
   _motionEase: 9
+  _lockOnRotationSpeed: 360
+  _enablePitchAngleLimit: 0
+  _pitchAngleLimit:
+    Min: -90
+    Max: 90
+  _enableYawAngleLimit: 0
+  _yawAngleLimit:
+    Min: -180
+    Max: 180
 --- !u!114 &6913141626139494975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285,6 +296,7 @@ MonoBehaviour:
   _projectileSpawnPoint: {fileID: 7178459771463643047}
   _projectilePrefab: {fileID: 7956218160329834900, guid: 0100a4b61cfd62e4cbc905dc1ec90bbc, type: 3}
   _projectileEffectPrefab: {fileID: -6299654888396855261, guid: 45d0c9324ba914a439041fa5313c541e, type: 3}
+  _shootEffectType: 0
   _simulationStepTime: 0.1
   _lifeTime: 10
   _gravity: {x: 0, y: -9.81, z: 0}
@@ -648,7 +660,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5529389895528052681, guid: 07edf36fd17c1614c8c30776981a950b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.175
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5529389895528052681, guid: 07edf36fd17c1614c8c30776981a950b, type: 3}
       propertyPath: m_LocalPosition.z
