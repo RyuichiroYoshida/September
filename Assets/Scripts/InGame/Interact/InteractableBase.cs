@@ -493,7 +493,7 @@ namespace InGame.Interact
             }
 
             // コライダーが無ければOffsetを使用
-            return transform.TransformPoint(_interactPositionOffset);
+            return GetInteractPosition();
         }
 
 #if UNITY_EDITOR
