@@ -96,10 +96,11 @@ namespace September.Common
                     };
 
                     var height = Mathf.Max(capsule.height - capsule.radius * 2, 0);
+                    var center = capsule.center;
                     var offset = height * 0.5f * direction;
 
-                    var p0 = offset;
-                    var p1 = -offset;
+                    var p0 = center + offset;
+                    var p1 = center - offset;
 
                     DrawWireCapsule(p0, p1, capsule.radius);
                     break;
