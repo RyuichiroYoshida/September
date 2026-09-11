@@ -147,6 +147,14 @@ namespace September.InGame.Effect
         }
 
         /// <summary>
+        /// 指定されたIDのエフェクトの新規放出を止め、パーティクルの寿命に従って徐々にフェードアウトさせる
+        /// </summary>
+        public void StopEffectGradually(EffectID effectId)
+        {
+            RPC_StopEffectGraduallyById(effectId);
+        }
+
+        /// <summary>
         /// 統一されたエフェクト再生RPC
         /// </summary>
         /// <param name="effectType">エフェクトタイプ</param>
@@ -295,6 +303,55 @@ namespace September.InGame.Effect
             }
         }
 
+        /// <summary>
+        /// エフェクトをフェードアウトさせながら止めるRPC
+        /// </summary>
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_StopEffectGraduallyById(EffectID effectId)
+        {
+            if (_activeEffects.TryGetValue(effectId, out GameObject effect))
+            {
+                if (effect != null)
+                {
+                    var particleSystems = effect.GetComponentsInChildren<ParticleSystem>();
+
+                    if (particleSystems.Length > 0)
+                    {
+                        effect.transform.SetParent(null);
+
+                        float maxLifetime = 0f;
+
+                        foreach (var ps in particleSystems)
+                        {
+                            // 各 ParticleSystem の最大粒子寿命を取得
+                            float lifetime = ps.main.startLifetime.constantMax;
+                            if (lifetime > maxLifetime)
+                            {
+                                maxLifetime = lifetime;
+                            }
+
+                            // 新規放出をストップ
+                            ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                        }
+
+                        // 全ての粒子が消え去るタイミングで削除
+                        Destroy(effect, maxLifetime);
+
+                    }
+                    else
+                    {
+                        // ParticleSystem が無い場合は削除
+                        Destroy(effect);
+                    }
+                }
+                _activeEffects.Remove(effectId);
+            }
+            else
+            {
+                Debug.LogWarning($"[EffectSpawner] エフェクトID:{effectId} は存在しません");
+            }
+        }
+
         //エフェクトを止める
         [Rpc(RpcSources.All, RpcTargets.All)]
         private void RPC_StopEffectById(EffectID effectId)
@@ -312,6 +369,8 @@ namespace September.InGame.Effect
                 Debug.LogWarning($"[EffectSpawner] エフェクトID:{effectId} は存在しません");
             }
         }
+
+
 
         private void OnDestroy()
         {
