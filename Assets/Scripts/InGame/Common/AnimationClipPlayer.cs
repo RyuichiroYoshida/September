@@ -227,6 +227,11 @@ namespace InGame.Common
                 return;
             }
 
+            // 同じレイヤーで進行中の再生/ブレンドを止める。
+            // 止めないと、差し替え前のクリップを待っていた PlayAsync が終了処理としてレイヤー Weight を 0 へ落とし、
+            // 差し替え後のクリップ (攻撃中に始めた回避など) が再生されなくなる。
+            TakeLayerControl(layerType);
+
             // 解除要求
             if (clip == null)
             {
@@ -418,8 +423,8 @@ namespace InGame.Common
                 return EndClipType.Failed;
             }
 
-            // 同レイヤーの前回待機をキャンセルして新トークン
-            var token = RenewLayerCts(layerType, external);
+            // 同レイヤーの前回待機と Weight ブレンドをキャンセルして新トークン
+            var token = TakeLayerControl(layerType, external);
 
             var currentW = Mathf.Clamp01(_layerInfo[slot].Weight);
             var useBlendIn = blendIn.BlendTime > 0f;
@@ -518,7 +523,7 @@ namespace InGame.Common
                 return;
             }
 
-            RenewLayerCts(layerType);
+            TakeLayerControl(layerType);
 
             Play(clip, layerType, 1, additive, playSpeed);
         }
@@ -643,8 +648,8 @@ namespace InGame.Common
                 return;
             }
 
-            // 同レイヤーの前回待機をキャンセルして新トークン
-            var token = RenewLayerCts(layerType, external);
+            // 同レイヤーの前回待機と Weight ブレンドをキャンセルして新トークン
+            var token = TakeLayerControl(layerType, external);
 
             var currentW = Mathf.Clamp01(_layerInfo[slot].Weight);
             var useBlendIn = blendIn.BlendTime > 0f;
@@ -844,7 +849,8 @@ namespace InGame.Common
             }
             finally
             {
-                if (_weightBlendCts.TryGetValue(layer, out var cts))
+                // 後から登録された別のブレンドの CTS を破棄しないよう、自分が登録したものだけ片付ける
+                if (_weightBlendCts.TryGetValue(layer, out var cts) && ReferenceEquals(cts, linked))
                 {
                     cts.Dispose();
                     _weightBlendCts.Remove(layer);
@@ -945,6 +951,33 @@ namespace InGame.Common
                 CancellationTokenSource.CreateLinkedTokenSource(external, this.GetCancellationTokenOnDestroy());
             _layerCts[layer] = linked;
             return linked.Token;
+        }
+
+        /// <summary>
+        /// 指定レイヤーの制御権を呼び出し元へ移す。
+        /// 進行中の再生待ち (PlayAsync/PlayLoop) と Weight ブレンドをキャンセルし、新しいトークンを返す。
+        /// </summary>
+        private CancellationToken TakeLayerControl(LayerInfo.LayerType layer, CancellationToken external = default)
+        {
+            if (_weightBlendCts.TryGetValue(layer, out var blend))
+            {
+                blend.Cancel();
+                blend.Dispose();
+                _weightBlendCts.Remove(layer);
+            }
+
+            return RenewLayerCts(layer, external);
+        }
+
+        /// <summary>
+        /// 指定レイヤーで現在接続されているクリップが clip かどうか。
+        /// 非同期処理の途中で他のモーションに差し替えられていないかの確認に使う。
+        /// </summary>
+        public bool IsCurrentClipOnLayer(LayerInfo.LayerType layer, AnimationClip clip)
+        {
+            return clip
+                   && _clipOf.TryGetValue(layer, out var current) && current == clip
+                   && _runtimeClips.TryGetValue(layer, out var playable) && playable.IsValid();
         }
 
         private async UniTask WaitClipEndAsync(AnimationClipPlayable p, CancellationToken token)
