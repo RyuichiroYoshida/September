@@ -6332,6 +6332,10 @@ PrefabInstance:
       propertyPath: SortKey
       value: 2864662074
       objectReference: {fileID: 0}
+    - target: {fileID: 3410402867839284751, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3570017578186338863, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
       propertyPath: _run
       value: 
@@ -6597,6 +6601,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc7840d6f50245e781522fe38dd245cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2754223904188990375 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8790283326073112851, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+  m_PrefabInstance: {fileID: 6901102396210121396}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2809112185912101678 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8736522266100138394, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
@@ -6717,6 +6726,8 @@ MonoBehaviour:
   _scannerCanvas: {fileID: 7310910699517085291}
   _visual: {fileID: 5851093174879335224}
   _playerJewelryView: {fileID: 3361756016605456788}
+  _nameText: {fileID: 2754223904188990375}
+  _nameBack: {fileID: 8310031665367310915}
 --- !u!225 &3361756016605456788 stripped
 CanvasGroup:
   m_CorrespondingSourceObject: {fileID: 8170373435814273824, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
@@ -6920,6 +6931,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83db0a2456e37ec47923962239d9002c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8310031665367310915 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3212911333276444919, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
+  m_PrefabInstance: {fileID: 6901102396210121396}
+  m_PrefabAsset: {fileID: 0}
 --- !u!136 &8407278150476530661 stripped
 CapsuleCollider:
   m_CorrespondingSourceObject: {fileID: 3128034714514688337, guid: 1d232b17925a618409af4cee2aad9b7f, type: 3}
