@@ -20,9 +20,10 @@ namespace September.InGame.UI
         public Image IconImage;
         public CanvasGroup FieldOutUI;
         public PlayerJewelryView JewelryView;
+        public NoticeView NoticeUI;
 
         [Header("Bars")]
-        public Slider HpBar;
+        public HpGaugeView HpBar;
         public Slider StaminaBar;
 
         [Header("Interact")]

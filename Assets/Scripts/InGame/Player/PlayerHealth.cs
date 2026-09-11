@@ -23,6 +23,11 @@ namespace InGame.Player
         // event
         public event Action<HitData> OnHitTaken;
         public event Action<HitData> OnDeath;
+        /// <summary>
+        /// 気絶時のクライアント側演出用イベント。
+        /// ゲームロジック用のOnDeathとは分離し、全クライアントで発火する。
+        /// </summary>
+        public event Action<HitData> OnDeathVisual;
 
         /// <summary> 無敵 </summary> 無敵の set が　public なのどうなん
         [Networked, HideInInspector] public NetworkBool IsInvincible { get; set; }
@@ -53,7 +58,11 @@ namespace InGame.Player
                 // イベントの発火はStateAuthorityなのか？
                 OnHitTaken?.Invoke(hitData);
                 Debug.Log($"PlayerHealth: TakeHit - HitActionType: {hitData.HitActionType}, Amount: {hitData.Amount}, IsLastHit: {hitData.IsLastHit}");
-                if (!IsAlive) OnDeath?.Invoke(hitData);
+                if (!IsAlive)
+                {
+                    OnDeath?.Invoke(hitData);
+                    RPC_DeathVisual(hitData.TargetRef);
+                }
                 hitData.Executor?.HitExecution(hitData);
 
                 IGameRule.CurrentRule.PlayerHitStrategy?.OnHitTaken(ref hitData);
@@ -63,6 +72,15 @@ namespace InGame.Player
             }
             
             //RPC_HitDebug(hitData.HitActionType);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_DeathVisual(PlayerRef targetRef)
+        {
+            OnDeathVisual?.Invoke(new HitData
+            {
+                TargetRef = targetRef,
+            });
         }
 
         void ApplyHit(ref HitData hitData)
@@ -132,6 +150,7 @@ namespace InGame.Player
             OnHitTaken = null;
             Debug.Log("PlayerHealth: Despawned - OnHitTaken event handlers cleared");
             OnDeath = null;
+            OnDeathVisual = null;
             _cts.Cancel();
             _cts.Dispose();
         }

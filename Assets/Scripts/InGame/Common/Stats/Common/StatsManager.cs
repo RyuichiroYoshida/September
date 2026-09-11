@@ -77,7 +77,9 @@ namespace September.InGame.Common.Stats
             // 変更があったステータスを検出
             foreach (var (statType, prevStat) in _prevStats.Stats)
             {
-                if (CurrentStats.TryGetStatValue(statType, out float value) && !Mathf.Approximately(prevStat.Value, value))
+                if (CurrentStats.TryGetStat(statType, out var currentStat) &&
+                    (!Mathf.Approximately(prevStat.Value, currentStat.Value) ||
+                     !prevStat.MaxValue.Equals(currentStat.MaxValue)))
                 {
                     _statDirtyFlags.Add(statType);
                 }

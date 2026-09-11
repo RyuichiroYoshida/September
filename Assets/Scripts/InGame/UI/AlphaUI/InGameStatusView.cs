@@ -36,7 +36,7 @@ namespace September.InGame.UI
         private VerticalLayoutGroup _statusUpLayout;
 
         private InGameUIRootRefs _uiRoot;
-        private Slider _hpBarSlider;
+        private HpGaugeView _hpBarSlider;
         private Slider _staminaBarSlider;
         private readonly Queue<GameObject> _killLogQueue = new();
         private GameObject _optionUI;
@@ -51,6 +51,7 @@ namespace September.InGame.UI
         private StatusUpType _currentStatusUpType;
         private CanvasGroup _ogreGroup;
         private CanvasGroup _fieldOutUI;
+        private NoticeView _noticeView;
 
         public InGameUIRootRefs UIRoot => _uiRoot;
 
@@ -65,7 +66,7 @@ namespace September.InGame.UI
             UIController ui = UIController.I;
             ui.OnGameStart.Subscribe(_ => SetupUI()).AddTo(_cts.Token);
 
-            ui.OnChangeSliderValue.Subscribe(ChangeHp).AddTo(_cts.Token);
+            ui.OnHealthRatioChanged.Subscribe(ChangeHp).AddTo(_cts.Token);
             ui.OnClickOptionButton.Subscribe(ShowOptionUI).AddTo(_cts.Token);
             ui.OnStartTimer.Subscribe(runner => ShowGameStartTime(runner).Forget()).AddTo(_cts.Token);
             ui.OnShowLog.Subscribe(killText => ShowLog(killText).Forget()).AddTo(_cts.Token);
@@ -85,6 +86,7 @@ namespace September.InGame.UI
             ui.OnChangeScoreText.Subscribe(ChangeScore).AddTo(_cts.Token);
             ui.TimeOverlayMessage += TimeOverlayMessage;
             ui.OnOutField.Subscribe(x => _fieldOutUI.alpha = x ? 1f : 0f).AddTo(this);
+            ui.OnNotice.Subscribe(x => _noticeView?.ShowNotice(x.Item1, x.Item2)).AddTo(this);
         }
         private void SetupUI()
         {
@@ -102,12 +104,15 @@ namespace September.InGame.UI
             _changeTagOverlayMessage = _uiRoot.ChangeTagOverlayMessage;
             _timeOverlayMessage = _uiRoot.TimeOverlayMessage;
             _hpBarSlider = _uiRoot.HpBar;
+            if (UIController.I.HasHealthRatio)
+                _hpBarSlider.Initialize(UIController.I.OnHealthRatioChanged.Value);
             _scoreText = _uiRoot.ScoreText;
             _staminaBarSlider = _uiRoot.StaminaBar;
             _interactUI = _uiRoot.InteractUI;
             _statusUpUI = _uiRoot.StatusUpGroup;
             _statusUpLayout = _uiRoot.StatusUpUIRoot;
             _fieldOutUI = _uiRoot.FieldOutUI;
+            _noticeView = _uiRoot.NoticeUI;
             _optionUI.SetActive(true);
             _LogPanel.SetActive(true);
             _ogreUiInstance.SetActive(false);
@@ -119,13 +124,11 @@ namespace September.InGame.UI
             _fieldOutUI.alpha = 0;
         }
 
-        private void ChangeHp(int value)
+        private void ChangeHp(float healthRatio)
         {
-            if (!_hpBarSlider)
+            if (!_hpBarSlider || !UIController.I.HasHealthRatio)
                 return;
-
-            DOTween.To(() => _hpBarSlider.value, x => _hpBarSlider.value = x, value, 0.3f)
-                .SetEase(Ease.OutQuad);
+            _hpBarSlider.SetGauge(healthRatio);
         }
 
         private void ChangeScore(int value)
