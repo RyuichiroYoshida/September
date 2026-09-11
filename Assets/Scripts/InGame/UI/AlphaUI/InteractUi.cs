@@ -23,6 +23,7 @@ namespace September.InGame.UI
         private readonly ConnectionState _connectionState = ConnectionState.Remote;
         private InteractableBase _targetObject;
         CancellationTokenSource _cts;
+
         void OnEnable()
         {
             _cts = new CancellationTokenSource();
@@ -74,8 +75,7 @@ namespace September.InGame.UI
             var worldCam = Camera.main; // ← ここ超重要：実カメラ
             if (!worldCam) return;
 
-            // ★ 頭上に出したいなら、ここでオフセット or バウンズ上端に差し替え
-            Vector3 world = _targetObject.GetNearestPointOnInteractArea(transform.position); // or GetHeadTop(_target)
+            Vector3 world = _targetObject.GetInteractPosition();
 
             // World -> Screen
             Vector3 sp = worldCam.WorldToScreenPoint(world);
