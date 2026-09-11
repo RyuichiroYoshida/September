@@ -9,6 +9,11 @@ namespace InGame.Player
 		private PlayerManager _playerManager;
 		private PlayerStatus _playerStatus;
         private PlayerHealth _health;
+        private PlayerMovement _movement;
+        private UIController _evasionUI;
+        private int _previousEvasionStamina;
+        private float _previousEvasionProgress;
+        private bool _evasionBound;
 
 		private void Start()
 		{
@@ -20,6 +25,7 @@ namespace InGame.Player
 		{
 			_playerManager = GetComponent<PlayerManager>();
 			_playerStatus = GetComponent<PlayerStatus>();
+            _movement = GetComponent<PlayerMovement>();
 		}
 
 		// GameLauncherでDataを登録する必要がある
@@ -46,6 +52,41 @@ namespace InGame.Player
                 if (_health != null) _health.OnDeathVisual += OnDeath;
                 // Stamina 監視
                 status.SubscribeStatOnChanged(StatType.Stamina, x => UIController.I.ChangeStaminaValue(x));
+            }
+        }
+
+        // UI向けの通知は描画フレームで行い、回避処理から切り離す。
+        private void LateUpdate()
+        {
+            if (!_playerManager || !_playerManager.IsLocalPlayer ||
+                !_playerStatus || !_playerStatus.Object || !_playerStatus.Object.IsValid ||
+                !_movement || !_movement.Object || !_movement.Object.IsValid || !UIController.I)
+                return;
+
+            int count = _playerStatus.CurrentEvasionStamina;
+            float progress = _movement.EvasionStaminaProgress;
+
+            if (!_evasionBound || _evasionUI != UIController.I)
+            {
+                _evasionUI = UIController.I;
+                _previousEvasionStamina = count;
+                _previousEvasionProgress = progress;
+                _evasionBound = true;
+                _evasionUI.ShowEvasionStaminaProgress(progress);
+                return;
+            }
+
+            // 回復による増加と、消費による減少を通知する。
+            for (int recovered = _previousEvasionStamina + 1; recovered <= count; recovered++)
+                _evasionUI.ShowEvasionStamina(recovered);
+            if (count < _previousEvasionStamina)
+                _evasionUI.ShowEvasionStamina(count);
+            _previousEvasionStamina = count;
+
+            if (!Mathf.Approximately(progress, _previousEvasionProgress))
+            {
+                _previousEvasionProgress = progress;
+                _evasionUI.ShowEvasionStaminaProgress(progress);
             }
         }
 

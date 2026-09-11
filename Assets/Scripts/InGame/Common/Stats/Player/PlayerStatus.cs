@@ -12,7 +12,10 @@ namespace InGame.Player
 
         protected override StatsContainer GetInitialStats()
         {
-            return _params.GetStats();
+            var stats = _params.GetStats();
+            // 既存のPlayerParameterにも回避スタミナを補完する。
+            stats.Stats.Set(StatType.EvasionStamina, new Stat(StatType.EvasionStamina, 3f, 0f, 3f));
+            return stats;
         }
 
         // プレイヤー共通ステータスへのアクセスを便利にする用（なくても良い。他のコンポーネントからも以下のように CurrentStats.GetStat でとってきても良い）
@@ -20,6 +23,8 @@ namespace InGame.Player
         public int CurrentHealth => (int)CurrentStats.GetStat(StatType.Health).Value;
         public float MaxStamina => CurrentStats.GetStat(StatType.Stamina).MaxValue;
         public float CurrentStamina => CurrentStats.GetStat(StatType.Stamina).Value;
+        public int MaxEvasionStamina => (int)CurrentStats.GetStat(StatType.EvasionStamina).MaxValue;
+        public int CurrentEvasionStamina => (int)CurrentStats.GetStat(StatType.EvasionStamina).Value;
         public float StaminaRegen => CurrentStats.GetStat(StatType.StaminaRegen).Value;
         public float StaminaConsumption => CurrentStats.GetStat(StatType.StaminaConsumption).Value;
         public float Speed => CurrentStats.GetStat(StatType.Speed).Value;

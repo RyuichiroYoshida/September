@@ -21,6 +21,7 @@ namespace September.InGame.UI
         public CanvasGroup FieldOutUI;
         public PlayerJewelryView JewelryView;
         public NoticeView NoticeUI;
+        public EvasionStaminaView EvasionStaminaUI;
 
         [Header("Bars")]
         public HpGaugeView HpBar;

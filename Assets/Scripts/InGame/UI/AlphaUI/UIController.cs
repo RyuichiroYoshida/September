@@ -30,6 +30,8 @@ namespace September.InGame.UI
         private readonly Subject<(float, StatusUpType)> _onInteractStatusUpObject = new();
         private readonly Subject<bool> _onOutField = new();
         private readonly Subject<(float, NoticeType)> _onNotice = new();
+        private readonly Subject<int> _onEvasionStaminaRecoverd = new();
+        private readonly Subject<float> _onEvasionStaminaProgressChanged = new();
 
         #endregion
 
@@ -52,7 +54,8 @@ namespace September.InGame.UI
         public IObservable<int> OnChangeScoreText => _onchangeScoreText;
         public IObservable<bool> OnOutField => _onOutField;
         public IObservable<(float, NoticeType)> OnNotice => _onNotice;
-
+        public IObservable<int> OnEvasionStaminaChanged => _onEvasionStaminaRecoverd;
+        public IObservable<float> OnEvasionStaminaProgressChanged => _onEvasionStaminaProgressChanged;
         #endregion
 
         public InGameUIRootRefs UIRootRefs { get; set; }
@@ -140,6 +143,16 @@ namespace September.InGame.UI
         public void ShowNotice(float second, NoticeType noticeType)
         {
             _onNotice.OnNext((second, noticeType));
+        }
+
+        public void ShowEvasionStamina(int value)
+        {
+            _onEvasionStaminaRecoverd.OnNext(value);
+        }
+
+        public void ShowEvasionStaminaProgress(float value)
+        {
+            _onEvasionStaminaProgressChanged.OnNext(value);
         }
     }
 }

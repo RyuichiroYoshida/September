@@ -52,6 +52,7 @@ namespace September.InGame.UI
         private CanvasGroup _ogreGroup;
         private CanvasGroup _fieldOutUI;
         private NoticeView _noticeView;
+        private EvasionStaminaView _evasionStaminaView;
 
         public InGameUIRootRefs UIRoot => _uiRoot;
 
@@ -87,6 +88,8 @@ namespace September.InGame.UI
             ui.TimeOverlayMessage += TimeOverlayMessage;
             ui.OnOutField.Subscribe(x => _fieldOutUI.alpha = x ? 1f : 0f).AddTo(this);
             ui.OnNotice.Subscribe(x => _noticeView?.ShowNotice(x.Item1, x.Item2)).AddTo(this);
+            ui.OnEvasionStaminaChanged.Subscribe(x => _evasionStaminaView?.SetEvasionStaminaGauge(x)).AddTo(this);
+            ui.OnEvasionStaminaProgressChanged.Subscribe(x => _evasionStaminaView?.SetRecoverGaugeProgress(x)).AddTo(this);
         }
         private void SetupUI()
         {
@@ -113,6 +116,7 @@ namespace September.InGame.UI
             _statusUpLayout = _uiRoot.StatusUpUIRoot;
             _fieldOutUI = _uiRoot.FieldOutUI;
             _noticeView = _uiRoot.NoticeUI;
+            _evasionStaminaView = _uiRoot.EvasionStaminaUI;
             _optionUI.SetActive(true);
             _LogPanel.SetActive(true);
             _ogreUiInstance.SetActive(false);
