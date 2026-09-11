@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _jewelryType: 0
   _score: 1
-  _jewelrySprite: {fileID: 21300000, guid: 119f6bfea544228468947da275eeba5c, type: 3}
+  _jewelrySprite: {fileID: 21300000, guid: ca37e28e350d654448cbf372dee277d4, type: 3}
   _lifeTime: 30
   _blinkStartRemainingTime: 4
   _blinkSpeed: 9
