@@ -331,10 +331,12 @@ namespace InGame.Common
                     new LayerInfo.Blend { BlendTime = _evasionInTime, BlendCurve = _evasionInCurve },
                     _rollEvasionTokenSrc.Token
                 );
+                if (!IsRollEvasionOnFullBody()) return;
 
                 // ブレンドアウトが移動終了と同時に完了するよう、残り時間だけ待つ
                 float waitTime = Mathf.Max(0f, rollDuration - (_evasionInTime + _evasionOutTime));
                 await UniTask.Delay(TimeSpan.FromSeconds(waitTime), cancellationToken: _rollEvasionTokenSrc.Token);
+                if (!IsRollEvasionOnFullBody()) return;
 
                 await _animationClipPlayer.BlendLayerWeight(
                     LayerInfo.LayerType.FullBody,
@@ -348,7 +350,18 @@ namespace InGame.Common
                 return;
             }
 
+            if (!IsRollEvasionOnFullBody()) return;
+
             _animationClipPlayer.PlayOnLayer(null, LayerInfo.LayerType.FullBody);
+        }
+
+        /// <summary>
+        /// FullBody レイヤーに載っているのが回避ロールのままか。
+        /// 回避の終了処理が、後から始まった攻撃モーションの Weight を落とさないようにするための確認。
+        /// </summary>
+        private bool IsRollEvasionOnFullBody()
+        {
+            return _animationClipPlayer.IsCurrentClipOnLayer(LayerInfo.LayerType.FullBody, _rollEvasion);
         }
 
         /// <summary>強制解除（リスポーン等）</summary>
