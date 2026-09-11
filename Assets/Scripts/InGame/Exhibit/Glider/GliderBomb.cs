@@ -93,12 +93,12 @@ namespace September
 
         private void Bump()
         {
-            OnStateAuthorityHit(transform.position, transform.up,  PlayerRef);
+            StateAuthorityHit(transform.position, transform.up,  PlayerRef);
             _effectSpawner.RequestPlayOneShotEffect(_effectType, transform.position, transform.rotation);
         }
         
         // TODO:似たような攻撃処理がとても多そう？
-        public void OnStateAuthorityHit(Vector3 position, Vector3 normal, PlayerRef usePlayer)
+        public void StateAuthorityHit(Vector3 position, Vector3 normal, PlayerRef usePlayer)
         {
             if(!HasStateAuthority) return;
             var colliders = Physics.OverlapSphere(position, ExplodeRadius, _layerMask);
@@ -117,8 +117,6 @@ namespace September
         {
             var hitData = new HitData(HitActionType.RangedDamage, Damage, usingPlayer,
                 damageable.OwnerPlayerRef);
-            PlayerDatabase.Instance.PlayerDataDic.Get(damageable.OwnerPlayerRef);
-            PlayerDatabase.Instance.PlayerDataDic.Get(usingPlayer);
 			
             damageable.TakeHit(ref hitData);
         }

@@ -208,16 +208,12 @@ namespace September.InGame.Exhibit
 				{
 					animationClipPlayerManager.EnableFallMotion = isActive;
 				}
-
-				if (_usingPlayer.TryGetComponent(out Rigidbody rb))
-				{
-					rb.useGravity = isActive;
-				}
 			}
 		}
 
 		private void SetCooldown()
 		{
+			if(CurrentUsePlayerRef.IsNone) return;
 			// クールダウン処理
 			var chara = PlayerDatabase.Instance.PlayerDataDic[CurrentUsePlayerRef].CharacterType;
 			var time = _interactable.CooldownTimeDictionary.Dictionary.TryGetValue(CharacterType.All, out var all)

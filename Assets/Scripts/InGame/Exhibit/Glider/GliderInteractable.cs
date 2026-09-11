@@ -1,4 +1,5 @@
 using InGame.Interact;
+using September.Common;
 using September.InGame.Exhibit;
 using UnityEngine;
 
@@ -6,10 +7,9 @@ namespace September
 {
 	public class GliderInteractable : ProjectileInteractableBase
 	{
-		public override void FixedUpdateNetwork()
+		protected override void CheckInteractEnd(PlayerInput input)
 		{
-			base.FixedUpdateNetwork();
-			if (CurrentUsePlayerRef.IsNone) return;
+			base.CheckInteractEnd(input);
 			if(!HasStateAuthority) return; 
 			if (_move is GliderMove move && move.IsFinished) InteractEnd();
 		}
