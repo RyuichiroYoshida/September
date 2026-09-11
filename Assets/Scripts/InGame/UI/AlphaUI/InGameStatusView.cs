@@ -39,6 +39,7 @@ namespace September.InGame.UI
         private HpGaugeView _hpBarSlider;
         private Slider _staminaBarSlider;
         private readonly Queue<GameObject> _killLogQueue = new();
+        private int _logSequence;
         private GameObject _optionUI;
         private GameObject _LogPanel;
         private GameObject _ogreUiInstance;
@@ -72,7 +73,13 @@ namespace September.InGame.UI
             ui.OnHealthRatioChanged.Subscribe(ChangeHp).AddTo(_cts.Token);
             ui.OnClickOptionButton.Subscribe(ShowOptionUI).AddTo(_cts.Token);
             ui.OnStartTimer.Subscribe(runner => ShowGameStartTime(runner).Forget()).AddTo(_cts.Token);
-            ui.OnShowLog.Subscribe(killText => ShowLog(killText).Forget()).AddTo(_cts.Token);
+            ui.OnShowLog
+                .Subscribe(killText =>
+                {
+                    Debug.Log($"[InGameLog][Subscribe][aaa] received: {killText}", this);
+                    ShowLog(killText).Forget();
+                })
+                .AddTo(_cts.Token);
             ui.OnShowOgreUI.Subscribe(ShowOgreLamp).AddTo(_cts.Token);
             //  Bind前に_uiRootが生成されないのでChangeTagNoticeを直接Subscribeできない
             ui.ChangeTagNoticeObserver.Subscribe(index => _changeTagOverlayMessage.ChangeTagNotice(index)).AddTo(_cts.Token);
@@ -186,9 +193,37 @@ namespace September.InGame.UI
         // キルのログを直接引数に入れる
         private async UniTask ShowLog(string killText)
         {
+            Debug.Log($"[InGameLog][aaa] ShowLog received: {killText}", this);
+
+            if (!_killLogItemText)
+            {
+                Debug.LogError("[InGameLog][aaa] _killLogItemText is not assigned.", this);
+                return;
+            }
+
+            if (!_LogPanel)
+            {
+                Debug.LogError("[InGameLog][aaa] _LogPanel is not assigned. Check IngameUIRoot.LogPanel.", this);
+                return;
+            }
+
             // プレハブから新しいログを作成
             GameObject log = Instantiate(_killLogItemText, _LogPanel.transform);
+            log.name = $"Log_{++_logSequence:000}";
+            log.transform.SetAsLastSibling();
+            Debug.Log($"[InGameLog][aaa] Created: {log.name} under {_LogPanel.name}", log);
+
             TextMeshProUGUI tmp = log.GetComponent<TextMeshProUGUI>();
+            if (!tmp)
+                tmp = log.GetComponentInChildren<TextMeshProUGUI>();
+
+            if (!tmp)
+            {
+                Debug.LogError($"[InGameLog][aaa] TextMeshProUGUI was not found on {log.name}.", log);
+                Destroy(log);
+                return;
+            }
+
             tmp.text = killText;
 
             // フェード用CanvasGroup

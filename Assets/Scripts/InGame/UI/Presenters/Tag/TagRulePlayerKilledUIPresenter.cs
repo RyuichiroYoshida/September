@@ -2,6 +2,7 @@ using Fusion;
 using InGame.Exhibit;
 using September.Common;
 using September.InGame.Common;
+using UnityEngine;
 
 namespace September.InGame.UI.Presenters.Tag
 {
@@ -15,6 +16,7 @@ namespace September.InGame.UI.Presenters.Tag
 
         public void OnPlayerKilled(PlayerRef killer, PlayerRef victim)
         {
+            Debug.Log($"[InGameLog][KilledEvent][aaa] killer={killer}, victim={victim}", this);
             RPC_ShowKillLog(killer, victim);
 
             SessionPlayerData killerData = PlayerDatabase.Instance.PlayerDataDic.Get(killer);
@@ -68,6 +70,7 @@ namespace September.InGame.UI.Presenters.Tag
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_ShowKillLog(PlayerRef killer, PlayerRef killed)
         {
+            Debug.Log($"[InGameLog][KillRPC][aaa] killer={killer}, killed={killed}", this);
             if (PlayerDatabase.Instance.PlayerDataDic.TryGet(killer, out SessionPlayerData killerData) &&
                 PlayerDatabase.Instance.PlayerDataDic.TryGet(killed, out SessionPlayerData killedData))
             {

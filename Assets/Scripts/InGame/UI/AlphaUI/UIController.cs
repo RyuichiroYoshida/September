@@ -77,6 +77,7 @@ namespace September.InGame.UI
 
         public void ShowLog(string text)
         {
+            Debug.Log($"[InGameLog][UIController][aaa] ShowLog: {text}", this);
             _onShowLog.OnNext(text);
         }
 
