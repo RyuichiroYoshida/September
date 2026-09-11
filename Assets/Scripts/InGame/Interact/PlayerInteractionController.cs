@@ -133,7 +133,7 @@ namespace InGame.Interact
                             var isRiding = _playerManager && _playerManager.CurrentPlayerControlState ==
                                 PlayerManager.PlayerControlState.ForcedControl;
                             UIController.I.ShowInteractUI(!isRiding && RemoteFocusedObject.ValidateInteraction(context),
-                                RemoteFocusedObject?.gameObject);
+                                RemoteFocusedObject);
                         }
                         UIController.I.SetInteractProgress(Mathf.Clamp01(RemoteInteractTimer / RemoteInteractTime));
                     }
@@ -186,7 +186,7 @@ namespace InGame.Interact
             var isRiding = _playerManager && _playerManager.CurrentPlayerControlState ==
                 PlayerManager.PlayerControlState.ForcedControl;
             _focusedObj = interactableBase;
-            UIController.I.ShowInteractUI(!isRiding && _focusedObj.ValidateInteraction(context), _focusedObj?.gameObject);
+            UIController.I.ShowInteractUI(!isRiding && _focusedObj.ValidateInteraction(context), _focusedObj);
 
             IsRemoting = true;
             RemoteFocusedObject = interactableBase;
@@ -228,7 +228,7 @@ namespace InGame.Interact
             // 現在の focusedObj がまだ有効な範囲内かチェック
             if (_focusedObj && !IsRemoting)
             {
-                if (!IsInInteractRange(_focusedObj.transform.position, InteractRangeCheckMode.Buffered))
+                if (!IsInInteractRange(_focusedObj.GetNearestPointOnInteractArea(_interactOrigin.position), InteractRangeCheckMode.Buffered))
                 {
                     _focusedObj = null;
                     Debug.Log("Nullにする");
@@ -241,7 +241,7 @@ namespace InGame.Interact
             // より近い候補があれば差し替え
             int count = Physics.OverlapSphereNonAlloc(_interactOrigin.position, _interactRadius, _hitBuffer,
                 _interactMask);
-            float closestDistanceSqr = _focusedObj ? (_focusedObj.transform.position - _interactOrigin.position).sqrMagnitude
+            float closestDistanceSqr = _focusedObj ? (_focusedObj.GetNearestPointOnInteractArea(_interactOrigin.position) - _interactOrigin.position).sqrMagnitude
                 : float.MaxValue;
 
             for (int i = 0; i < count; i++)
@@ -252,7 +252,7 @@ namespace InGame.Interact
                                    ?? go.GetComponentInChildren<InteractableBase>();
                 if (interactable == null) continue;
 
-                Vector3 targetPos = interactable.transform.position;
+                Vector3 targetPos = interactable.GetNearestPointOnInteractArea(_interactOrigin.position);
                 if (!IsInInteractRange(targetPos)) continue;
 
                 float distanceSqr = (targetPos - _interactOrigin.position).sqrMagnitude;
@@ -284,7 +284,7 @@ namespace InGame.Interact
                 {
                     var isRiding = _playerManager && _playerManager.CurrentPlayerControlState ==
                         PlayerManager.PlayerControlState.ForcedControl;
-                    UIController.I.ShowInteractUI(!isRiding && _focusedObj.ValidateInteraction(context), _focusedObj?.gameObject);
+                    UIController.I.ShowInteractUI(!isRiding && _focusedObj.ValidateInteraction(context), _focusedObj);
                 }
             }
             else

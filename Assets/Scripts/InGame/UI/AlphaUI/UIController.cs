@@ -2,8 +2,8 @@ using System;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Exhibit;
+using InGame.Interact;
 using UniRx;
-using UnityEngine;
 
 namespace September.InGame.UI
 {
@@ -24,7 +24,7 @@ namespace September.InGame.UI
         private readonly ReactiveProperty<float> _onChangeStaminaValue = new();
         private readonly Subject<Unit> _onGameStart = new();
         private readonly Subject<Unit> _onGameEnd = new();
-        private readonly Subject<(bool, GameObject)> _isInteracting = new();
+        private readonly Subject<(bool, InteractableBase)> _isInteracting = new();
         private readonly ReactiveProperty<float> _onChangeInteractProgress = new();
         private readonly Subject<(float, StatusUpType)> _onInteractStatusUpObject = new();
         private readonly Subject<bool> _onOutField = new();
@@ -43,7 +43,7 @@ namespace September.InGame.UI
         public IObservable<ControlDescriptionType> OnChangeDescriptionUI => _onChangeDescriptionUI;
         public IObservable<Unit> OnGameStart => _onGameStart;
         public IObservable<Unit> OnGameEnd => _onGameEnd;
-        public IObservable<(bool, GameObject)> IsInteracting => _isInteracting;
+        public IObservable<(bool, InteractableBase)> IsInteracting => _isInteracting;
         public IReadOnlyReactiveProperty<float> OnChangeInteractProgress => _onChangeInteractProgress;
         public IObservable<(float, StatusUpType)> OnInteractStatusUpObject => _onInteractStatusUpObject;
         public Func<TimeMessageType, UniTask> TimeOverlayMessage { get; set; }
@@ -104,7 +104,7 @@ namespace September.InGame.UI
         {
             _onChangeStaminaValue.Value = value;
         }
-        public void ShowInteractUI(bool isShow, GameObject target = null)
+        public void ShowInteractUI(bool isShow, InteractableBase target = null)
         {
             _isInteracting.OnNext((isShow, target));
         }
