@@ -1,104 +1,43 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
 namespace September.Editor.PackageImporter
 {
-    [Serializable]
-    public class ImportRecord
+    public static class PackageImportCache
     {
-        public string fileId;
-        public string fileName;
-        public string importedModifiedTime;
-        public string importedAtLocal;
-    }
+        private static readonly string CacheDir = Path.Combine("Library", "PackageImporter");
+        private static readonly string CacheFilePath = Path.Combine(CacheDir, "cache.json");
+        public static readonly string DownloadDir = Path.Combine(CacheDir, "Downloads");
 
-    [Serializable]
-    internal class ImportRecordListWrapper
-    {
-        public List<ImportRecord> records = new List<ImportRecord>();
-    }
-
-    /// <summary>
-    /// どのパッケージをどのバージョンでインポート済みかをローカルに保存するキャッシュ
-    /// Gitなどバージョン管理には含まない
-    /// </summary>
-    internal static class PackageImportCache
-    {
-        private static string CachePath
+        public static CacheData Load()
         {
-            get
-            {
-                string projectRoot = Directory.GetParent(Application.dataPath).FullName;
-                return Path.Combine(projectRoot, "Library", "PackageImporterCache.Json");
-            }
-        }
+            EnsureDirs();
+            if (!File.Exists(CacheFilePath))
+                return new CacheData();
 
-        private static ImportRecordListWrapper _cache;
-
-        private static ImportRecordListWrapper Cache
-        {
-            get
-            {
-                if (_cache == null) Load();
-                return _cache;
-            }
-        }
-
-        public static void Load()
-        {
             try
             {
-                if (File.Exists(CachePath))
-                {
-                    string json = File.ReadAllText(CachePath);
-                    _cache = JsonUtility.FromJson<ImportRecordListWrapper>(json) ?? new ImportRecordListWrapper();
-                }
-                else
-                {
-                    _cache = new ImportRecordListWrapper();
-                }
+                var json = File.ReadAllText(CacheFilePath);
+                var data = JsonUtility.FromJson<CacheData>(json);
+                return data ?? new CacheData();
             }
-            catch (Exception e)
+            catch
             {
-                Debug.LogWarning($"[PackageImporter] キャッシュ読み込みに失敗しました: {e.Message}");
-                _cache = new ImportRecordListWrapper();
+                return new CacheData();
             }
         }
 
-        public static void Save()
+        public static void Save(CacheData data)
         {
-            try
-            {
-                string dir = Path.GetDirectoryName(CachePath);
-                if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
-                File.WriteAllText(CachePath, JsonUtility.ToJson(Cache, true));
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[PackageImporter] キャッシュ保存に失敗しました: {e.Message}");
-            }
+            EnsureDirs();
+            var json = JsonUtility.ToJson(data, true);
+            File.WriteAllText(CacheFilePath, json);
         }
-
-        public static ImportRecord Find(string filedId)
+        
+        private static void EnsureDirs()
         {
-            return Cache.records.Find(r => r.fileId == filedId);
-        }
-
-        public static void Update(string fileId, string fileName, string importedModifiedTime)
-        {
-            var record = Find(fileId);
-            if (record == null)
-            {
-                record = new ImportRecord { fileId = fileId };
-                Cache.records.Add(record);
-            }
-
-            record.fileName = fileName;
-            record.importedModifiedTime = importedModifiedTime;
-            record.importedAtLocal = DateTime.Now.ToString("O");
-            Save();
+            if (!Directory.Exists(CacheDir)) Directory.CreateDirectory(CacheDir);
+            if (!Directory.Exists(DownloadDir)) Directory.CreateDirectory(DownloadDir);
         }
     }
 }
