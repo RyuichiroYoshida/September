@@ -36,7 +36,7 @@ namespace InGame.Interact
         /// <summary>キャラクタータイプごとのインタラクト効果リスト</summary>
         [SerializeReference, SubclassSelector] private List<CharacterInteractEffectBase> _characterEffects = new();
 
-        /// <summary>この展示物のタイプ</summary>F
+        /// <summary>この展示物のタイプ</summary>
         [SerializeField] private ExhibitType _type;
         /// <summary>インタラクトエフェクトの位置オフセット</summary>
         [SerializeField] private Vector3 _interactEffectOffset = Vector3.zero;
