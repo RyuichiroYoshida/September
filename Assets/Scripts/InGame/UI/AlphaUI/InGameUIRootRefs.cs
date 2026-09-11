@@ -23,6 +23,7 @@ namespace September.InGame.UI
         public NoticeView NoticeUI;
         public EvasionStaminaView EvasionStaminaUI;
         public TimerView TimerUI;
+        public ControlGuideView ControlGuideUI;
 
         [Header("Bars")]
         public HpGaugeView HpBar;

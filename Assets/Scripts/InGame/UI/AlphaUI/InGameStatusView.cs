@@ -54,6 +54,7 @@ namespace September.InGame.UI
         private NoticeView _noticeView;
         private EvasionStaminaView _evasionStaminaView;
         private TimerView _timerView;
+        private ControlGuideView _controlGuideView;
 
         public InGameUIRootRefs UIRoot => _uiRoot;
 
@@ -119,6 +120,7 @@ namespace September.InGame.UI
             _noticeView = _uiRoot.NoticeUI;
             _evasionStaminaView = _uiRoot.EvasionStaminaUI;
             _timerView = _uiRoot.TimerUI;
+            _controlGuideView = _uiRoot.ControlGuideUI;
             _optionUI.SetActive(true);
             _LogPanel.SetActive(true);
             _ogreUiInstance.SetActive(false);
@@ -168,7 +170,8 @@ namespace September.InGame.UI
 
         private void ChangeExhibitDescriptionUI(ControlDescriptionType type)
         {
-            _controlsUIGenerator.GenerateDescription(type);
+            //_controlsUIGenerator.GenerateDescription(type);
+            _controlGuideView.GenerateDescription(type);
         }
 
         private void ChangeStamina(float value)
