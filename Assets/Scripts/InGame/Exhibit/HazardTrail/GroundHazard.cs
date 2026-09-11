@@ -64,7 +64,6 @@ namespace InGame.Exhibit.HazardTrail
                     effect.OnHazardDespawn(runner);
                 }
             }
-            base.Despawned(runner, hasState);
         }
     }
 }
