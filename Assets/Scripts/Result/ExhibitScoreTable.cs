@@ -47,6 +47,8 @@ namespace Result
         Ballista,
         [DisplayName("大砲")]
         Cannon,
+        [DisplayName("ロウソク")]
+        Candle,
         [DisplayName("グライダー")]
         Glider,
     }
