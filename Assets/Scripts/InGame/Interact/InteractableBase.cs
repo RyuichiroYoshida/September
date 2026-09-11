@@ -38,6 +38,8 @@ namespace InGame.Interact
 
         /// <summary>この展示物のタイプ</summary>
         [SerializeField] private ExhibitType _type;
+        /// <summary> インタラクト範囲の位置オフセット </summary>
+        [SerializeField] private Vector3 _interactAreaOffset = Vector3.zero;
         /// <summary>インタラクトエフェクトの位置オフセット</summary>
         [SerializeField] private Vector3 _interactEffectOffset = Vector3.zero;
         /// <summary>クールダウンエフェクトを再生するTransform（未設定の場合は自身）</summary>
@@ -479,6 +481,15 @@ namespace InGame.Interact
             return result;
         }
 
+        /// <summary>
+        /// インタラクト範囲の中からpositionに最も近い点を返します
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 GetNearestPointOnInteractArea(Vector3 position)
+        {
+            return transform.TransformPoint(_interactAreaOffset);
+        }
+
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
@@ -502,6 +513,10 @@ namespace InGame.Interact
             // インタラクトエフェクトの位置を表示
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position + _interactEffectOffset, 0.2f);
+
+            // インタラクト地点
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.TransformPoint(_interactAreaOffset), 0.2f);
         }
 #endif
     }

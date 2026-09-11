@@ -1,6 +1,6 @@
-using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using InGame.Interact;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,7 +21,7 @@ namespace September.InGame.UI
         [SerializeField] private RectTransform _root;
         [SerializeField] private RectTransform _rootParentRectTransform;
         private readonly ConnectionState _connectionState = ConnectionState.Remote;
-        private GameObject _targetObject;
+        private InteractableBase _targetObject;
         CancellationTokenSource _cts;
         void OnEnable()
         {
@@ -43,7 +43,7 @@ namespace September.InGame.UI
             }
         }
 
-        public void SetActive(bool isShow, GameObject target = null)
+        public void SetActive(bool isShow, InteractableBase target = null)
         {
             if (target)
             {
@@ -75,7 +75,7 @@ namespace September.InGame.UI
             if (!worldCam) return;
 
             // ★ 頭上に出したいなら、ここでオフセット or バウンズ上端に差し替え
-            Vector3 world = _targetObject.transform.position; // or GetHeadTop(_target)
+            Vector3 world = _targetObject.GetNearestPointOnInteractArea(transform.position); // or GetHeadTop(_target)
 
             // World -> Screen
             Vector3 sp = worldCam.WorldToScreenPoint(world);
