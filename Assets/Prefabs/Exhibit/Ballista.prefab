@@ -33,7 +33,7 @@ Transform:
   m_GameObject: {fileID: 518364684307869088}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5747039, y: -9.5638485, z: 16.060135}
+  m_LocalPosition: {x: 1.22, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -213,6 +213,15 @@ MonoBehaviour:
   _cameraRadius: 0.1
   _motionDuration: 0
   _motionEase: 9
+  _lockOnRotationSpeed: 360
+  _enablePitchAngleLimit: 0
+  _pitchAngleLimit:
+    Min: -90
+    Max: 90
+  _enableYawAngleLimit: 0
+  _yawAngleLimit:
+    Min: -180
+    Max: 180
 --- !u!114 &7121241315461993331
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -383,6 +392,8 @@ MonoBehaviour:
   _characterEffects:
   - rid: 8536392112056828012
   _type: 19
+  _interactAreaOffset: {x: -1.33, y: -0.29, z: -0.64}
+  _interactAreaCollider: {fileID: 0}
   _interactEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectTransform: {fileID: 0}
   _cooldownEffectOffset: {x: 0, y: -1.89, z: 0.66}
