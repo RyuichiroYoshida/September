@@ -19,6 +19,7 @@ namespace InGame.Player.Takamura.Mimic
 
         private PlayerManager _playerManager;
         private PlayerInputManager _inputManager;
+        private TakamuraMovement _tkmrMovement;
         private IUltCondition _ultCondition;
 
         public string TargetAbilityName => _targetAbilityName;
@@ -33,10 +34,12 @@ namespace InGame.Player.Takamura.Mimic
                 _playerManager = context.Owner.GetComponent<PlayerManager>();
             if (!_inputManager)
                 _inputManager = context.Owner.GetComponent<PlayerInputManager>();
+            if (!_tkmrMovement)
+                _tkmrMovement = context.Owner.GetComponent<TakamuraMovement>();
             _ultCondition ??= context.Owner.GetComponent<IUltCondition>();
 
             // 参照が一つでもそろわなかったら終了
-            if (!_playerManager || !_inputManager || _ultCondition == null)
+            if (!_playerManager || !_inputManager || !_tkmrMovement || _ultCondition == null)
                 return false;
 
             // 発動ボタンを押したかどうか
@@ -46,6 +49,7 @@ namespace InGame.Player.Takamura.Mimic
 
             // 発動条件を満たしていないなら終了
             if (!pressed
+                || _tkmrMovement.CurrentMimicryState != MimicryState.Default
                 || context.AbilityRef.Phase != AbilityBase.AbilityPhase.Available
                 || _playerManager.CurrentPlayerControlState != PlayerManager.PlayerControlState.Normal
                 || _playerManager.IsStun

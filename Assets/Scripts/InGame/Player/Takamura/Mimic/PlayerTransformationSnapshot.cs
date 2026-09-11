@@ -1,4 +1,5 @@
 using Fusion;
+using InGame.Player.Ult;
 using September.InGame.Common.Stats;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace InGame.Player.Takamura.Mimic
         public readonly int Health;
         public readonly float Stamina;
         public readonly NetworkBool IsInvincible;
+        public readonly int UltConsumedScore;
 
         private PlayerTransformationSnapshot(
             Vector3 position,
@@ -20,7 +22,8 @@ namespace InGame.Player.Takamura.Mimic
             Vector3 velocity,
             int health,
             float stamina,
-            NetworkBool isInvincible)
+            NetworkBool isInvincible,
+            int ultConsumedScore)
         {
             Position = position;
             Rotation = rotation;
@@ -28,6 +31,7 @@ namespace InGame.Player.Takamura.Mimic
             Health = health;
             Stamina = stamina;
             IsInvincible = isInvincible;
+            UltConsumedScore = ultConsumedScore;
         }
 
         /// <summary>
@@ -40,6 +44,7 @@ namespace InGame.Player.Takamura.Mimic
             var rigidbody = player.GetComponent<Rigidbody>();
             var status = player.GetComponent<PlayerStatus>();
             var health = player.GetComponent<PlayerHealth>();
+            var ultCondition = player.GetComponent<UltCondition>();
 
             return new PlayerTransformationSnapshot(
                 player.transform.position,
@@ -47,7 +52,8 @@ namespace InGame.Player.Takamura.Mimic
                 rigidbody ? rigidbody.linearVelocity : Vector3.zero,
                 status ? status.CurrentHealth : 0,
                 status ? status.CurrentStamina : 0f,
-                health && health.IsInvincible);
+                health && health.IsInvincible,
+                ultCondition ? ultCondition.ConsumedScore : 0);
         }
 
         /// <summary>
@@ -72,6 +78,13 @@ namespace InGame.Player.Takamura.Mimic
             var health = player.GetComponent<PlayerHealth>();
             if (health)
                 health.IsInvincible = IsInvincible;
+
+            // 擬態ULTで消費済みになったスコア基準を新しいPrefabへ引き継ぐ。
+            // これがないと新しいUltConditionのPrevScoreが0になり、
+            // 擬態先のULTが満タンとして再発動できてしまう。
+            var ultCondition = player.GetComponent<UltCondition>();
+            if (ultCondition)
+                ultCondition.RestoreConsumedScore(UltConsumedScore);
         }
     }
 }
