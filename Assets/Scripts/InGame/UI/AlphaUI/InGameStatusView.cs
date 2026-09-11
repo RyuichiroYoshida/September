@@ -53,6 +53,7 @@ namespace September.InGame.UI
         private CanvasGroup _fieldOutUI;
         private NoticeView _noticeView;
         private EvasionStaminaView _evasionStaminaView;
+        private TimerView _timerView;
 
         public InGameUIRootRefs UIRoot => _uiRoot;
 
@@ -117,6 +118,7 @@ namespace September.InGame.UI
             _fieldOutUI = _uiRoot.FieldOutUI;
             _noticeView = _uiRoot.NoticeUI;
             _evasionStaminaView = _uiRoot.EvasionStaminaUI;
+            _timerView = _uiRoot.TimerUI;
             _optionUI.SetActive(true);
             _LogPanel.SetActive(true);
             _ogreUiInstance.SetActive(false);
@@ -126,6 +128,7 @@ namespace September.InGame.UI
             _statusUpUI.gameObject.SetActive(true);
             _fieldOutUI.gameObject.SetActive(true);
             _fieldOutUI.alpha = 0;
+            _timerView.Initialize(_timerData.GameTime);
         }
 
         private void ChangeHp(float healthRatio)
@@ -217,11 +220,12 @@ namespace September.InGame.UI
         }
         private async UniTask ShowGameStartTime(NetworkRunner runner)
         {
-            if (!_uiRoot || !_uiRoot.TimerText)
+            if (!_uiRoot || !_uiRoot.TimerUI)
                 return;
 
-            TextMeshProUGUI timer = _uiRoot.TimerText;
-            timer.gameObject.SetActive(true);
+            _timerView = _uiRoot.TimerUI;
+            _timerView.gameObject.SetActive(true);
+            _timerView.Initialize(_timerData.GameTime);
 
             // Tick基準
             int tickRate = runner.TickRate;
@@ -231,28 +235,22 @@ namespace September.InGame.UI
             while (runner.Tick < preStartEndTick)
             {
                 int remaining = preStartEndTick - runner.Tick;
-                timer.text = Mathf.CeilToInt(remaining / (float)tickRate).ToString();
                 await UniTask.Yield(PlayerLoopTiming.Update, _cts.Token);
             }
+
+            _timerView.SetTime(_timerData.GameTime);
 
             // ゲーム時間
             int gameEndTick = runner.Tick + (int)(_timerData.GameTime * tickRate);
-            int lastTick = runner.Tick;
             while (runner.Tick < gameEndTick)
             {
-                if (runner.Tick == lastTick)
-                {
-                    await UniTask.Yield(PlayerLoopTiming.Update, _cts.Token);
-                    continue;
-                }
-
                 int remaining = gameEndTick - runner.Tick;
                 int seconds = Mathf.CeilToInt(remaining / (float)tickRate);
-                timer.text = TimeSpan.FromSeconds(seconds).ToString(@"mm\:ss");
+                _timerView.SetTime(seconds);
                 await UniTask.Yield(PlayerLoopTiming.Update, _cts.Token);
             }
 
-            timer.text = "Time Up!";
+            _timerView.SetTime(0f);
             await UniTask.Delay(TimeSpan.FromSeconds(_timerData.Duration), cancellationToken: _cts.Token);
         }
         // 鬼の時にUIを表示する
