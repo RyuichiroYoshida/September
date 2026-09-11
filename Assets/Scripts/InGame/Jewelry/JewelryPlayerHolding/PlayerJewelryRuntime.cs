@@ -20,10 +20,10 @@ namespace InGame.Jewelry
         JewelryInfo[] _jewelryInfos;
         bool _initialized;
 
-        event Action<JewelryType, Sprite> _onInitialize;
+        event Action<JewelryType, JewelryInfo> _onInitialize;
         event Action<JewelryType, int> _onUpdateJewelryQuantity;
 
-        public Action OnInitialize(Action<JewelryType, Sprite> act)
+        public Action OnInitialize(Action<JewelryType, JewelryInfo> act)
         {
             _onInitialize += act;
             return () => _onInitialize -= act;
@@ -61,7 +61,7 @@ namespace InGame.Jewelry
                     _jewelryQuantities.Set((int)jewelryType, quantity);
                 }
 
-                _onInitialize?.Invoke(jewelryType, info.JewelryInfo.JewelrySprite);
+            _onInitialize?.Invoke(jewelryType, info.JewelryInfo);
             }
 
             var score = CalculateJewelryScore();
