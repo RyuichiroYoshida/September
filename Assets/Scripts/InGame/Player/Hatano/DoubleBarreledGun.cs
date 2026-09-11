@@ -108,7 +108,7 @@ namespace InGame.Player.Ability
             var inputAuthority = Parameter.Owner.InputAuthority;
             //ダメージ処理
             bool enableData = PlayerDatabase.Instance.PlayerDataDic.TryGet(inputAuthority, out var sessionData);
-            var hitData = new HitData(HitActionType.Damage,
+            var hitData = new HitData(HitActionType.RangedDamage,
                 enableData && sessionData.IsOgre ? _ogreDamage : _damage, inputAuthority,
                 damageable.OwnerPlayerRef, null, damageable);
             damageable.TakeHit(ref hitData);
@@ -121,4 +121,3 @@ namespace InGame.Player.Ability
         }
     }
 }
-

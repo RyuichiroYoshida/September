@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Fusion;
+using InGame.Common;
 using InGame.Interact;
 using InGame.Player;
 using InGame.Player.Ability;
@@ -11,17 +14,17 @@ namespace InGame.Exhibit
 {
     public class ArmoryInteractEffect : CharacterInteractEffectBase
     {
-        [SerializeReference, SubclassSelector] private AbilityBase _addAbility;
-        [SerializeReference, SubclassSelector] private IAbilityExecuteCondition _addAbilityCondition;
+        [SerializeReference, SubclassSelector] private List<AbilityBase> _addAbilities;
+        [SerializeReference, SubclassSelector] private List<IAbilityExecuteCondition> _addAbilityConditions;
         [SerializeField] private string[] _overrideDisabledAbilities;
         [SerializeField] private float _duration;
 
         public override CharacterInteractEffectBase Clone()
         {
-            return new ArmoryInteractEffect()
+            return new ArmoryInteractEffect
             {
-                _addAbility = _addAbility,
-                _addAbilityCondition = _addAbilityCondition,
+                _addAbilities = _addAbilities.Select(CloneUtility.CloneObject).ToList(),
+                _addAbilityConditions = _addAbilityConditions.Select(CloneUtility.CloneObject).ToList(),
                 _overrideDisabledAbilities = _overrideDisabledAbilities,
                 _duration = _duration
             };
@@ -29,11 +32,11 @@ namespace InGame.Exhibit
 
         public override void OnInteractStart(IInteractableContext context, InteractableBase target)
         {
-            //ƒRƒ“ƒ|[ƒlƒ“ƒgæ“¾
+            //ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆå–å¾—
             var player = PlayerRef.FromEncoded(context.Interactor);
             if (!PlayerDatabase.Instance.PlayerObjectDic.TryGet(player, out var playerObject))
             {
-                Debug.LogError($"ƒCƒ“ƒ^ƒ‰ƒNƒg‚µ‚½ƒvƒŒƒCƒ„[‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB{player}");
+                Debug.LogError($"ã‚¤ãƒ³ã‚¿ãƒ©ã‚¯ãƒˆã—ãŸãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚{player}");
                 return;
             }
 
@@ -43,13 +46,15 @@ namespace InGame.Exhibit
                 return;
             }
 
-            _addAbility.SetPlayerComponent(playerObject.gameObject);
-
-            //ã‘‚«‚·‚éAbility‚ğ–³Œø‰»
+            //ä¸Šæ›¸ãã™ã‚‹Abilityã‚’ç„¡åŠ¹åŒ–
             playerAbility.SetAbilityEnabled(false, _overrideDisabledAbilities);
 
-            //Ability‚ğ’Ç‰Á‚·‚é
-            playerAbility.AddAbility(_addAbility, _addAbilityCondition);
+            //Abilityã‚’è¿½åŠ ã™ã‚‹
+            for (int i = 0; i < Mathf.Min(_addAbilities.Count, _addAbilityConditions.Count); i++)
+            {
+                _addAbilities[i].SetPlayerComponent(playerObject.gameObject);
+                playerAbility.AddAbility(_addAbilities[i], _addAbilityConditions[i]);
+            }
 
             equipmentManager.RPC_ChangeEquipment(EquipmentType.Armory);
 
@@ -60,14 +65,28 @@ namespace InGame.Exhibit
         {
             await UniTask.WaitForSeconds(_duration, cancellationToken: token);
 
-            //–³Œø‰»‚µ‚Ä‚¢‚½Ability‚ğ—LŒø‰»
+            // æ”»æ’ƒé–‹å§‹ãƒ»çµ‚äº†å‡¦ç†ã®é€”ä¸­ã§Abilityã‚’å¤–ã™ã¨ã€ç§»å‹•ãƒ­ãƒƒã‚¯ã®è§£é™¤å‡¦ç†ãŒå®Ÿè¡Œã•ã‚Œãªã„ãŸã‚å®Œäº†ã¾ã§å¾…ã¤
+            await UniTask.WaitUntil(
+                _addAbilities,
+                abilities => abilities.All(IsAbilityExecutionCompleted),
+                cancellationToken: token);
+
+            //ç„¡åŠ¹åŒ–ã—ã¦ã„ãŸAbilityã‚’æœ‰åŠ¹åŒ–
             abilityManager.SetAbilityEnabled(true, _overrideDisabledAbilities);
 
-            //’Ç‰Á‚µ‚½Ability‚ğÁ‚·
-            abilityManager.RemoveAbility(_addAbility.GetType().Name);
+            //è¿½åŠ ã—ãŸAbilityã‚’æ¶ˆã™
+            foreach (var ability in _addAbilities)
+            {
+                abilityManager.RemoveAbility(ability.GetType().Name);
+            }
 
-            //•Ší‚ğŒ³‚É–ß‚·
+            //æ­¦å™¨ã‚’å…ƒã«æˆ»ã™
             equipmentManager.RPC_ChangeEquipment(EquipmentType.NormalAttack);
+        }
+
+        private static bool IsAbilityExecutionCompleted(AbilityBase ability)
+        {
+            return ability.Phase is AbilityBase.AbilityPhase.Available or AbilityBase.AbilityPhase.Cooldown;
         }
     }
 }

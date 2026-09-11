@@ -1,5 +1,6 @@
 using Fusion;
 using InGame.Health;
+using InGame.Player;
 using September.Common;
 using UnityEngine;
 
@@ -8,10 +9,12 @@ namespace September.InGame.Exhibit
 	[System.Serializable]
 	public class CannonHitEffect : IProjectileHitEffect
 	{
-		[SerializeField] private CannonAimRenderer _cannonAimRenderer;
 		[SerializeField] private ParticleSystem _explosionParticlePrefab;
 		[SerializeField] private float _radius;
 		[SerializeField] private int _damage;
+		[SerializeField] private float _knockBackPower = 10;
+		[SerializeField] private float _knockBackUpwardPower = 2;
+		[SerializeField] private float _knockBackDuration = 0.5f;
 		[SerializeField] private LayerMask _hitLayer;
 		private ParticleSystem _explosionParticle;
 
@@ -19,10 +22,9 @@ namespace September.InGame.Exhibit
 		{
 			_explosionParticle = Object.Instantiate(_explosionParticlePrefab);
 			_explosionParticle.Stop();
-			_cannonAimRenderer.Initialize(_radius * 2);// 半径からObjectScaleに
 		}
 		
-		public void PlayEffect(Vector3 position, Vector3 normal)
+		public void OnHit(Vector3 position, Vector3 normal)
 		{
 			// 着弾時のエフェクト
 			_explosionParticle.transform.position = position;
@@ -32,7 +34,7 @@ namespace September.InGame.Exhibit
 			_explosionParticle.Play(true);
 		}
 
-		public void Hit(Vector3 position, Vector3 normal, GameObject hitObject, PlayerRef usePlayer)
+		public void OnStateAuthorityHit(Vector3 position, Vector3 normal, GameObject hitObject, PlayerRef usePlayer)
 		{
 			var colliders = Physics.OverlapSphere(position, _radius, _hitLayer); // TODO:当たり判定統一するかも
 			// ダメージ処理
@@ -42,6 +44,7 @@ namespace September.InGame.Exhibit
 				if (damageable == null) continue;
 				if (damageable.OwnerPlayerRef == usePlayer) continue;
 				TakeDamage(damageable, usePlayer);
+				KnockBack(col.gameObject, col.transform.position - position);
 			}
 		}
 		
@@ -54,13 +57,24 @@ namespace September.InGame.Exhibit
 
 		private void TakeDamage(IDamageable damageable, PlayerRef usingPlayer)
 		{
-			var hitData = new HitData(HitActionType.Damage, _damage, usingPlayer,
+			var hitData = new HitData(HitActionType.RangedDamage, _damage, usingPlayer,
 				damageable.OwnerPlayerRef);
 			PlayerDatabase.Instance.PlayerDataDic.Get(damageable.OwnerPlayerRef);
 			PlayerDatabase.Instance.PlayerDataDic.Get(usingPlayer);
 			
 			damageable.TakeHit(ref hitData);
 		}
-		
+
+		private void KnockBack(GameObject obj, Vector3 direction)
+		{
+			var playerMovement = obj.transform.GetComponentInParent<PlayerMovement>();
+			if (playerMovement)
+			{
+				direction.y = 0;
+				direction.Normalize();
+				playerMovement.KnockBack(direction * _knockBackPower + Vector3.up * _knockBackUpwardPower,
+					_knockBackDuration);
+			}
+		}
 	}
 }

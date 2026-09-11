@@ -104,6 +104,10 @@ namespace InGame.Bot
                     case ExhibitType.Ptr:
                     case ExhibitType.TRex:
                     case ExhibitType.AirPlane:
+                    case ExhibitType.Ballista:
+                    case ExhibitType.Cannon:
+                    case ExhibitType.Shark:
+                    case ExhibitType.Kraken:
                         _rideObjects.Add(interactObj);
                         break;
                     case ExhibitType.Art:
@@ -115,6 +119,10 @@ namespace InGame.Bot
                     case ExhibitType.Instrument:
                     case ExhibitType.Muramasa:
                     case ExhibitType.SateliteCanon:
+                    case ExhibitType.Mast:
+                    case ExhibitType.ZipLine:
+                    case ExhibitType.Armory:
+                    case ExhibitType.NauticalChart:
                         _exhibitObjects.Add(interactObj);
                         break;
                     case ExhibitType.None:

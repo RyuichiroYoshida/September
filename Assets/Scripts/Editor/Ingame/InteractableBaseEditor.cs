@@ -40,7 +40,7 @@ public class InteractableBaseEditor : UnityEditor.Editor
         serializedObject.Update();
         DrawDefaultInspector();
 
-        var newEffectType = (EffectType)_cooldownEffectType.enumValueIndex;
+        var newEffectType = GetSelectedEffectType();
         if (_previewInstance == null || newEffectType != _currentEffectType)
         {
             DestroyPreview();
@@ -79,7 +79,7 @@ public class InteractableBaseEditor : UnityEditor.Editor
         var prefab = GetEffectPrefab();
         if (prefab == null) return;
 
-        _currentEffectType = (EffectType)_cooldownEffectType.enumValueIndex;
+        _currentEffectType = GetSelectedEffectType();
         _previewInstance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
         _previewInstance.name = "[Preview] CooldownEffect";
         _previewInstance.hideFlags = HideFlags.HideAndDontSave;
@@ -90,12 +90,27 @@ public class InteractableBaseEditor : UnityEditor.Editor
         _particleSystems = _previewInstance.GetComponentsInChildren<ParticleSystem>(true);
         _lastTime = EditorApplication.timeSinceStartup;
 
+        // EffectSpawner はループエフェクト生成時にルートの ParticleSystem のみ loop を強制するため、プレビューでも同じ状態を作る
+        var rootParticleSystem = _previewInstance.GetComponent<ParticleSystem>();
+        if (rootParticleSystem != null)
+        {
+            var rootMain = rootParticleSystem.main;
+            rootMain.loop = true;
+        }
+
         foreach (var ps in _particleSystems)
         {
-            var main = ps.main;
-            main.simulationSpeed = 1f;
             ps.Play();
         }
+    }
+
+    /// <summary>
+    /// インスペクタで選択されているエフェクトタイプを取得する
+    /// EffectType.None = -1 のため enumValueIndex（表示順のインデックス）と実際の値が一致しない。必ず intValue を使う
+    /// </summary>
+    private EffectType GetSelectedEffectType()
+    {
+        return (EffectType)_cooldownEffectType.intValue;
     }
 
     private void DestroyPreview()
@@ -110,7 +125,7 @@ public class InteractableBaseEditor : UnityEditor.Editor
 
     private GameObject GetEffectPrefab()
     {
-        var effectType = (EffectType)_cooldownEffectType.enumValueIndex;
+        var effectType = GetSelectedEffectType();
         var db = Resources.Load<EffectDatabase>("EffectDatabase");
         if (db == null) return null;
 

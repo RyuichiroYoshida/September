@@ -1,8 +1,6 @@
 using System;
-using Fusion;
-using InGame.Jewelry;
-using InGame.Jewelry.Common;
-using September.Common;
+using InGame.Health;
+using September.InGame.Jewelry.Drop;
 using UnityEngine;
 
 namespace September.InGame.Rules
@@ -10,25 +8,12 @@ namespace September.InGame.Rules
     [Serializable]
     public class JewelPlayerKilledStrategy : IPlayerKilledStrategy
     {
-        [SerializeField, Tooltip("死亡時の所持宝石数からドロップする数")] private int _minDropAmount = 1;
-        [SerializeField, Tooltip("死亡時の所持宝石数からドロップする割合")] private float _minDropRatio = 0f;
-        [SerializeField, Tooltip("minDropXXX の計算後に残った所持宝石数からドロップする割合")] private float _additionalDropRatio = 0.5f;
+        [SerializeField] private JewelryDropHitProcessor _defaultDamageProcessor = new(DropType.Drop);
 
-        public void ProcessKillEvent(PlayerRef killer, PlayerRef victim)
+        public void ProcessKillEvent(HitData hitData)
         {
-            NetworkObject victimObj = PlayerDatabase.Instance.PlayerObjectDic.Get(victim);
-
-            // runtimeから現在の宝石所持情報を取得
-            var runtime = victimObj.GetComponentInChildren<PlayerJewelryRuntime>();
-
-            // 仮で通常宝石で計算
-            var jewelryQuantity = runtime.GetJewelryQuantity(JewelryType.NormalGem);
-            int minDrop = _minDropAmount + Mathf.FloorToInt(jewelryQuantity * _minDropRatio);
-            int sumDrop = minDrop + Mathf.FloorToInt((jewelryQuantity - minDrop) * _additionalDropRatio);
-            int drop = Mathf.Min(sumDrop, jewelryQuantity);
-
-            var container = victimObj.GetComponent<IJewelryContainer>();
-            container.DropJewelry(drop);
+            _defaultDamageProcessor.DropType = hitData.HitActionType == HitActionType.Damage ? DropType.Drop : DropType.Pickup;
+            _defaultDamageProcessor.OnHitTaken(hitData);
         }
     }
 }

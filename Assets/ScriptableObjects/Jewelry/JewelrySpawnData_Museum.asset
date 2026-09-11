@@ -1,0 +1,142 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 621f24f8dbf2a1c40bacbfde070cb4aa, type: 3}
+  m_Name: JewelrySpawnData_Museum
+  m_EditorClassIdentifier: 
+  _spawnSettings:
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 3
+    - _jewelryType: 1
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 0
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 1
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 2
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 3
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 4
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 5
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 6
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 7
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 8
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 190
+    _items:
+    - _jewelryType: 0
+      _count: 1
+    _spawnRange: 1
+    _positionIndex: 3
+    _height: 1
+    _showSpawnMessage: 0
+  - _spawnTime: 150
+    _items:
+    - _jewelryType: 0
+      _count: 2
+    - _jewelryType: 1
+      _count: 1
+    _spawnRange: 10
+    _positionIndex: 1
+    _height: 1
+    _showSpawnMessage: 1
+  - _spawnTime: 75
+    _items:
+    - _jewelryType: 0
+      _count: 6
+    - _jewelryType: 1
+      _count: 1
+    _spawnRange: 8
+    _positionIndex: 6
+    _height: 1
+    _showSpawnMessage: 1
+  - _spawnTime: 45
+    _items:
+    - _jewelryType: 0
+      _count: 3
+    - _jewelryType: 1
+      _count: 1
+    _spawnRange: 5
+    _positionIndex: 3
+    _height: 1
+    _showSpawnMessage: 1
+  - _spawnTime: 15
+    _items:
+    - _jewelryType: 0
+      _count: 5
+    - _jewelryType: 1
+      _count: 1
+    _spawnRange: 0
+    _positionIndex: 5
+    _height: 1
+    _showSpawnMessage: 1
+  _prefabs:
+  - _jewelryType: 0
+    _prefab: {fileID: 5589114008520084412, guid: e14ea0caa74491347a5d59bc76798f5c, type: 3}
+  - _jewelryType: 1
+    _prefab: {fileID: 5589114008520084412, guid: 21d7ffc2508499a4397c0e4dc1127bf8, type: 3}

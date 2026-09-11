@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbeabfe90ee24410ab34048409e6d23c, type: 3}
+  m_Name: SceneBGMContainer
+  m_EditorClassIdentifier: 
+  _maps:
+  - SceneName: Title
+    BGMType: 0
+    _bgmName: BGM_Title_01
+    PlayOnSceneLoaded: 1
+  - SceneName: Lobby
+    BGMType: 0
+    _bgmName: BGM_Select_01
+    PlayOnSceneLoaded: 1
+  - SceneName: InGameMock
+    BGMType: 1
+    _bgmName: 
+    PlayOnSceneLoaded: 0
+  - SceneName: Pirate_Field
+    BGMType: 1
+    _bgmName: 
+    PlayOnSceneLoaded: 0
+  - SceneName: Result
+    BGMType: 0
+    _bgmName: BGM_Result_01
+    PlayOnSceneLoaded: 1

@@ -74,7 +74,7 @@ namespace InGame.Player.Ability
                 bool enableData = PlayerDatabase.Instance.PlayerDataDic.TryGet(playerInput, out var sessionData);
                 var damage = _damage;
                 if(enableData && sessionData.IsOgre) damage = _ogreDamage; //鬼の場合、鬼時のダメージに変更
-                var hitData = new HitData(HitActionType.Damage,
+                var hitData = new HitData(HitActionType.RangedDamage,
                     damage, playerInput, damageable.OwnerPlayerRef, null, damageable);
                 damageable.TakeHit(ref hitData);
             }

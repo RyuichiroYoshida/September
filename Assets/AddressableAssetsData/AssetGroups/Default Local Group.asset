@@ -25,6 +25,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8079fd132e908d042aa36dc2be1a4740
+    m_Address: SceneBGMContainer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d9db9d6f96d7dfb489e5bf2e6da0b3b1
     m_Address: AnimationClipsContainer
     m_ReadOnly: 0

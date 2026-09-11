@@ -22,6 +22,11 @@ namespace September.Common
         NetworkRunner _networkRunner;
         UniTask<StartGameResult> _currentTask;
 
+        /// <summary>
+        /// ホストがルーム作成時に選択したMap。
+        /// </summary>
+        public MapType SelectedMapType { get; private set; } = MapType.Pirate;
+
         private void Awake()
         {
             if (Instance == null)
@@ -36,11 +41,12 @@ namespace September.Common
             }
         }
 
-        public async UniTask<StartGameResult> CreateLobby(string gameName, int playerCount)
+        public async UniTask<StartGameResult> CreateLobby(string gameName, int playerCount, MapType mapType)
         {
             if (!_currentTask.Status.IsCompleted())
                 return default;
 
+            SelectedMapType = mapType;
             _loadingIcon.StartAnimation();
 
             try
@@ -52,6 +58,11 @@ namespace September.Common
             {
                 _loadingIcon.StopAnimation();
             }
+        }
+
+        public UniTask<StartGameResult> CreateLobby(string gameName, int playerCount)
+        {
+            return CreateLobby(gameName, playerCount, SelectedMapType);
         }
 
         public async UniTask LoadLobbyScene()

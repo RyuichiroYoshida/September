@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameStartStrategy:
     rid: 7765555185143251047
+  _playerHitStrategy:
+    rid: 7603375357084303672
   _playerKilledStrategy:
     rid: 7765555185143251033
   _rankingPolicy:
@@ -23,12 +25,22 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 7603375357084303672
+      type: {class: JewelPlayerHitStrategy, ns: September.InGame.Rules.PlayerDamaged, asm: Scripts}
+      data:
+        _defaultDamageProcessor:
+          _dropType: 0
+          _dropSettingsList:
+          - {fileID: 11400000, guid: 8c5ef205ae4b3874fba2fdc7b93f37f9, type: 2}
+          - {fileID: 11400000, guid: 2f12d7c6ef89ecb4098fdfa735ebbe61, type: 2}
     - rid: 7765555185143251033
       type: {class: JewelPlayerKilledStrategy, ns: September.InGame.Rules, asm: Scripts}
       data:
-        _minDropAmount: 1
-        _minDropRatio: 0
-        _additionalDropRatio: 0.5
+        _defaultDamageProcessor:
+          _dropType: 1
+          _dropSettingsList:
+          - {fileID: 11400000, guid: 90c4160262b709d4c8681a5185d182fa, type: 2}
+          - {fileID: 11400000, guid: 6e92ea50e6ae6f34b86fffd87ccad934, type: 2}
     - rid: 7765555185143251047
       type: {class: NullGameStartStrategy, ns: September.InGame.Rules, asm: Scripts}
       data: 

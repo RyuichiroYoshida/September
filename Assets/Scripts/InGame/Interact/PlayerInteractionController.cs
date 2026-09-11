@@ -272,7 +272,9 @@ namespace InGame.Interact
 
         private void UpdateInteractUI()
         {
-            if (_focusedObj)
+            bool focusTargetIsValid = _focusedObj && _focusedObj.Id.IsValid;
+
+            if (focusTargetIsValid)
             {
                 var context = new InteractableContext
                 {
@@ -288,7 +290,7 @@ namespace InGame.Interact
             else
             {
                 if (UIController.I)
-                    UIController.I.ShowInteractUI(false, _focusedObj?.gameObject);
+                    UIController.I.ShowInteractUI(false);
             }
         }
 
@@ -377,7 +379,7 @@ namespace InGame.Interact
                     return;
                 }
 
-                var netObj = _focusedObj.GetComponent<NetworkObject>();
+                var netObj = _focusedObj.GetComponentInParent<NetworkObject>();
                 if (!netObj)
                 {
                     Debug.LogWarning($"[Interact] {_focusedObj.name} に NetworkObject が存在しません");
@@ -407,7 +409,9 @@ namespace InGame.Interact
         private void RPC_RequestInteract(int interactor, int characterType, NetworkObject target)
         {
             Debug.Log($"target.HasStateAuthority: {target.HasStateAuthority}, Runner.LocalPlayer: {Runner.LocalPlayer}");
-            if (target && target.TryGetComponent(out InteractableBase interactable))
+
+            InteractableBase interactable;
+            if (target && (interactable = target.GetComponentInChildren<InteractableBase>()) != null)
             {
                 var context = new InteractableContext
                 {

@@ -22,6 +22,7 @@ namespace InGame.Jewelry
 
         event Action<JewelryType, Sprite> _onInitialize;
         event Action<JewelryType, int> _onUpdateJewelryQuantity;
+
         public Action OnInitialize(Action<JewelryType, Sprite> act)
         {
             _onInitialize += act;
@@ -97,7 +98,7 @@ namespace InGame.Jewelry
         /// 現在のスコアを計算するメソッド
         /// </summary>
         /// <returns>現在のスコア</returns>
-        int CalculateJewelryScore()
+        public int CalculateJewelryScore()
         {
             int result = 0;
 
@@ -107,6 +108,19 @@ namespace InGame.Jewelry
 
                 // 所持数 * スコアを計算
                 result += _jewelryInfos[i].Score * current;
+            }
+
+            return result;
+        }
+
+        public int GetJewelryCount()
+        {
+            int result = 0;
+
+            for (int i = 0; i < (int)JewelryType.JewelryTypeCount; i++)
+            {
+                int current = _jewelryQuantities.Get(i);
+                result += current;
             }
 
             return result;

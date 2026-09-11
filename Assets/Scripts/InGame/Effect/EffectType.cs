@@ -33,5 +33,8 @@ public enum EffectType
     HulkUltImpact,
     PenguinHuge,
     KunaiUlt,
+    Thunder,
+    BallistaHit,
+    BallistaShoot,
 }
 //勝手にEnumを消すな！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！

@@ -30,20 +30,26 @@ namespace InGame.Common.Timeline
             }
             
             if (_clipPlayer == null || _clip == null) return;
-            
+
+            // 未再生の場合、再生を開始する
             if (!_isPlayed)
             {
                 _clipPlayer.Play(_clip);
 
+                // 生成されたPlayableを取得する
                 if (!_clipPlayer.TryGetPlayableInfo(_clip, out _info))
                 {
                     Debug.LogWarning($"AnimationClipPlayerPlayable: AnimationClipPlayable is not found (clip:{_clip.name}, _clipPlayer:{_clipPlayer})");
                     return;
                 }
-                    
+
+                // 既に再生済みとしてマーク
                 _isPlayed = true;
             }
-            
+
+            // Playableが既に破棄されているかチェック
+            if (!_info.playable.IsValid()) return;
+
             var time = playable.GetTime();
             
             _info.SetTime(Mathf.Clamp((float)time, 0f, _clip.length), false);

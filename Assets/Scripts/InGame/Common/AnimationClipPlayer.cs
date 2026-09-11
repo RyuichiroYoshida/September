@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Common.Extensions;
 using Cysharp.Threading.Tasks;
 using Fusion;
+using September.InGame.Common;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -27,8 +29,17 @@ namespace InGame.Common
         [SerializeField] protected Animator _animator;
 
         private PlayableGraph _graph;
+        private AnimationPlayableOutput _output;
         private AnimationMixerPlayable _baseMixer;
         private AnimationLayerMixerPlayable _layerMixer;
+
+        /// <summary>グラフ評価 (LateUpdate) の直前に呼ばれる。足 IK など出力後処理のパラメータ更新用。</summary>
+        public event Action BeforeEvaluate;
+
+        public PlayableGraph Graph => _graph;
+        public Animator Animator => _animator;
+        public AnimationClip WalkClip => _walk;
+        public AnimationClip RunClip => _run;
 
         /// <summary>
         /// LayerMixerに登録しているInputSlotのindex
@@ -38,6 +49,9 @@ namespace InGame.Common
         private readonly Dictionary<LayerInfo.LayerType, CancellationTokenSource> _layerCts = new();
         private readonly Dictionary<LayerInfo.LayerType, CancellationTokenSource> _weightBlendCts = new();
 
+        /// <summary>
+        /// 現在再生中のクリップ情報
+        /// </summary>
         private readonly Dictionary<LayerInfo.LayerType, AnimationClip> _clipOf = new();
 
         public AnimationMixerPlayable BaseMixer => _baseMixer;
@@ -79,11 +93,11 @@ namespace InGame.Common
             _graph = PlayableGraph.Create("AnimationClipPlayerGraph");
             _graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
 
-            var output = AnimationPlayableOutput.Create(_graph, "AnimationOutput", _animator);
-            output.SetWeight(1f);
+            _output = AnimationPlayableOutput.Create(_graph, "AnimationOutput", _animator);
+            _output.SetWeight(1f);
 
             _layerMixer = AnimationLayerMixerPlayable.Create(_graph, _layerInfo.Count);
-            output.SetSourcePlayable(_layerMixer);
+            _output.SetSourcePlayable(_layerMixer);
 
             _baseMixer = AnimationMixerPlayable.Create(_graph, 3);
             var baseSlot = _slotOf[LayerInfo.LayerType.Base];
@@ -146,7 +160,28 @@ namespace InGame.Common
 
         public void LateUpdate()
         {
+            BeforeEvaluate?.Invoke();
             _graph.Evaluate(Time.deltaTime * _graphSpeed);
+        }
+
+        /// <summary>
+        /// レイヤーミキサーと Animator 出力の間に後処理 Playable (足 IK ジョブ等) を差し込む。
+        /// processor の入力 0 にレイヤーミキサーを接続する。グラフが無効なら false。
+        /// グラフは再初期化されることがあるため、呼び出し側は Playable の IsValid で再差し込みを判断すること。
+        /// </summary>
+        public bool TryInstallOutputProcessor(Playable processor)
+        {
+            if (!_graph.IsValid() || !processor.IsValid() || !_layerMixer.IsValid()) return false;
+            if (processor.GetInputCount() < 1)
+            {
+                Debug.LogError("[AnimationClipPlayer] 出力後処理 Playable は入力を 1 つ以上持つ必要があります。");
+                return false;
+            }
+
+            processor.ConnectInput(0, _layerMixer, 0);
+            processor.SetInputWeight(0, 1f);
+            _output.SetSourcePlayable(processor);
+            return true;
         }
         #endregion
 
@@ -184,24 +219,27 @@ namespace InGame.Common
         }
 
         /// <summary> TopLayerでアニメーションを再生 </summary>
-        public void PlayOnTopLayer(AnimationClip clip)
+        public void PlayOnLayer(AnimationClip clip, LayerInfo.LayerType layerType = LayerInfo.LayerType.TopLayer, float speed = 1f, bool loop = false)
         {
-            if (!_slotOf.TryGetValue(LayerInfo.LayerType.TopLayer, out var slot))
+            if (!_slotOf.TryGetValue(layerType, out var slot))
             {
-                Debug.LogWarning("[AnimationClipPlayer] TopLayer が設定されていません。_layerInfo の最後に追加してください。");
+                Debug.LogWarning($"[AnimationClipPlayer] {layerType} が設定されていません。_layerInfo の最後に追加してください。");
                 return;
             }
+
+            // 同じレイヤーで進行中の再生/ブレンドを止める。
+            // 止めないと、差し替え前のクリップを待っていた PlayAsync が終了処理としてレイヤー Weight を 0 へ落とし、
+            // 差し替え後のクリップ (攻撃中に始めた回避など) が再生されなくなる。
+            TakeLayerControl(layerType);
 
             // 解除要求
             if (clip == null)
             {
                 _layerMixer.SetInputWeight(slot, 0f);
 
-                if (_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var current) && current.IsValid())
+                if (_runtimeClips.TryGetValue(layerType, out var current) && current.IsValid())
                 {
-                    _layerMixer.DisconnectInput(slot);
-                    current.Destroy();
-                    _runtimeClips.Remove(LayerInfo.LayerType.TopLayer);
+                    DisconnectAndDestroy(layerType, current, slot);
                 }
 
                 var li0 = _layerInfo[slot];
@@ -210,18 +248,120 @@ namespace InGame.Common
                 return;
             }
 
-            if (_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var prev) && prev.IsValid())
+            if (_runtimeClips.TryGetValue(layerType, out var prev) && prev.IsValid())
             {
-                _layerMixer.DisconnectInput(slot);
-                prev.Destroy();
-                _runtimeClips.Remove(LayerInfo.LayerType.TopLayer);
+                DisconnectAndDestroy(layerType, prev, slot);
             }
 
-            Play(clip, LayerInfo.LayerType.TopLayer, 1f, additive: false);
+            Play(clip, layerType, 1f, playSpeed: speed, additive: false, loop: loop);
 
             var li = _layerInfo[slot];
             li.Weight = 1f; // Update() で毎フレーム反映されるので内部Weightも更新
             _layerInfo[slot] = li;
+        }
+
+        /// <summary>
+        /// TopLayerで現在のアニメーションから指定したアニメーションへクロスフェードします。
+        /// </summary>
+        /// <param name="clip">遷移先のアニメーション</param>
+        /// <param name="speed">遷移先の再生速度</param>
+        /// <param name="blendTime">クロスフェード時間</param>
+        /// <param name="blendCurve">クロスフェードの補間曲線</param>
+        /// <param name="token">外部から遷移を中断するトークン</param>
+        public async UniTask CrossFadeOnTopLayerAsync(
+            AnimationClip clip,
+            float speed,
+            float blendTime,
+            AnimationCurve blendCurve,
+            CancellationToken token = default)
+        {
+            if (!clip)
+            {
+                return;
+            }
+
+            if (!_slotOf.TryGetValue(LayerInfo.LayerType.TopLayer, out var slot))
+            {
+                Debug.LogWarning("[AnimationClipPlayer] TopLayer が設定されていません。_layerInfo の最後に追加してください。");
+                return;
+            }
+
+            if (!_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var currentClip)
+                || !currentClip.IsValid())
+            {
+                PlayOnLayer(clip, LayerInfo.LayerType.TopLayer, speed);
+                return;
+            }
+
+            var currentInput = _layerMixer.GetInput(slot);
+            if (!currentInput.IsValid())
+            {
+                PlayOnLayer(clip, LayerInfo.LayerType.TopLayer, speed);
+                return;
+            }
+
+            var nextClip = AnimationClipPlayable.Create(_graph, clip);
+            nextClip.SetApplyFootIK(!IsFootIKDisabledFor(clip));
+            nextClip.SetTime(0);
+            nextClip.SetDuration(clip.length);
+            nextClip.SetSpeed(speed);
+
+            var transitionMixer = AnimationMixerPlayable.Create(_graph, 2);
+            _layerMixer.DisconnectInput(slot);
+            transitionMixer.ConnectInput(0, currentInput, 0);
+            transitionMixer.ConnectInput(1, nextClip, 0);
+            transitionMixer.SetInputWeight(0, 1f);
+            transitionMixer.SetInputWeight(1, 0f);
+            _layerMixer.ConnectInput(slot, transitionMixer, 0);
+            _layerMixer.SetInputWeight(slot, 1f);
+            var transitionRoot = _layerMixer.GetInput(slot);
+
+            _runtimeClips[LayerInfo.LayerType.TopLayer] = nextClip;
+            _clipOf[LayerInfo.LayerType.TopLayer] = clip;
+
+            var blendDuration = Mathf.Max(blendTime, 0f);
+            if (blendDuration <= 0f)
+            {
+                transitionMixer.SetInputWeight(0, 0f);
+                transitionMixer.SetInputWeight(1, 1f);
+                return;
+            }
+
+            try
+            {
+                float elapsed = 0f;
+                while (elapsed < blendDuration)
+                {
+                    token.ThrowIfCancellationRequested();
+                    elapsed += Time.deltaTime;
+                    var progress = Mathf.Clamp01(elapsed / blendDuration);
+                    if (blendCurve != null)
+                    {
+                        progress = Mathf.Clamp01(blendCurve.Evaluate(progress));
+                    }
+
+                    transitionMixer.SetInputWeight(0, 1f - progress);
+                    transitionMixer.SetInputWeight(1, progress);
+                    await UniTask.Yield(PlayerLoopTiming.Update, token);
+                }
+
+                transitionMixer.SetInputWeight(0, 0f);
+                transitionMixer.SetInputWeight(1, 1f);
+            }
+            catch (OperationCanceledException)
+            {
+                if (_runtimeClips.TryGetValue(LayerInfo.LayerType.TopLayer, out var current)
+                    && current.Equals(nextClip)
+                    && current.IsValid())
+                {
+                    _layerMixer.DisconnectInput(slot);
+                    transitionRoot.DestroyTree();
+                    _runtimeClips.Remove(LayerInfo.LayerType.TopLayer);
+                    _clipOf.Remove(LayerInfo.LayerType.TopLayer);
+                }
+
+                throw;
+            }
         }
 
         public void Play(AnimationClip clip, bool forcePlay = false)
@@ -283,8 +423,8 @@ namespace InGame.Common
                 return EndClipType.Failed;
             }
 
-            // 同レイヤーの前回待機をキャンセルして新トークン
-            var token = RenewLayerCts(layerType, external);
+            // 同レイヤーの前回待機と Weight ブレンドをキャンセルして新トークン
+            var token = TakeLayerControl(layerType, external);
 
             var currentW = Mathf.Clamp01(_layerInfo[slot].Weight);
             var useBlendIn = blendIn.BlendTime > 0f;
@@ -329,14 +469,8 @@ namespace InGame.Common
                                  && _runtimeClips.TryGetValue(layerType, out var stillCurrent)
                                  && stillCurrent.Equals(played) && stillCurrent.IsValid())
                 {
-                    _layerMixer.SetInputWeight(slot, 0f);
-                    _layerMixer.DisconnectInput(slot);
-                    stillCurrent.Destroy();
-                    _runtimeClips.Remove(layerType);
-
-                    var li = _layerInfo[slot];
-                    li.Weight = 0f;
-                    _layerInfo[slot] = li;
+                    SetInputWeight(slot, 0f);
+                    DisconnectAndDestroy(layerType, stillCurrent, slot);
                 }
 
                 return EndClipType.Interrupted;
@@ -358,13 +492,10 @@ namespace InGame.Common
             }
 
             // Out 完了時の最終スナップ → 0
-            _layerMixer.SetInputWeight(slot, 0f);
-            var liOut = _layerInfo[slot];
-            liOut.Weight = 0f;
-            _layerInfo[slot] = liOut;
+            SetInputWeight(slot, 0f);
 
             // 0 になったら “まだ自分が current なら” 接続解除＆破棄
-            Disconnect(layerType, played, slot);
+            DisconnectAndDestroy(layerType, played, slot);
 
             return EndClipType.Complete;
         }
@@ -392,7 +523,7 @@ namespace InGame.Common
                 return;
             }
 
-            RenewLayerCts(layerType);
+            TakeLayerControl(layerType);
 
             Play(clip, layerType, 1, additive, playSpeed);
         }
@@ -403,7 +534,7 @@ namespace InGame.Common
             Play(index, forcePlay);
         }
 
-        private void Play(AnimationClip clip, LayerInfo.LayerType layerType, float weight, bool additive = false, float playSpeed = 1f)
+        private void Play(AnimationClip clip, LayerInfo.LayerType layerType, float weight, bool additive = false, float playSpeed = 1f, bool loop = false)
         {
             if (!clip) return;
 
@@ -422,23 +553,135 @@ namespace InGame.Common
             // 既存接続の後片付け
             if (_runtimeClips.TryGetValue(layerType, out var prev) && prev.IsValid())
             {
-                _layerMixer.DisconnectInput(slot);
-                prev.Destroy();
+                DisconnectAndDestroy(layerType, prev, slot);
             }
 
             _clipOf[layerType] = clip;
 
             var p = AnimationClipPlayable.Create(_graph, clip);
-            p.SetApplyFootIK(false);
+            // Humanoid の Foot IK はクリップに焼かれた足位置へ補正し、リターゲットによる足滑りを防ぐ。
+            // 意図的に切りたいクリップだけ AnimationClipsContainer 側で DisableFootIK を立てる。
+            p.SetApplyFootIK(!IsFootIKDisabledFor(clip));
             p.SetTime(0);
             p.SetDuration(clip.length);
             p.SetSpeed(playSpeed);
 
-            _layerMixer.ConnectInput(slot, p, 0);
+            if (loop)
+            {
+                // AnimationClipPlayableの再生時間をループさせるPlayableを接続する
+                // AnimationClipPlayable -> loopPlayable -> Mixer
+                var loopPlayable = ScriptPlayable<LoopAnimationClipPlayableBehaviour>.Create(_graph, inputCount: 1);
+                loopPlayable.GetBehaviour().AnimationClipPlayable = p;
+                loopPlayable.ConnectInput(0, p, 0);
+                _layerMixer.ConnectInput(slot, loopPlayable, 0);
+            }
+            else
+            {
+                _layerMixer.ConnectInput(slot, p, 0);
+            }
             _layerMixer.SetLayerAdditive((uint)slot, additive);
             _layerMixer.SetInputWeight(slot, Mathf.Clamp01(weight));
 
             _runtimeClips[layerType] = p;
+        }
+        #endregion
+
+        #region PlayLoop
+        /// <summary>
+        /// <see cref="AnimationClipsContainer"/>に登録されているMontageをループ再生します。
+        /// 停止する場合は<see cref="StopClip"/>を使用してください。
+        /// </summary>
+        public void PlayClipLoop(AnimationClip clip)
+        {
+            if (!TryGetMontageIndex(clip, out int index))
+            {
+                Debug.LogWarning($"AnimationClip {clip.name} is not found in AnimationClipsContainer");
+                return;
+            }
+
+            RPC_PlayLoop(index);
+            PlayLoop(index);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All, InvokeLocal = false)]
+        private void RPC_PlayLoop(int clipIndex)
+        {
+            PlayLoop(clipIndex);
+        }
+
+        private void PlayLoop(int clipIndex)
+        {
+            var montage = AnimationClipsContainer.Instance.AnimationMontages[clipIndex];
+            PlayLoop(montage.AnimClip, montage.TargetLayer, 1f, montage.BlendIn,
+                montage.IsAdditive, montage.PlaySpeed).Forget();
+        }
+
+        /// <summary>
+        /// 指定のアニメーションをループ再生する。
+        /// </summary>
+        /// <param name="clip">再生するアニメーション</param>
+        /// <param name="layerType">再生するレイヤーマスクの種類（ベースは不可）</param>
+        /// <param name="weight">再生するレイヤーの重み</param>
+        /// <param name="additive">加算モーションにするか</param>
+        /// <param name="playSpeed">再生速度</param>
+        /// <param name="external">外部から再生処理を止めるトークン。デフォルトではゲームオブジェクトのトークンに紐づく</param>
+        /// <param name="blendIn">アニメーション再生開始時のブレンド</param>
+        private async UniTaskVoid PlayLoop(
+            AnimationClip clip,
+            LayerInfo.LayerType layerType,
+            float weight,
+            LayerInfo.Blend blendIn,
+            bool additive = false,
+            float playSpeed = 1f,
+            CancellationToken external = default)
+        {
+            if (!clip) return;
+            if (layerType == LayerInfo.LayerType.Base)
+            {
+                Debug.LogWarning("Base レイヤーには StartLoopAnimation() できません。");
+                return;
+            }
+
+            if (!_slotOf.TryGetValue(layerType, out int slot))
+            {
+                Debug.LogWarning($"未定義のレイヤー {layerType}");
+                return;
+            }
+
+            // 同レイヤーの前回待機と Weight ブレンドをキャンセルして新トークン
+            var token = TakeLayerControl(layerType, external);
+
+            var currentW = Mathf.Clamp01(_layerInfo[slot].Weight);
+            var useBlendIn = blendIn.BlendTime > 0f;
+            var startW = useBlendIn ? currentW : Mathf.Clamp01(weight);
+            var targetW = Mathf.Clamp01(weight);
+
+            Play(clip, layerType, startW, additive, playSpeed, loop: true);
+
+            var liNow = _layerInfo[slot];
+            liNow.Weight = startW;
+            _layerInfo[slot] = liNow;
+
+            // 再生中 Playable を取得
+            if (!_runtimeClips.TryGetValue(layerType, out var played) || !played.IsValid()) return;
+
+            if (useBlendIn)
+            {
+                try
+                {
+                    await BlendWeightAsync(blendIn, token, startW, targetW, slot);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                // 最終スナップ
+                _layerMixer.SetInputWeight(slot, targetW);
+                var liSnap = _layerInfo[slot];
+                liSnap.Weight = targetW;
+                _layerInfo[slot] = liSnap;
+            }
         }
         #endregion
 
@@ -606,7 +849,8 @@ namespace InGame.Common
             }
             finally
             {
-                if (_weightBlendCts.TryGetValue(layer, out var cts))
+                // 後から登録された別のブレンドの CTS を破棄しないよう、自分が登録したものだけ片付ける
+                if (_weightBlendCts.TryGetValue(layer, out var cts) && ReferenceEquals(cts, linked))
                 {
                     cts.Dispose();
                     _weightBlendCts.Remove(layer);
@@ -655,20 +899,34 @@ namespace InGame.Common
         #endregion
 
         #region Utility
-        public bool IsPlayingTargetClip(AnimationClip clip)
+        /// <summary>
+        /// アニメーションが再生中かどうかを判定します
+        /// </summary>
+        /// <param name="clip"></param>
+        /// <param name="includeIsEnded">再生しきったアニメーションを判定に含めるか。持続モーションやループモーションを判定する時に使う。</param>
+        /// <param name="includeZeroWeight">重みがゼロのアニメーションを判定に含めるか。ノードそのものの生存をチェックする時に使う。</param>
+        public bool IsPlayingTargetClip(AnimationClip clip, bool includeIsEnded = false, bool includeZeroWeight = false)
         {
             foreach (var kv in _clipOf)
             {
                 if (kv.Value == clip && _runtimeClips.TryGetValue(kv.Key, out var p) && p.IsValid())
                 {
                     // レイヤー重みもチェック
-                    if (_slotOf.TryGetValue(kv.Key, out int slot) && _layerMixer.GetInputWeight(slot) > 0.001f)
+                    if (_slotOf.TryGetValue(kv.Key, out int slot))
                     {
-                        // アニメーション完了状態もチェック
-                        if (p.GetTime() < p.GetDuration() - 0.01) // まだ再生中
+                        // 再生が完了していれば未再生判定（ワンショットモーションが再生完了後も持続しないようにするため）
+                        if (!includeIsEnded && p.GetTime() >= p.GetDuration() - 0.01)
                         {
-                            return true;
+                            continue;
                         }
+
+                        // Weightが0なら未再生判定。影響がない ＝ 再生していないものとしてあつかう
+                        if (!includeZeroWeight && _layerMixer.GetInputWeight(slot) <= 0.001f)
+                        {
+                            continue;
+                        }
+
+                        return true;
                     }
                 }
             }
@@ -693,6 +951,33 @@ namespace InGame.Common
                 CancellationTokenSource.CreateLinkedTokenSource(external, this.GetCancellationTokenOnDestroy());
             _layerCts[layer] = linked;
             return linked.Token;
+        }
+
+        /// <summary>
+        /// 指定レイヤーの制御権を呼び出し元へ移す。
+        /// 進行中の再生待ち (PlayAsync/PlayLoop) と Weight ブレンドをキャンセルし、新しいトークンを返す。
+        /// </summary>
+        private CancellationToken TakeLayerControl(LayerInfo.LayerType layer, CancellationToken external = default)
+        {
+            if (_weightBlendCts.TryGetValue(layer, out var blend))
+            {
+                blend.Cancel();
+                blend.Dispose();
+                _weightBlendCts.Remove(layer);
+            }
+
+            return RenewLayerCts(layer, external);
+        }
+
+        /// <summary>
+        /// 指定レイヤーで現在接続されているクリップが clip かどうか。
+        /// 非同期処理の途中で他のモーションに差し替えられていないかの確認に使う。
+        /// </summary>
+        public bool IsCurrentClipOnLayer(LayerInfo.LayerType layer, AnimationClip clip)
+        {
+            return clip
+                   && _clipOf.TryGetValue(layer, out var current) && current == clip
+                   && _runtimeClips.TryGetValue(layer, out var playable) && playable.IsValid();
         }
 
         private async UniTask WaitClipEndAsync(AnimationClipPlayable p, CancellationToken token)
@@ -734,15 +1019,29 @@ namespace InGame.Common
         /// <summary>
         /// 指定のPlayableが再生中であれば、Mixerとの接続を解除したのち破棄する
         /// </summary>
-        private void Disconnect(LayerInfo.LayerType layerType, AnimationClipPlayable playable, int slot)
+        private void DisconnectAndDestroy(LayerInfo.LayerType layerType, AnimationClipPlayable playable, int slot)
         {
             if (_runtimeClips.TryGetValue(layerType, out var current) && current.Equals(playable) && current.IsValid())
             {
+                var input = _layerMixer.GetInput(slot);
                 _layerMixer.DisconnectInput(slot);
-                current.Destroy();
+                input.DestroyTree();
                 _runtimeClips.Remove(layerType);
                 _clipOf.Remove(layerType);
             }
+        }
+
+        /// <summary>
+        /// AnimationClipsContainer で Foot IK を切る指定があるか。未登録クリップ (TopLayer 等) は既定で有効扱い。
+        /// TryGetMontageIndex と違い、未登録でも警告を出さない。
+        /// </summary>
+        private static bool IsFootIKDisabledFor(AnimationClip clip)
+        {
+            var montages = AnimationClipsContainer.Instance?.AnimationMontages;
+            if (montages == null) return false;
+
+            int index = Array.FindIndex(montages, x => x.AnimClip && (x.AnimClip == clip || x.AnimClip.name == clip.name));
+            return index >= 0 && montages[index].DisableFootIK;
         }
 
         private bool TryGetMontageIndex(AnimationClip clip, out int index)
@@ -777,47 +1076,59 @@ namespace InGame.Common
 
             // AnimationClipsContainer から探してRPCで停止を全クライアントに通知
             var index = Array.FindIndex(AnimationClipsContainer.Instance.AnimationMontages,
-                x => x.AnimClip.name == clip.name);
+                x => x.AnimClip && x.AnimClip.name == clip.name);
 
             if (index >= 0)
             {
                 RPC_StopClip(index);
             }
 
-            return StopClipLocal(clip);
+            return StopClipLocal(index);
         }
 
-        [Rpc(RpcSources.All, RpcTargets.All)]
+        [Rpc(RpcSources.All, RpcTargets.All, InvokeLocal = false)]
         private void RPC_StopClip(int clipIndex)
         {
-            var montage = AnimationClipsContainer.Instance.AnimationMontages[clipIndex];
-            StopClipLocal(montage.AnimClip);
+            StopClipLocal(clipIndex);
         }
 
-        private bool StopClipLocal(AnimationClip clip)
+        private bool StopClipLocal(int clipIndex)
         {
-            foreach (var kv in _clipOf)
+            var montage = AnimationClipsContainer.Instance.AnimationMontages[clipIndex];
+            return StopClipLocal(montage.AnimClip, montage.BlendOut, destroyCancellationToken);
+        }
+
+        private bool StopClipLocal(AnimationClip clip, LayerInfo.Blend outBlend = default, CancellationToken token = default)
+        {
+            foreach ((LayerInfo.LayerType layer, AnimationClip playingClip) in _clipOf)
             {
-                if (kv.Value == clip && _runtimeClips.TryGetValue(kv.Key, out var p) && p.IsValid())
+                if (playingClip == clip && _runtimeClips.TryGetValue(layer, out var p) && p.IsValid())
                 {
-                    RenewLayerCts(kv.Key);
+                    RenewLayerCts(layer);
 
-                    _slotOf.TryGetValue(kv.Key, out int slot);
+                    _slotOf.TryGetValue(layer, out int slot);
 
-                    // レイヤーウェイトを0にリセット
-                    _layerMixer.SetInputWeight(slot, 0f);
-                    var li = _layerInfo[slot];
-                    li.Weight = 0f;
-                    _layerInfo[slot] = li;
-
-                    if (_runtimeClips.TryGetValue(kv.Key, out var prev) && prev.IsValid())
+                    if (outBlend.BlendTime > 0f)
                     {
-                        _layerMixer.DisconnectInput(slot);
-                        prev.Destroy();
+                        try
+                        {
+                            StopClipAsync(slot, layer, outBlend, token).Forget();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            return false;
+                        }
                     }
+                    else
+                    {
+                        // レイヤーウェイトを0にリセット
+                        SetInputWeight(slot, 0f);
 
-                    _clipOf.Remove(kv.Key);
-                    _runtimeClips.Remove(kv.Key);
+                        if (_runtimeClips.TryGetValue(layer, out AnimationClipPlayable prev) && prev.IsValid())
+                        {
+                            DisconnectAndDestroy(layer, prev, slot);
+                        }
+                    }
 
                     return true;
                 }
@@ -825,6 +1136,30 @@ namespace InGame.Common
 
             return false;
         }
+
+        private async UniTaskVoid StopClipAsync(int slot, LayerInfo.LayerType layer,
+            LayerInfo.Blend outBlend = default, CancellationToken token = default)
+        {
+            float from = Mathf.Clamp01(_layerInfo[slot].Weight);
+            await BlendWeightAsync(outBlend, token, from, 0, slot);
+
+            // 確実に0にする
+            SetInputWeight(slot, 0f);
+
+            if (_runtimeClips.TryGetValue(layer, out AnimationClipPlayable prev) && prev.IsValid())
+            {
+                DisconnectAndDestroy(layer, prev, slot);
+            }
+        }
+
+        private void SetInputWeight(int slot, float weight)
+        {
+            _layerMixer.SetInputWeight(slot, weight);
+            LayerInfo li = _layerInfo[slot];
+            li.Weight = weight;
+            _layerInfo[slot] = li;
+        }
+
         #endregion
 
         #region Outside Controls
@@ -901,7 +1236,7 @@ namespace InGame.Common
             {
                 if (!playable.IsValid()) return;
                 player.SetLayerWeight(layerType, 0);
-                player.Disconnect(layerType, playable, slot);
+                player.DisconnectAndDestroy(layerType, playable, slot);
             }
         }
         #endregion

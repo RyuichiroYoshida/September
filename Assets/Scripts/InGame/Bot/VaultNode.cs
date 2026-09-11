@@ -6,6 +6,7 @@ namespace InGame.Bot
     {
         [SerializeField] private float _distance;
         [SerializeField] private float _groundRayDistance;
+        [SerializeField] private LayerMask _groundMask;
 
         private Vector3 _currentPos;
         private Vector3? _goalPos;
@@ -18,7 +19,7 @@ namespace InGame.Bot
             Vector3 origin = transform.position + transform.forward * _distance;
             Ray ray = new Ray(origin, Vector3.down);
 
-            if (Physics.Raycast(ray, out var hit, _groundRayDistance))
+            if (Physics.Raycast(ray, out var hit, _groundRayDistance, _groundMask))
             {
                 _goalPos = hit.point;
             }

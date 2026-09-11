@@ -22,8 +22,8 @@ TagManager:
   - Jewelry
   - OutLine
   - JewelryBlocker
-  - 
-  - 
+  - KrakenHit
+  - ScanTarget
   - 
   - 
   - 
@@ -45,18 +45,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: DamageTextUI
-    uniqueID: 2829710163
-    locked: 0
-  - name: SettingsUI
-    uniqueID: 2417619195
-    locked: 0
   m_RenderingLayers:
   - Default
-  - Light Layer 1
-  - Light Layer 2
-  - Light Layer 3
-  - Light Layer 4
-  - Light Layer 5
-  - Light Layer 6
-  - Light Layer 7
+  - DecalReceiver

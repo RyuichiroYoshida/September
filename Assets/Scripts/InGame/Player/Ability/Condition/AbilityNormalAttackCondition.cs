@@ -20,7 +20,7 @@ namespace InGame.Player.Ability
             if (!_playerManager) _playerManager = context.Owner.GetComponent<PlayerManager>();
 
             //Available状態でAttackボタンが押されたら条件を満たす
-            return _playerMovement.IsGround && !_playerManager.IsStun && !IsGameEnded() &&
+            return _playerMovement.IsGround && !_playerManager.IsStun && !_playerMovement.IsEvading && !IsGameEnded() &&
                    _playerManager.CurrentPlayerControlState == PlayerManager.PlayerControlState.Normal &&
                    context.AbilityRef.Phase == AbilityBase.AbilityPhase.Available &&
                    context.AbilityRef.CanStartAbilityOverride() &&
