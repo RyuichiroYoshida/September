@@ -106,3 +106,6 @@ MonoBehaviour:
   - EffectType: 33
     Guid: 1f94a7fade7f38840af0b09b6b9b36dd
     Prefab: {fileID: 3118872047831750776, guid: 1f94a7fade7f38840af0b09b6b9b36dd, type: 3}
+  - EffectType: 34
+    Guid: 97db345cb3d6c2848aea033349f71f4b
+    Prefab: {fileID: 2994536480912289278, guid: 97db345cb3d6c2848aea033349f71f4b, type: 3}
