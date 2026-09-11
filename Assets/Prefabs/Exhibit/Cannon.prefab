@@ -77,7 +77,8 @@ MonoBehaviour:
   _characterEffects:
   - rid: 3743209559181754454
   _type: 20
-  _interactAreaOffset: {x: -1.66, y: 1.48, z: 0.85}
+  _interactPositionOffset: {x: -1.66, y: 1.48, z: 0.85}
+  _interactAreaCollider: {fileID: 0}
   _interactEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectTransform: {fileID: 0}
   _cooldownEffectOffset: {x: 0, y: 0, z: 0}

@@ -392,7 +392,7 @@ MonoBehaviour:
   _characterEffects:
   - rid: 8536392112056828012
   _type: 19
-  _interactAreaOffset: {x: -1.33, y: -0.29, z: -0.64}
+  _interactPositionOffset: {x: -1.33, y: -0.29, z: -0.64}
   _interactAreaCollider: {fileID: 0}
   _interactEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectTransform: {fileID: 0}
