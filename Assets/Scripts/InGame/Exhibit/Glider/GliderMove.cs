@@ -1,3 +1,4 @@
+using System;
 using Fusion;
 using Fusion.Addons.Physics;
 using InGame.Player;
@@ -39,8 +40,6 @@ namespace September.InGame.Exhibit
 			_cameraController = GetComponent<CameraController>();
 			_cameraController.Init(true);
 			_startPos = _rb.position;
-			if (HasStateAuthority)
-				GliderInit();
 		}
 
 		void IProjectileMovement.Render()
@@ -71,11 +70,11 @@ namespace September.InGame.Exhibit
 
 		private void GliderInit()
 		{
-			_rb.position = _startPos;
-			_rb.rotation = Quaternion.identity;
+			_networkRigidbody.Teleport(_startPos, Quaternion.identity);
 
 			_rb.linearVelocity = Vector3.zero;
 			_rb.angularVelocity = Vector3.zero;
+			Velocity = Vector3.zero;
 		}
 
 		void IProjectileMovement.Update(PlayerInput input)
@@ -184,6 +183,7 @@ namespace September.InGame.Exhibit
 		private void RPC_SetActive(bool isActive)
 		{
 			_viewObject.gameObject.SetActive(isActive);
+			_rb.isKinematic = !isActive;
 		}
 
 		[Rpc]

@@ -909,7 +909,7 @@ Transform:
   m_GameObject: {fileID: 5247846237875172240}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: -0.940001, z: 0}
+  m_LocalPosition: {x: 0, y: -2.55, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1007,7 +1007,7 @@ GameObject:
   - component: {fileID: 7905772255546928797}
   - component: {fileID: 6929926272195797548}
   m_Layer: 15
-  m_Name: GameObject
+  m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

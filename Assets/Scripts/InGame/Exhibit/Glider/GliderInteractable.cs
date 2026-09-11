@@ -9,8 +9,9 @@ namespace September
 	{
 		protected override void CheckInteractEnd(PlayerInput input)
 		{
-			base.CheckInteractEnd(input);
 			if(!HasStateAuthority) return; 
+			if(_usingPlayer == null) return;
+			base.CheckInteractEnd(input);
 			if (_move is GliderMove move && move.IsFinished) InteractEnd();
 		}
 	}
