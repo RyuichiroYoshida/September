@@ -182,7 +182,7 @@ namespace InGame.Interact
             var isRiding = _playerManager && _playerManager.CurrentPlayerControlState ==
                 PlayerManager.PlayerControlState.ForcedControl;
             _focusedObj = interactableBase;
-            UIController.I.ShowInteractUI(!isRiding && _focusedObj.ValidateInteraction(context),  _focusedObj);
+            UIController.I.ShowInteractUI(!isRiding && _focusedObj.ValidateInteraction(context), _focusedObj);
 
             IsRemoting = true;
             RemoteFocusedObject = interactableBase;
