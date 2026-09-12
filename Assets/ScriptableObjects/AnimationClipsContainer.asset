@@ -69,7 +69,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 1fe747848ed3bfb49bb3639fce5f6153, type: 2}
     PlaySpeed: 3
     BlendIn:
@@ -126,7 +126,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: c426146fa1ef9fa41bae001fb50ec593, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -183,7 +183,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 91f15a44261cbef48b98b2fefa9cd72d, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -240,7 +240,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: c17a2f3eb17d6624d943b734a44d7962, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -297,7 +297,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 2
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: ee28c120887564b4092cb6b0f7a22474, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -354,7 +354,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 2
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 820cd81769cd03141b2ae912ecf0d479, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -411,7 +411,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 46efbf9f67a212b4cac8d292274db46e, type: 2}
     PlaySpeed: 1.5
     BlendIn:
@@ -468,7 +468,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 08ec66ed4679d824c9bb6bb9e78c77b2, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -525,7 +525,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 51449e93f469e1b439409a095c860f1f, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -582,7 +582,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: b90f297de879f8e439375618de427c2d, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -639,7 +639,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: dc52e77d074bc11469d9ad6d72bb5654, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -696,7 +696,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 2
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: a487619fcfe31c84fb9a904ec7a0e774, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -753,7 +753,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 2
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 8f18717f0d2423b49bb4db278088a1ba, type: 2}
     PlaySpeed: 2
     BlendIn:
@@ -810,7 +810,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 2
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 448bab7b97604614b8eed12fa10f0ea1, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -867,7 +867,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 38623b8d90adb324cb3408d762de0fe2, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -924,7 +924,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 783bb62416cf76846888919d4ab6708c, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -981,7 +981,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 60507cae34df73946a21e067315e1ecc, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -1038,7 +1038,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 48dc126edf5d26940b9e42f6355487ae, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -1095,7 +1095,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: f0fc32250dd58af46bcf550907312b7d, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -1152,7 +1152,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 3219ec83e3c65ab4ab202264540d13b6, type: 2}
     PlaySpeed: 0
     BlendIn:
@@ -1209,7 +1209,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 6bb4907bebb67584ab8af42caa53f9b9, type: 2}
     PlaySpeed: 1.2
     BlendIn:
@@ -1266,7 +1266,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 7cc01de6f65e3c242831c321c26a09bf, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -1323,7 +1323,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 34a8a533cff29be47951403ae2e641c9, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1380,7 +1380,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 0e06d5da1908f08459487e7ad4b83789, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1437,7 +1437,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 79e5c2d7d2c61144b9e47ab1f620345b, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1494,7 +1494,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: d219802c200369e488f4201643d58954, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1551,7 +1551,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 08895a5dbf2916b41809255262b69893, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1608,7 +1608,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 910a73521ed6b1c44842bc9c315ebda0, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1665,7 +1665,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 86fbc4c9831f4d149ab4e69830201952, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1722,7 +1722,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: c9a8671d0de06d044a812b22b9b09719, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1779,7 +1779,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 4d055a1c7278aa84bbf7b655cd46106b, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1836,7 +1836,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: 2408b1d8c471eb04182b2e74ec875a15, type: 3}
     PlaySpeed: 0.4
     BlendIn:
@@ -1893,7 +1893,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 1827226128182048838, guid: cb95a1bed620e45479e90e464e11b5bf, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -1950,7 +1950,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: a688dc165013d654d84f9e3c24b900e0, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -2007,7 +2007,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: 7bbd6d80626ccbd438383b59cbd9bac7, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -2064,7 +2064,7 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: 7400000, guid: a8b4238a4cdbfc74b97784c0e4b1cd90, type: 2}
     PlaySpeed: 1
     BlendIn:
@@ -2121,7 +2121,7 @@ MonoBehaviour:
         m_RotationOrder: 4
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
   - AnimClip: {fileID: -203655887218126122, guid: 2ba78ef63f6078d4085d57ccff7d3903, type: 3}
     PlaySpeed: 1
     BlendIn:
@@ -2178,4 +2178,802 @@ MonoBehaviour:
         m_RotationOrder: 0
     TargetLayer: 1
     IsAdditive: 0
-    DisableFootIK: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 4d0e494e18a45c54d8e4c4b78d073bca, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0.2
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0.3
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 2
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 3c47176129aee964b86173b4f4db0e9b, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0.2
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0.3
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 2
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 034b92e1165579a43b8065901c813608, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0.2
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0.3
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 2
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: ae11be0ef5d5d40449ad2ffb4424fd79, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0.2
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0.3
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 2
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 729060ede38568b4eab6de01941d57ac, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0.2
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0.3
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: da89247446626a84fb4b459edb2957bf, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0.2
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0.3
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: ea8a1a3cdd2fb3c45b47c3c7412a1174, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: e80a840f45f6c8c4a9f1c51ae6b61026, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 9ba8e686b9c0fc449956e682eaedf604, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: b95206e792cf60f4aa8a986d9623192c, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 582831ffe440d924db92ae49c42f38d7, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 042eadbe3c7d9b74bba2b22150344894, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 3c50a92925dc31d48863d6462b478799, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
+  - AnimClip: {fileID: 7400000, guid: 9d1956d70a3a9c54f8f405cfce091786, type: 2}
+    PlaySpeed: 1
+    BlendIn:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    BlendOut:
+      BlendTime: 0
+      BlendCurve:
+        serializedVersion: 2
+        m_Curve:
+        - serializedVersion: 3
+          time: 0
+          value: 0
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        - serializedVersion: 3
+          time: 1
+          value: 1
+          inSlope: 1
+          outSlope: 1
+          tangentMode: 34
+          weightedMode: 0
+          inWeight: 0
+          outWeight: 0
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 0
+    TargetLayer: 1
+    IsAdditive: 0
+    _loop: 0
