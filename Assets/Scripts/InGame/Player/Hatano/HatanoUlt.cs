@@ -37,6 +37,8 @@ namespace InGame.Player.Ability
         
         private readonly string _idPredictedLocation = "HatanoUltPredictedLocation";
         private readonly string _rocketAnimName = "IsOpenlid";
+
+        private EffectID _effectID;
         
         protected override bool ManualCutInEnd => true;
 
@@ -51,7 +53,8 @@ namespace InGame.Player.Ability
                 _animationClipPlayer = Parameter.Owner.GetComponent<AnimationClipPlayer>();
             // エフェクト生成
             _effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
-            _effectSpawner?.RequestPlayLoopEffect(_idPredictedLocation, _predictedLocation, Vector3.zero, Quaternion.identity);
+            //_effectSpawner?.RequestPlayLoopEffect(_idPredictedLocation, _predictedLocation, Vector3.zero, Quaternion.identity);
+            _effectID = _effectSpawner.RequestPlayLoopEffect(EffectType.Cursor, Vector3.zero, Quaternion.identity);
             
             _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.InputLocked);
         }
@@ -85,7 +88,7 @@ namespace InGame.Player.Ability
             if (_playerInput.Buttons.IsSet(PlayerButtons.Attack))
             {
                 _isShoot = true;
-                _effectSpawner?.StopEffect(_idPredictedLocation);
+                _effectSpawner?.StopEffect(_effectID);
                 _aimCameraController.RPC_NormalCamera();
                 _rocketAnimator.SetBool(_rocketAnimName, false);
                 _hatanoSequenceManager.RPC_SetEndTimeline();
@@ -136,7 +139,7 @@ namespace InGame.Player.Ability
             
             var pos = targetPos + normal * _offSet;
             var rot = Quaternion.FromToRotation(Vector3.up, normal);
-            _effectSpawner?.UpdateEffect(_idPredictedLocation, pos, rot);
+            //_effectSpawner?.UpdateEffect(_idPredictedLocation, pos, rot);
         }
         
         /// <summary>
