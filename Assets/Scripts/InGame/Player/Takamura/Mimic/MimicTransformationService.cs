@@ -50,11 +50,16 @@ namespace InGame.Player.Takamura.Mimic
         private readonly struct ActiveTransformation
         {
             public readonly NetworkPrefabRef OriginalPrefab;
+            public readonly ControlDescriptionType OriginalDescriptionType;
             public readonly float ExpireTime;
 
-            public ActiveTransformation(NetworkPrefabRef originalPrefab, float expireTime)
+            public ActiveTransformation(
+                NetworkPrefabRef originalPrefab,
+                ControlDescriptionType originalDescriptionType,
+                float expireTime)
             {
                 OriginalPrefab = originalPrefab;
+                OriginalDescriptionType = originalDescriptionType;
                 ExpireTime = expireTime;
             }
         }
@@ -206,6 +211,8 @@ namespace InGame.Player.Takamura.Mimic
 
                 // 自分自身のプレハブ参照を取得
                 var originalPrefab = container.GetCharacterData(playerData.CharacterType).Prefab;
+                var originalDescriptionType = container.GetControlDescriptionType(playerData.CharacterType);
+                var copiedDescriptionType = container.GetControlDescriptionType(request.TargetCharacterType);
                 // 現在のプレイヤーの情報を保存
                 var snapshot = PlayerTransformationSnapshot.Capture(oldPlayer);
 
@@ -223,6 +230,7 @@ namespace InGame.Player.Takamura.Mimic
                 // 操作するキャラクターの参照を置き換える
                 ReplacePlayerReferences(request.Player, newPlayer);
                 InitializeAfterMimicSpawn(newPlayer);
+                ChangeDescriptionUI(request.Player, newPlayer, copiedDescriptionType);
                 CleanupBeforeDespawn(oldPlayer);
                 // 擬態前のオブジェクトを削除
                 _runner.Despawn(oldPlayer);
@@ -230,6 +238,7 @@ namespace InGame.Player.Takamura.Mimic
                 // 操作主に対して擬態前プレハブと擬態有効時間を保存
                 _activeTransformations[request.Player] = new ActiveTransformation(
                     originalPrefab,
+                    originalDescriptionType,
                     _runner.SimulationTime + request.Duration);
             }
             catch (Exception exception)
@@ -279,6 +288,9 @@ namespace InGame.Player.Takamura.Mimic
                 CleanupBeforeDespawn(copiedPlayer);
                 // 擬態解除前のオブジェクトを削除
                 _runner.Despawn(copiedPlayer);
+                // 擬態先のフォーカス解除処理が操作説明を変更することがあるため、
+                // すべての後処理が完了した最後に元キャラクターの説明へ戻す。
+                ChangeDescriptionUI(player, restoredPlayer, transformation.OriginalDescriptionType);
                 // 擬態中の情報を削除
                 _activeTransformations.Remove(player);
             }
@@ -374,6 +386,21 @@ namespace InGame.Player.Takamura.Mimic
 
             foreach (var initializer in playerObject.GetComponentsInChildren<IMimicInitialize>(true))
                 initializer.InitializeAfterMimicSpawn();
+        }
+
+        /// <summary>
+        /// Prefab交換が完了したことを操作主へ通知し、操作キャラクターに対応する説明UIへ切り替える。
+        /// UI更新はRPCの受信先でLocalPlayerを確認するため、他プレイヤーの画面には影響しない。
+        /// </summary>
+        private static void ChangeDescriptionUI(
+            PlayerRef player,
+            NetworkObject playerObject,
+            ControlDescriptionType descriptionType)
+        {
+            if (!playerObject || !playerObject.TryGetComponent<PlayerManager>(out var playerManager))
+                return;
+
+            playerManager.RPC_ChangeMimicDescriptionUI(player, descriptionType);
         }
     }
 }

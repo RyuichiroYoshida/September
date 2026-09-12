@@ -4,6 +4,7 @@ using InGame.Health;
 using September.Common;
 using September.InGame.Common;
 using September.InGame.Common.Stats;
+using September.InGame.UI;
 using UnityEngine;
 using PlayerInput = September.Common.PlayerInput;
 
@@ -441,6 +442,19 @@ namespace InGame.Player
             _rigidbody.constraints = active ?
                 RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation :
                 _defaultConstraints;
+        }
+
+        /// <summary>
+        /// 指定したプレイヤー本人の画面だけ、現在操作するキャラクターの操作説明へ切り替える。
+        /// State Authorityで行われる擬態のPrefab交換完了をInput Authority側のUIへ通知するために使用する。
+        /// </summary>
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        public void RPC_ChangeMimicDescriptionUI(PlayerRef target, ControlDescriptionType type)
+        {
+            if (Runner.LocalPlayer != target || !UIController.I)
+                return;
+
+            UIController.I.ChangeDescriptionUI(type);
         }
 
         /// <summary> 非常用リスポーン </summary>
