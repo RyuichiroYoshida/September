@@ -124,46 +124,6 @@ namespace InGame.Common
             _layerMixer = AnimationLayerMixerPlayable.Create(_graph, _layerInfo.Count);
             _output.SetSourcePlayable(_layerMixer);
             
-            
-            /*
-            _baseMixer = AnimationMixerPlayable.Create(_graph, 3);
-            var baseSlot = _slotOf[LayerInfo.LayerType.Base];
-            _graph.Connect(_baseMixer, 0, _layerMixer, baseSlot);
-            _layerMixer.SetInputWeight(baseSlot, 1f);
-            _layerMixer.SetLayerAdditive((uint)baseSlot, false);
-
-            //各レイヤーの初期設定
-            for (int i = 0; i < _layerInfo.Count; i++)
-            {
-                var li = _layerInfo[i];
-                if (li.LayerMask) _layerMixer.SetLayerMaskFromAvatarMask((uint)i, li.LayerMask);
-                _layerMixer.SetLayerAdditive((uint)i, li.Additive);
-                if (i != baseSlot) _layerMixer.SetInputWeight(i, Mathf.Clamp01(li.Weight));
-            }
-
-            var port = 0;
-            if (_wait)
-            {
-                var p = AnimationClipPlayable.Create(_graph, _wait);
-                _baseMixer.ConnectInput(port++, p, 0);
-            }
-            else _baseMixer.SetInputWeight(port++, 0f);
-
-            if (_walk)
-            {
-                var p = AnimationClipPlayable.Create(_graph, _walk);
-                _baseMixer.ConnectInput(port++, p, 0);
-            }
-            else _baseMixer.SetInputWeight(port++, 0f);
-
-            if (_run)
-            {
-                var p = AnimationClipPlayable.Create(_graph, _run);
-                _baseMixer.ConnectInput(port, p, 0);
-            }
-            else _baseMixer.SetInputWeight(port, 0f);
-            */
-
             BaseMixerInitialize();
             NormalMixerInitialize();
             AimMixerInitialize();
