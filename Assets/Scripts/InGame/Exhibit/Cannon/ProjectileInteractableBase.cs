@@ -7,6 +7,7 @@ using InGame.Health;
 using InGame.Interact;
 using InGame.Player;
 using September.Common;
+using September.InGame.Fields;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -30,7 +31,11 @@ namespace September.InGame.Exhibit
 		protected IProjectileMovement _move;
 		protected PlayerManager _usingPlayer;
 		private AnimationClipPlayer _animationClipPlayer;
-		public event Action<int> OnAmmoChanged;
+		/// <summary>
+		/// 現在の弾丸が減った時のコールバック
+		/// 変数は球数、クールタイム
+		/// </summary>
+		public event Action<int, float> OnAmmoChanged;
 
 		[Networked] private NetworkButtons _attackButton { get; set; }
 		[Networked] protected PlayerRef CurrentUsePlayerRef { get; set; }
@@ -111,6 +116,8 @@ namespace September.InGame.Exhibit
 			if (!_usingPlayer) return;
 			GetPlayerAnimatorClipPlayer(_usingPlayer);
 			PlayerActive(false);
+			
+			// モジュール関連の初期化
 			_move.InitializeStateAuthority(_usingPlayer.Object, playerRef);
 			FireBulletController.Init();
 			CurrentAmmo = FireBulletController.CurrentAmmo;
@@ -148,10 +155,14 @@ namespace September.InGame.Exhibit
 		protected virtual void CheckInteractEnd(PlayerInput input)
 		{
 			if (!HasStateAuthority) return;
-
-			if (input.Buttons.IsSet(PlayerButtons.Interact) && InteractEndLockTimer.ExpiredOrNotRunning(Runner))
+			
+			// フィールド外に出た場合の強制終了
+			if ((OutOfFieldArea.I && OutOfFieldArea.I.IsOutOfField(_usingPlayer.transform.position)) ||
+			    // Interactボタンが押されたときの強制終了
+			    (input.Buttons.IsSet(PlayerButtons.Interact) && InteractEndLockTimer.ExpiredOrNotRunning(Runner)))
 				InteractEnd();
-
+			
+			// タイムラグをインタラクト後に発生させる場合の終了処理
 			if (WaitExitTimer.Expired(Runner))
 			{
 				WaitExitTimer = TickTimer.None;
@@ -169,6 +180,7 @@ namespace September.InGame.Exhibit
 			RPC_StartAnimation(false);
 			Object.RemoveInputAuthority();
 			RPC_SetCameraPriority(CurrentUsePlayerRef, 5);
+			WaitExitTimer = TickTimer.None;
 
 			if (!_usingPlayer) return;
 			PlayerActive(true);
@@ -201,6 +213,7 @@ namespace September.InGame.Exhibit
 
 		private void SetCooldown()
 		{
+			if(CurrentUsePlayerRef.IsNone) return;
 			// クールダウン処理
 			var chara = PlayerDatabase.Instance.PlayerDataDic[CurrentUsePlayerRef].CharacterType;
 			var time = _interactable.CooldownTimeDictionary.Dictionary.TryGetValue(CharacterType.All, out var all)
@@ -259,7 +272,7 @@ namespace September.InGame.Exhibit
 
 		private void AmmoChanged()
 		{
-			OnAmmoChanged?.Invoke(CurrentAmmo);
+			OnAmmoChanged?.Invoke(CurrentAmmo, LastFireTimer.RemainingTime(Runner) ?? 0f);
 		}
 
 		#region Helper
@@ -267,7 +280,7 @@ namespace September.InGame.Exhibit
 		[Rpc(RpcSources.All, RpcTargets.All)]
 		private void RPC_SetCameraPriority(PlayerRef playerRef, int priority)
 		{
-			if (Runner.LocalPlayer != playerRef) return;
+			if (Runner.LocalPlayer != playerRef || _cameraController == null) return;
 			_cameraController.Priority = priority;
 			_cameraController.MoveToTopOfPrioritySubqueue();
 		}

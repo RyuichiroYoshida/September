@@ -1,14 +1,15 @@
+using September.InGame.Exhibit;
 using TMPro;
 using UnityEngine;
 
 namespace September
 {
-    public class BallistaAmmoView : MonoBehaviour
+    public class BallistaAmmoView : ProjectileAmmoViewBase
     {
         [SerializeField] private TMP_Text _ammoUI;
         [SerializeField] private TMP_Text _reloadText;
         
-        public void UpdateAmmo(int ammo)
+        public override void UpdateAmmo(int ammo, float coolTime)
         {
             if (ammo <= 0)
             {

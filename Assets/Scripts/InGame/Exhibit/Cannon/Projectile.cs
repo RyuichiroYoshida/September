@@ -8,6 +8,8 @@ namespace September.InGame.Exhibit
 	{
 		private LayerMask _hitLayer;
 		private GameObject _projectile;
+		private TickTimer _lifeTimer;
+		
 		/// <summary>
 		/// サーバーで実行されるHit時のコールバック処理
 		/// </summary>
@@ -23,6 +25,11 @@ namespace September.InGame.Exhibit
 			if(HasStateAuthority)
 			{
 				CurrentProjectileData = ProjectileUpdate(CurrentProjectileData);
+				if(_lifeTimer.Expired(Runner))
+				{
+					Runner.Despawn(Object);
+					return;
+				}
 			}
 			
 			if (CurrentProjectileData.HasHit)
@@ -61,6 +68,7 @@ namespace September.InGame.Exhibit
 			CurrentProjectileData = projectileData;
 			PlayerRef = playerRef;
 			OnHitCallback = onHitCallback;
+			_lifeTimer = TickTimer.CreateFromSeconds(Runner, CurrentProjectileData.LifeTime);
 		}
 		
 		private void RenderProjectile()

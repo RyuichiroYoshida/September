@@ -49,6 +49,8 @@ namespace Result
         Cannon,
         [DisplayName("ロウソク")]
         Candle,
+        [DisplayName("グライダー")]
+        Glider,
     }
 
     [Serializable]
