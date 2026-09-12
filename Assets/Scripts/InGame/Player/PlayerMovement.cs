@@ -120,9 +120,15 @@ namespace InGame.Player
             RecoveryPaused = true;
         }
 
-        private void ConsumeEvasionStaminaAndResumeRecovery()
+        private void ConsumeEvasionStaminaAndPauseRecovery(float interval)
         {
+            // 回復途中で回避した場合は残り時間を保存して停止する。
+            PauseEvasionRecovery(interval);
             _status.AddBaseValue(StatType.EvasionStamina, -1f);
+        }
+
+        private void ResumeEvasionRecovery()
+        {
             RecoveryPaused = false;
             RecoveryTimer = TickTimer.CreateFromSeconds(Runner, Mathf.Max(Runner.DeltaTime, RecoveryRemaining));
         }
@@ -242,8 +248,8 @@ namespace InGame.Player
             if (!_playerEvasion.TryStartEvasion(ref state, MoveDirection, transform.forward, Runner.Tick, Runner.DeltaTime, jewelryCount))
                 return;
 
-            // 回復途中で回避した場合は残り時間を保存して停止する。
-            PauseEvasionRecovery(_evasionData.StaminaRecoveryInterval);
+            // 回避が有効に開始した瞬間に消費し、回避中は回復を停止する。
+            ConsumeEvasionStaminaAndPauseRecovery(_evasionData.StaminaRecoveryInterval);
             Evasion = state;
             Stop();
         }
@@ -326,8 +332,8 @@ namespace InGame.Player
                 state.LastEndTick = tick;
                 Evasion = state;
 
-                // 回避完了時に消費し、停止していた残り時間から回復を再開する。
-                ConsumeEvasionStaminaAndResumeRecovery();
+                // 停止していた残り時間から回復を再開する。
+                ResumeEvasionRecovery();
 
                 if (HasStateAuthority) _playerHealth.IsInvincible = false;
                 return;
