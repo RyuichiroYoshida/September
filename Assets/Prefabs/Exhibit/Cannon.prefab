@@ -296,7 +296,7 @@ MonoBehaviour:
   _projectileSpawnPoint: {fileID: 7178459771463643047}
   _projectilePrefab: {fileID: 7956218160329834900, guid: 0100a4b61cfd62e4cbc905dc1ec90bbc, type: 3}
   _projectileEffectPrefab: {fileID: -6299654888396855261, guid: 45d0c9324ba914a439041fa5313c541e, type: 3}
-  _shootEffectType: 0
+  _shootEffectType: 35
   _simulationStepTime: 0.1
   _lifeTime: 10
   _gravity: {x: 0, y: -9.81, z: 0}
@@ -312,7 +312,8 @@ MonoBehaviour:
     - rid: 8123140420533747796
       type: {class: CannonHitEffect, ns: September.InGame.Exhibit, asm: Scripts}
       data:
-        _explosionParticlePrefab: {fileID: 893611506664009144, guid: 390cb52694a61f341bfe58d99efcaf7e, type: 3}
+        _explosionParticlePrefab: {fileID: 2665789679472049998, guid: 8cebae4743180a8429db474f300421e1, type: 3}
+        _explosionGroundParticlePrefab: {fileID: 4638604981986280445, guid: db5b471593b188b47a91d49c845acf98, type: 3}
         _radius: 3
         _damage: 50
         _knockBackPower: 20
@@ -321,6 +322,10 @@ MonoBehaviour:
         _hitLayer:
           serializedVersion: 2
           m_Bits: 192
+        _groundLayer:
+          serializedVersion: 2
+          m_Bits: 128
+        _effectScale: {x: 3, y: 3, z: 3}
 --- !u!114 &2840434559801315600
 MonoBehaviour:
   m_ObjectHideFlags: 0

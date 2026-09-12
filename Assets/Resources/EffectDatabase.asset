@@ -109,3 +109,12 @@ MonoBehaviour:
   - EffectType: 34
     Guid: 97db345cb3d6c2848aea033349f71f4b
     Prefab: {fileID: 2994536480912289278, guid: 97db345cb3d6c2848aea033349f71f4b, type: 3}
+  - EffectType: 35
+    Guid: 312e833c7e2866740be7522f92590c83
+    Prefab: {fileID: 6132564183074990948, guid: 312e833c7e2866740be7522f92590c83, type: 3}
+  - EffectType: 36
+    Guid: 8cebae4743180a8429db474f300421e1
+    Prefab: {fileID: 6078561214778955536, guid: 8cebae4743180a8429db474f300421e1, type: 3}
+  - EffectType: 37
+    Guid: db5b471593b188b47a91d49c845acf98
+    Prefab: {fileID: 3853176062880064669, guid: db5b471593b188b47a91d49c845acf98, type: 3}
