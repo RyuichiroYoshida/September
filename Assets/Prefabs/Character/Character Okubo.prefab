@@ -2706,10 +2706,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1367918494563018654}
-  - component: {fileID: 7878571843132561133}
-  - component: {fileID: 8843235077120827878}
-  - component: {fileID: 6832897436125411467}
-  - component: {fileID: 3576324368961918452}
   m_Layer: 0
   m_Name: Root1
   m_TagString: Untagged
@@ -2734,74 +2730,6 @@ Transform:
   - {fileID: 6855403456314617431}
   m_Father: {fileID: 547825065655889543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7878571843132561133
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3427594725172398176}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0d0957edb15e8846a8edb18d4472894, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _autoFind: 1
-  _namePartsToMatch:
-  - R_Hand
-  _sockets: []
---- !u!114 &8843235077120827878
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3427594725172398176}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed08c58996a8b304297cb853a8ff84c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _punchEffect: {fileID: 0}
-  _stunEffectPositionOffset: {x: 0, y: 2, z: 0}
---- !u!114 &6832897436125411467
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3427594725172398176}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b672fb587530b64aa46961c5136b388, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _cueSheet: ALLCue
---- !u!114 &3576324368961918452
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3427594725172398176}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7256c04836003a040b94cf9c96d573e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _sheetName: ALLCue
-  _footstepCueName: SE_OKB_Footstep
-  _punchSwingCueName: SE_Player_Punch_Swing
-  _punchHitCueName: SE_Player_Punch_Hit
-  _audioBroadcaster: {fileID: 6832897436125411467}
-  _clipPlayer: {fileID: 7929792229899843319}
-  _footstepBlockClipList:
-  - {fileID: 7400000, guid: bca6193f688d20a43b0b8202f53a204a, type: 2}
-  - {fileID: 7400000, guid: c426146fa1ef9fa41bae001fb50ec593, type: 2}
-  _playerTransform: {fileID: 0}
-  _cameraTransform: {fileID: 0}
-  _debugBGMVolume: 1
-  _debugSEVolume: 1
 --- !u!1 &3512133252702191556
 GameObject:
   m_ObjectHideFlags: 0
@@ -3701,7 +3629,7 @@ Transform:
   m_LocalRotation: {x: -0.23182331, y: 0.5511218, z: 0.6378221, w: 0.4854954}
   m_LocalPosition: {x: -0.13246596, y: -0.24001943, z: 0.11890174}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 553823749258120004}
   m_Father: {fileID: 8839968514960743079}
@@ -4947,6 +4875,10 @@ GameObject:
   m_Component:
   - component: {fileID: 547825065655889543}
   - component: {fileID: 7812773013328536820}
+  - component: {fileID: 222234083165175776}
+  - component: {fileID: 343900394308255866}
+  - component: {fileID: 6066827417310684439}
+  - component: {fileID: 5281565669557470290}
   m_Layer: 6
   m_Name: InterporateObjs
   m_TagString: Untagged
@@ -4993,6 +4925,74 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &222234083165175776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5517713260544480556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b672fb587530b64aa46961c5136b388, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cueSheet: ALLCue
+--- !u!114 &343900394308255866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5517713260544480556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7256c04836003a040b94cf9c96d573e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _sheetName: ALLCue
+  _footstepCueName: SE_OKB_Footstep
+  _punchSwingCueName: SE_Player_Punch_Swing
+  _punchHitCueName: SE_Player_Punch_Hit
+  _audioBroadcaster: {fileID: 222234083165175776}
+  _clipPlayer: {fileID: 7929792229899843319}
+  _footstepBlockClipList:
+  - {fileID: 7400000, guid: bca6193f688d20a43b0b8202f53a204a, type: 2}
+  - {fileID: 7400000, guid: c426146fa1ef9fa41bae001fb50ec593, type: 2}
+  _playerTransform: {fileID: 0}
+  _cameraTransform: {fileID: 0}
+  _debugBGMVolume: 1
+  _debugSEVolume: 1
+--- !u!114 &6066827417310684439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5517713260544480556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed08c58996a8b304297cb853a8ff84c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _punchEffect: {fileID: 0}
+  _stunEffectPositionOffset: {x: 0, y: 2, z: 0}
+--- !u!114 &5281565669557470290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5517713260544480556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0d0957edb15e8846a8edb18d4472894, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _autoFind: 1
+  _namePartsToMatch:
+  - R_Hand
+  _sockets: []
 --- !u!1 &5597256426868897497
 GameObject:
   m_ObjectHideFlags: 0
@@ -7851,9 +7851,9 @@ MonoBehaviour:
   - {fileID: 823846777013421275}
   - {fileID: -8262729499669972947}
   - {fileID: -7425297506862547660}
-  - {fileID: 8843235077120827878}
-  - {fileID: 6832897436125411467}
-  - {fileID: 3576324368961918452}
+  - {fileID: 222234083165175776}
+  - {fileID: 343900394308255866}
+  - {fileID: 6066827417310684439}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &7300132592530918323
 MonoBehaviour:
@@ -8117,7 +8117,7 @@ MonoBehaviour:
   _interactResponseTimeout: 3
   _interactAngleBuffer: 10
   _interactRadiusBuffer: 0.3
-  _playerAudioController: {fileID: 3576324368961918452}
+  _playerAudioController: {fileID: 0}
   _buildGenerator: {fileID: 2424115188774130470}
   _playerStatus: {fileID: 7276102098208113358}
   _isHoldingInteract: 0
@@ -8155,42 +8155,56 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerInputManager: {fileID: 8662693787533303848}
   _abilities:
-  - rid: 2115540913739006074
+  - rid: 2115540913739006180
   _conditions:
   - rid: 2115540913739006075
   references:
     version: 2
     RefIds:
-    - rid: 2115540913739006074
-      type: {class: AbilityNormalAttack, ns: InGame.Player.Ability, asm: Scripts}
+    - rid: 2115540913739006075
+      type: {class: AbilityNormalAttackExecuteCondition, ns: InGame.Player.Ability, asm: Scripts}
+      data:
+        _targetAbilityName: AbilityContinuousAttack
+    - rid: 2115540913739006180
+      type: {class: AbilityContinuousAttack, ns: InGame.Player.Ability, asm: Scripts}
       data:
         _cooldown: 0
         _phase: 0
         IsEnabled: 1
-        _attackDamage: 10
-        _ogreAttackDamage: 15
-        _startHitCheckFrame: 17
-        _endHitCheckFrame: 21
-        _endAttackFrame: 24
-        _hitEffect: 18
-        _normalAttackAnimationClip: {fileID: 1827226128182048838, guid: e7f6d82a4677ece47a0aaf56773ba37d, type: 3}
         _animationClipPlayer: {fileID: 7929792229899843319}
-        _moveForwardSpeed: 2
-        _boxHalfExtents: {x: 0.45, y: 0.85, z: 0.45}
-        _boxLocalOffset: {x: 0, y: 0.9, z: 0.6}
-        _boxCastDistance: 1
-        _hitLayer:
-          serializedVersion: 2
-          m_Bits: 4294967295
-        _triggerInteraction: 1
-        _debugHitBoxColor: {r: 0, g: 0.6, b: 1, a: 1}
-        _debugDrawDuration: 1
+        _attackDatas:
+        - _startAnimationClip: {fileID: 1827226128182048838, guid: e7f6d82a4677ece47a0aaf56773ba37d, type: 3}
+          _endAnimationClip: {fileID: 1827226128182048838, guid: 2c98b8f4cdfd2b64082f94338127c8dc, type: 3}
+          _damageStartFrame: 0
+          _damageEndFrame: 0
+          _damageAmount: 0
+          _nextInputStartFrame: 5
+          _drawSwordFrame: 11
+          _sheathSwordFrame: 39
+        - _startAnimationClip: {fileID: 1827226128182048838, guid: 597e986ff581d3249aa460c28d05e5b3, type: 3}
+          _endAnimationClip: {fileID: 1827226128182048838, guid: 7f2e8c9d639116148a0f5ce513c67542, type: 3}
+          _damageStartFrame: 0
+          _damageEndFrame: 0
+          _damageAmount: 0
+          _nextInputStartFrame: 5
+          _drawSwordFrame: -1
+          _sheathSwordFrame: 49
+        - _startAnimationClip: {fileID: 1827226128182048838, guid: a85055d94dbfcd944be2b14c8d45ad1f, type: 3}
+          _endAnimationClip: {fileID: 1827226128182048838, guid: 2c98b8f4cdfd2b64082f94338127c8dc, type: 3}
+          _damageStartFrame: 0
+          _damageEndFrame: 0
+          _damageAmount: 0
+          _nextInputStartFrame: 5
+          _drawSwordFrame: -1
+          _sheathSwordFrame: 39
+        _playerInputManager: {fileID: 8662693787533303848}
+        _continueAttackButton: 3
+        _animator: {fileID: 7812773013328536820}
+        _swordObject: {fileID: 928941539651277310}
+        _swordSocket: {fileID: 7953536993959905280}
+        _swordHandBone: 18
         _buildGenerator: {fileID: 0}
         _playerStatus: {fileID: 0}
-    - rid: 2115540913739006075
-      type: {class: AbilityNormalAttackExecuteCondition, ns: InGame.Player.Ability, asm: Scripts}
-      data:
-        _targetAbilityName: AbilityNormalAttack
 --- !u!114 &7929792229899843319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8220,7 +8234,7 @@ MonoBehaviour:
     LayerMask: {fileID: 0}
     Weight: 1
     Additive: 0
-  _graphSpeed: 0.5
+  _graphSpeed: 1
   _wait: {fileID: 1827226128182048838, guid: da8e21f273e31484cba2d523306268b8, type: 3}
   _walk: {fileID: 7400000, guid: b0eef498192b4af4da58c49f42d6f6fe, type: 2}
   _run: {fileID: -3153766841233697512, guid: d1586d0d3850841498b2874d8ce2e5fa, type: 3}
@@ -8517,7 +8531,7 @@ MonoBehaviour:
   _horizontalThrowForce: 5
   _upwardThrowForce: 3
   _heightOffset: 1.58
-  _audioBroadcaster: {fileID: 6832897436125411467}
+  _audioBroadcaster: {fileID: 0}
   _pickUpSoundCueName: SE_Jewel_PickUp
 --- !u!114 &3486311950402851515
 MonoBehaviour:
@@ -8532,7 +8546,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cueSheet: ALLCue
-  _audioBroadcaster: {fileID: 6832897436125411467}
+  _audioBroadcaster: {fileID: 0}
 --- !u!114 &823846777013421275
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8692,6 +8706,11 @@ PrefabInstance:
 --- !u!4 &553823749258120004 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e3cff7a50f0a2aa44bb13c2d300342fa, type: 3}
+  m_PrefabInstance: {fileID: 10461550276635823}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &928941539651277310 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e3cff7a50f0a2aa44bb13c2d300342fa, type: 3}
   m_PrefabInstance: {fileID: 10461550276635823}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &55146799222434302
