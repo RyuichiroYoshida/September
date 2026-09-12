@@ -1,0 +1,73 @@
+name: CompileCheck
+
+# 手動起動のみ。self-hosted ランナーが 1 台で、毎日の WinBuild と競合しうるため
+# pull_request トリガーにはしていない。
+on:
+    workflow_dispatch:
+        inputs:
+            ref:
+                description: '検査するブランチ / タグ / コミット'
+                required: true
+                default: 'develop'
+
+# 同じランナーのチェックアウトを切り替えるため、この workflow 同士は直列化する
+concurrency:
+    group: september-compile-check
+    cancel-in-progress: false
+
+jobs:
+    compile-check:
+        runs-on: [self-hosted, Windows, X64]
+        steps:
+            # 実行部の文字列は ASCII に統一している。
+            # ランナーがインラインスクリプトを書き出すエンコーディングに依存して
+            # ログが文字化けするのを避けるため (WinBuild.yml のインライン PowerShell と同じ方針)。
+            - name: Compile check
+              shell: powershell
+              run: |
+                $ErrorActionPreference = 'Stop'
+
+                # 外部アセット (Photon Fusion / CRI / NaughtyAttributes など) は .gitignore 対象で
+                # リポジトリに含まれない。クローンしただけでは必ずコンパイルに失敗するため、
+                # actions/checkout は使わず、WinBuild と同じくインポート済みの固定チェックアウトを使う。
+                # 専用のチェックアウトを用意した場合は SEPTEMBER_PROJECT_PATH で差し替える。
+                $projectPath = if ($env:SEPTEMBER_PROJECT_PATH) { $env:SEPTEMBER_PROJECT_PATH } else { 'C:\Users\vantan\Desktop\September' }
+                if (-not (Test-Path $projectPath)) { throw "Project not found: $projectPath" }
+
+                $requested = '${{ github.event.inputs.ref }}'
+                Write-Host "Project : $projectPath"
+                Write-Host "Ref     : $requested"
+
+                # 夜間の WinBuild は同じチェックアウトを使うため、元の参照へ必ず戻す
+                $originalRef = (git -C $projectPath rev-parse --abbrev-ref HEAD).Trim()
+                if ($originalRef -eq 'HEAD') { $originalRef = (git -C $projectPath rev-parse HEAD).Trim() }
+                Write-Host "Restore : $originalRef"
+
+                git -C $projectPath fetch origin --prune
+                if ($LASTEXITCODE -ne 0) { throw 'git fetch failed' }
+
+                # ブランチ名なら origin/<ref>、コミット SHA やタグならそのまま解決する
+                $target = "origin/$requested"
+                git -C $projectPath rev-parse --verify --quiet "$target^{commit}" > $null
+                if ($LASTEXITCODE -ne 0) { $target = $requested }
+
+                $checkExitCode = 2
+                try {
+                    # ローカルブランチを増やさないよう detached で取り出す
+                    git -C $projectPath checkout --detach $target
+                    if ($LASTEXITCODE -ne 0) { throw "checkout failed: $target" }
+
+                    & powershell -NoProfile -ExecutionPolicy Bypass -File "$projectPath\Tools\compile-check.ps1" -ProjectPath $projectPath
+                    $checkExitCode = $LASTEXITCODE
+                }
+                finally {
+                    git -C $projectPath checkout $originalRef
+                    if ($LASTEXITCODE -ne 0) { Write-Warning "Failed to restore original ref: $originalRef" }
+                }
+
+                # compile-check.ps1 の終了コード: 0 = エラーなし / 1 = コンパイルエラー / 2 = 検査不能
+                switch ($checkExitCode) {
+                    0 { Write-Host 'No compile errors.'; exit 0 }
+                    1 { Write-Host '::error::Compile errors found.'; exit 1 }
+                    default { Write-Host '::error::Compile check could not run (Unity not found, timeout, or external assets not imported).'; exit 1 }
+                }
