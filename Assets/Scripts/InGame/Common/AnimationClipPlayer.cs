@@ -227,7 +227,7 @@ namespace InGame.Common
         private void BaseMixerConnect()
         {
             _graph.Connect(_normalMixer, 0, _baseMixer, 0);
-            _graph.Connect(_aimMixer, 0, _aimMixer, 1);
+            _graph.Connect(_aimMixer, 0, _baseMixer, 1);
         }
         
         #endregion
@@ -891,7 +891,6 @@ namespace InGame.Common
             }
 
             SetLocoBlendWeight(_normalMixer, wWait, wWalk, wRun);
-            SetLocoBlendWeight(_aimMixer, wWait, wWalk, 0);
         }
         
         /// <summary>
@@ -905,8 +904,41 @@ namespace InGame.Common
         {
             mixer.SetInputWeight(0, wait);
             mixer.SetInputWeight(1, walk);
-            if(run == 0) return;
             mixer.SetInputWeight(2, run);
+        }
+        
+        /// <summary>
+        /// AimMixerに接続されている各AimアニメーションのWeightを設定
+        /// </summary>
+        /// <param name="move">入力</param>
+        public void SetAimLocoBlendWeight(Vector2 move)
+        {
+            move = Vector2.ClampMagnitude(move, 1f);
+
+            var front = Mathf.Max(0, move.y);
+            var back = Mathf.Max(0, -move.y);
+            var right =  Mathf.Max(0, move.x);
+            var left =  Mathf.Max(0, -move.x);
+            // 移動量によって減少
+            var wait = Mathf.Clamp01(1 - Mathf.Max(Mathf.Abs(move.x), Mathf.Abs(move.y)));
+            
+            // 合計値で割って、割合を求める
+            float total = wait + front + back + right + left;
+            if(total > 0)
+            {
+                wait   /= total;
+                front  /= total;
+                back   /= total;
+                right  /= total;
+                left   /= total;
+            }
+            
+            // Weight設定
+            _aimMixer.SetInputWeight(0, wait);
+            _aimMixer.SetInputWeight(1, front);
+            _aimMixer.SetInputWeight(2, back);
+            _aimMixer.SetInputWeight(3, right);
+            _aimMixer.SetInputWeight(4, left);
         }
         
         /// <summary>

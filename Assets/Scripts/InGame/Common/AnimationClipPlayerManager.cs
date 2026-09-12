@@ -220,6 +220,7 @@ namespace InGame.Common
             var playbackRate = baseSpeed > 0f ? speed / baseSpeed : 0f;
 
             _animationClipPlayer.SetLocoPlaybackRate(playbackRate);
+            _animationClipPlayer.SetAimLocoBlendWeight(_playerMovement.MoveInput);
             // 強制上書き中は、非ループクリップが終端に到達しても倒れた姿勢を保持する。
             if (!_hardOverride && !HasActiveTopLayerClip())
             {

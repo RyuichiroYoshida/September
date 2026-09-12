@@ -139,6 +139,7 @@ namespace InGame.Player
         public event Action OnStartVault;
         [Networked, HideInInspector] public Vector3 NetworkVelocity { get; private set; }
         [Networked] public Vector2 MoveDirection { get; private set; }
+        [Networked] public Vector2 MoveInput { get; private set; }
         private bool _isHookFollow;
         private Transform _hookTarget;
         private float _vaultTimer;
@@ -199,7 +200,7 @@ namespace InGame.Player
         public virtual void UpdateMovement(Vector2 moveInput, bool isDash, float cameraYaw, bool isJump, bool isEvasion, float deltaTime)
         {
             CheckGroundManual();
-
+            MoveInput = moveInput;
             MoveDirection = GetMoveDirection(moveInput, cameraYaw);
 
             if (_isHookFollow)
