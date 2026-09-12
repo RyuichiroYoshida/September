@@ -17,15 +17,17 @@ namespace September.Editor.HumanoidRig
             Rig = 0,
             AvatarMask = 1,
             Consistency = 2,
+            RootMotion = 3,
         }
 
-        private static readonly string[] TabLabels = { "リグ検査/修正", "AvatarMask 一括適用", "整合性チェック" };
+        private static readonly string[] TabLabels = { "リグ検査/修正", "AvatarMask 一括適用", "整合性チェック", "Root Motion Node" };
 
         private HumanoidRigTargetFolders _folders;
         private TargetFolderListView _folderView;
         private RigDiagnosticsSection _rigSection;
         private AvatarMaskSection _maskSection;
         private ModelConsistencySection _consistencySection;
+        private RootMotionNodeSection _rootMotionSection;
         private Tab _tab = Tab.Rig;
 
         [MenuItem(MenuPath)]
@@ -42,6 +44,7 @@ namespace September.Editor.HumanoidRig
             _rigSection = new RigDiagnosticsSection(_folders);
             _maskSection = new AvatarMaskSection(_folders);
             _consistencySection = new ModelConsistencySection(_folders);
+            _rootMotionSection = new RootMotionNodeSection(_folders);
         }
 
         private void OnGUI()
@@ -54,6 +57,9 @@ namespace September.Editor.HumanoidRig
 
             switch (_tab)
             {
+                case Tab.RootMotion:
+                    _rootMotionSection.Draw();
+                    break;
                 case Tab.AvatarMask:
                     _maskSection.Draw();
                     break;
