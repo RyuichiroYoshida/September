@@ -3207,6 +3207,10 @@ PrefabInstance:
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4162450557300358941, guid: 2d115f7443573284a8ddf8086cc4165c, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6494396399912570988, guid: 2d115f7443573284a8ddf8086cc4165c, type: 3}
       propertyPath: m_Material
       value: 
