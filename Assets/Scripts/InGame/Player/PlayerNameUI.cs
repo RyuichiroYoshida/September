@@ -15,6 +15,13 @@ namespace InGame.Player
         private PlayerRef _ownerRef;
         private bool _isMine;
 
+        /// <summary>
+        /// 擬態中に表示する名前の所有者。
+        /// Noneの場合は通常どおり、このPrefabのInputAuthorityの名前を表示する。
+        /// </summary>
+        [Networked, OnChangedRender(nameof(OnDisplayNameOwnerChanged))]
+        private PlayerRef DisplayNameOwner { get; set; } = PlayerRef.None;
+
         public override void Spawned()
         {
             _camera = Camera.main;
@@ -34,11 +41,32 @@ namespace InGame.Player
         {
             if (PlayerDatabase.Instance == null) return;
 
+            var nameOwner = DisplayNameOwner != PlayerRef.None
+                ? DisplayNameOwner
+                : _ownerRef;
+
             if (PlayerDatabase.Instance.PlayerDataDic
-                .TryGet(_ownerRef, out var data))
+                .TryGet(nameOwner, out var data))
             {
                 _nameText.text = data.DisplayNickName;
             }
+        }
+
+        /// <summary>
+        /// 擬態後の頭上表示名を、擬態対象プレイヤーの名前へ切り替える。
+        /// </summary>
+        public void SetMimicDisplayNameOwner(PlayerRef targetPlayer)
+        {
+            if (!HasStateAuthority || targetPlayer == PlayerRef.None)
+                return;
+
+            DisplayNameOwner = targetPlayer;
+            TrySetName();
+        }
+
+        private void OnDisplayNameOwnerChanged()
+        {
+            TrySetName();
         }
 
         private void LateUpdate()

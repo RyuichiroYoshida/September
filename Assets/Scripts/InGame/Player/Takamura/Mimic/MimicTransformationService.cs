@@ -29,17 +29,20 @@ namespace InGame.Player.Takamura.Mimic
         private readonly struct TransformRequest
         {
             public readonly PlayerRef Player;
+            public readonly PlayerRef TargetPlayer;
             public readonly CharacterType TargetCharacterType;
             public readonly float Duration;
             public readonly int ExecuteTick;
 
             public TransformRequest(
                 PlayerRef player,
+                PlayerRef targetPlayer,
                 CharacterType targetCharacterType,
                 float duration,
                 int executeTick)
             {
                 Player = player;
+                TargetPlayer = targetPlayer;
                 TargetCharacterType = targetCharacterType;
                 Duration = duration;
                 ExecuteTick = executeTick;
@@ -71,6 +74,7 @@ namespace InGame.Player.Takamura.Mimic
         /// <param name="duration">擬態有効時間</param>
         public static void ReserveTransform(
             NetworkObject owner,
+            PlayerRef targetPlayer,
             CharacterType targetCharacterType,
             float duration)
         {
@@ -83,7 +87,7 @@ namespace InGame.Player.Takamura.Mimic
                 service = owner.Runner.gameObject.AddComponent<MimicTransformationService>();
 
             service.Initialize(owner.Runner);
-            service.Enqueue(owner.InputAuthority, targetCharacterType, duration);
+            service.Enqueue(owner.InputAuthority, targetPlayer, targetCharacterType, duration);
         }
 
         private void Initialize(NetworkRunner runner)
@@ -99,6 +103,7 @@ namespace InGame.Player.Takamura.Mimic
         /// <param name="duration">擬態有効時間</param>
         private void Enqueue(
             PlayerRef player,
+            PlayerRef targetPlayer,
             CharacterType targetCharacterType,
             float duration)
         {
@@ -107,6 +112,7 @@ namespace InGame.Player.Takamura.Mimic
 
             _pendingRequests.Enqueue(new TransformRequest(
                 player,
+                targetPlayer,
                 targetCharacterType,
                 duration,
                 _runner.Tick + 1)); // 次のTickに予約
@@ -225,6 +231,7 @@ namespace InGame.Player.Takamura.Mimic
 
                 // 擬態前の情報を反映
                 snapshot.ApplyTo(newPlayer);
+                SetMimicDisplayName(newPlayer, request.TargetPlayer);
                 // 新しく生成したオブジェクトが正常に動作するようにする
                 InitializeReplacementPlayer(request.Player, newPlayer);
                 // 操作するキャラクターの参照を置き換える
@@ -401,6 +408,20 @@ namespace InGame.Player.Takamura.Mimic
                 return;
 
             playerManager.RPC_ChangeMimicDescriptionUI(player, descriptionType);
+        }
+
+        /// <summary>
+        /// 擬態後Prefabの頭上表示名を、擬態対象プレイヤーの名前へ切り替える。
+        /// 名前そのものではなくPlayerRefを同期するため、重複名の連番も既存データから取得できる。
+        /// </summary>
+        private static void SetMimicDisplayName(NetworkObject playerObject, PlayerRef targetPlayer)
+        {
+            if (!playerObject || targetPlayer == PlayerRef.None)
+                return;
+
+            var playerNameUI = playerObject.GetComponentInChildren<PlayerNameUI>(true);
+            if (playerNameUI)
+                playerNameUI.SetMimicDisplayNameOwner(targetPlayer);
         }
     }
 }

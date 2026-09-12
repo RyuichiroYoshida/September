@@ -68,6 +68,7 @@ namespace InGame.Player.Takamura.Mimic
             // 擬態の予約をするメソッド
             MimicTransformationService.ReserveTransform(
                 _preparedOwner,
+                _preparedTarget.InputAuthority,
                 _preparedCharacterType,
                 _mimicDuration);
 
