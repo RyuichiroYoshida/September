@@ -30,6 +30,7 @@ namespace September.InGame.Tutorial
 
         private bool _isWaitingForNextAction = false;
         private bool _isTutorialCompleted = false;
+        private bool _hasStarted;
         private TutorialActionData _actionData;
 
         private void OnValidate()
@@ -61,20 +62,27 @@ namespace September.InGame.Tutorial
         /// </summary>
         public void OnTutorialStart(NetworkObject player, PlayerInputManager playerInputManager)
         {
+            if (_hasStarted) return;
+            if (_tutorialActions == null || _tutorialActions.Count == 0)
+                throw new InvalidOperationException("チュートリアルのアクションが設定されていません。");
             Debug.Log($"TutorialManager: OnTutorialStart called for player {player.name}");
             _actionData.Player = player.gameObject;
             _actionData.PlayerInputManager = playerInputManager;
             _tutorialActions[_currentActionIndex].OnStart(_actionData);
+            _hasStarted = true;
         }
 
         private void Update()
         {
-            if (_isTutorialCompleted || _isWaitingForNextAction) return;
+            // プレイヤーと各アクションの初期化が終わるまで進行処理を呼ばない。
+            if (!_hasStarted || _isTutorialCompleted || _isWaitingForNextAction) return;
             _tutorialActions[_currentActionIndex].OnUpdate();
         }
 
         private void OnCompleteCurrentAction()
         {
+            if (!_hasStarted || _isWaitingForNextAction || _isTutorialCompleted) return;
+            _isWaitingForNextAction = true;
             CompleteCurrentActionAsync().Forget();
         }
 
@@ -86,7 +94,9 @@ namespace September.InGame.Tutorial
             _currentActionIndex++;
             _isWaitingForNextAction = true;
             // 次のアクションまで待つ
-            await WaitForNextActionAsync();
+            // シーンを離れた場合は次の説明を開かない。
+            if (await UniTask.Delay(TimeSpan.FromSeconds(_waitTime),
+                    cancellationToken: this.GetCancellationTokenOnDestroy()).SuppressCancellationThrow()) return;
 
             // 次のアクションがあれば開始する
             if (_currentActionIndex < _tutorialActions.Count)
@@ -104,9 +114,10 @@ namespace September.InGame.Tutorial
             }
         }
 
-        private async UniTask WaitForNextActionAsync()
+        private void OnDestroy()
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(_waitTime));
+            if (_hasStarted && !_isWaitingForNextAction && !_isTutorialCompleted)
+                _tutorialActions[_currentActionIndex].OnEndAction();
         }
     }
 }
