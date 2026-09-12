@@ -24,6 +24,7 @@ public enum ControlDescriptionType
     Okubo,
     OkuboAiming,
     Takamura,
+    Kraken,
     AirPlane,
 }
 
