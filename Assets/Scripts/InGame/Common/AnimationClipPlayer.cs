@@ -856,12 +856,17 @@ namespace InGame.Common
 
         public void SetLocoPlaybackRate(float rate)
         {
-            rate = Mathf.Max(0f, rate);
+            rate = Mathf.Max(0, rate);
+            SetMixerPlaybackRate(_normalMixer, rate);
+            SetMixerPlaybackRate(_aimMixer, rate);
+        }
 
+        private void SetMixerPlaybackRate(AnimationMixerPlayable mixer, float rate)
+        {
             // 0番は待機、1番が歩き、2番が走り
-            for (int i = 1; i < _baseMixer.GetInputCount(); i++)
+            for (int i = 1; i < mixer.GetInputCount(); i++)
             {
-                var input = _baseMixer.GetInput(i);
+                var input = mixer.GetInput(i);
 
                 if (input.IsValid())
                     input.SetSpeed(rate);
@@ -885,9 +890,41 @@ namespace InGame.Common
                 wRun = w - 1f;
             }
 
-            _baseMixer.SetInputWeight(0, wWait);
-            _baseMixer.SetInputWeight(1, wWalk);
-            _baseMixer.SetInputWeight(2, wRun);
+            SetLocoBlendWeight(_normalMixer, wWait, wWalk, wRun);
+            SetLocoBlendWeight(_aimMixer, wWait, wWalk, 0);
+        }
+        
+        /// <summary>
+        /// Mixerに接続されている各アニメーションのWeightを設定
+        /// </summary>
+        /// <param name="mixer">設定するMixer</param>
+        /// <param name="wait">待機</param>
+        /// <param name="walk">歩き</param>
+        /// <param name="run">走り</param>
+        private void SetLocoBlendWeight(AnimationMixerPlayable mixer, float wait, float walk, float run)
+        {
+            mixer.SetInputWeight(0, wait);
+            mixer.SetInputWeight(1, walk);
+            if(run == 0) return;
+            mixer.SetInputWeight(2, run);
+        }
+        
+        /// <summary>
+        /// Aim設定
+        /// </summary>
+        /// <param name="aim">true：Aimアニメーション　false：通常アニメーション</param>
+        public void SetAim(bool aim)
+        {
+            if (aim) // Aimアニメーションに変更
+            {
+                _baseMixer.SetInputWeight(0, 0f);
+                _baseMixer.SetInputWeight(1, 1f);
+            }
+            else // 通常アニメーションに変更
+            {
+                _baseMixer.SetInputWeight(0, 1f);
+                _baseMixer.SetInputWeight(1, 0f);
+            }
         }
 
         public float GetTargetLayerWeight(LayerInfo.LayerType layer)
