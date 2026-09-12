@@ -149,6 +149,10 @@ namespace InGame.Common
         /// </summary>
         private void ReleaseSubscriptions()
         {
+            // NetworkObjectのDespawn後まで気絶シーケンスが継続すると、
+            // 破棄済みAnimationClipPlayerへアクセスするため先にキャンセルする。
+            _overrideCts?.Cancel();
+
             _subscriptions.Clear();
 
             if (_playerHealth)
@@ -380,7 +384,9 @@ namespace InGame.Common
             _hardOverride = true;
             CaptureVisualRootBasePose();
 
-            var cts = new CancellationTokenSource();
+            // Managerの寿命にも連動させ、Despawn/Destroy後にシーケンスを再開させない。
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(
+                this.GetCancellationTokenOnDestroy());
             _overrideCts = cts;
             try
             {
@@ -420,6 +426,7 @@ namespace InGame.Common
                     await ApplyGetUpVisualCorrectionAsync(downForward, hasDownForward, cts.Token);
 
                     await getUpBlendTask;
+                    cts.Token.ThrowIfCancellationRequested();
                     _animationClipPlayer.PlayOnLayer(_getUp);
                     if (_getUp.length > 0f)
                     {
@@ -428,6 +435,7 @@ namespace InGame.Common
                 }
 
                 await WaitUntilStunEndedAsync(cts.Token);
+                cts.Token.ThrowIfCancellationRequested();
 
                 // フェードアウトして解除
                 await _animationClipPlayer.BlendLayerWeight(
@@ -437,6 +445,7 @@ namespace InGame.Common
                     cts.Token
                 );
 
+                cts.Token.ThrowIfCancellationRequested();
                 if (!ReferenceEquals(_overrideCts, cts)) return;
                 ClearGetUpVisualCorrection();
                 _animationClipPlayer.PlayOnLayer(null);
@@ -452,9 +461,14 @@ namespace InGame.Common
                 // 途中キャンセル時も確実に状態を畳む
                 if (cts.IsCancellationRequested && ReferenceEquals(_overrideCts, cts))
                 {
-                    _animationClipPlayer.PlayOnLayer(null);
-                    _animationClipPlayer.SetLayerWeight(LayerInfo.LayerType.TopLayer, 0f);
-                    ClearGetUpVisualCorrection();
+                    // OnDestroy/Despawnedからキャンセルされた場合、Unityオブジェクトには触れない。
+                    if (this && _animationClipPlayer)
+                    {
+                        _animationClipPlayer.PlayOnLayer(null);
+                        _animationClipPlayer.SetLayerWeight(LayerInfo.LayerType.TopLayer, 0f);
+                        ClearGetUpVisualCorrection();
+                    }
+
                     _hardOverride = false;
                     if (ReferenceEquals(_overrideCts, cts)) _overrideCts = null;
                 }
