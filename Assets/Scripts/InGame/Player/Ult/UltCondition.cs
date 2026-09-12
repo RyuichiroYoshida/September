@@ -21,6 +21,12 @@ namespace InGame.Player.Ult
         public int RemainingScore => Mathf.Clamp(_requiredScore - (_currentScore - PrevScore), 0, _requiredScore);
         public float Progress => Mathf.Clamp01((float)(_currentScore - PrevScore) / _requiredScore);
 
+        /// <summary>
+        /// Prefab交換をまたいでULTの消費状態を維持するため、
+        /// 直近のULT発動時点のスコアを取得する。
+        /// </summary>
+        public int ConsumedScore => PrevScore;
+
         public event Action OnProgressChanged;
 
         public bool IsAvailable()
@@ -31,6 +37,19 @@ namespace InGame.Player.Ult
         public void OnUltActivated()
         {
             PrevScore = _currentScore;
+        }
+
+        /// <summary>
+        /// 擬態によるPrefab交換後のUltConditionへ消費状態を引き継ぐ。
+        /// 通常のULT処理からは使用せず、タカムラの擬態状態復元時だけ呼び出す。
+        /// </summary>
+        public void RestoreConsumedScore(int consumedScore)
+        {
+            if (!HasStateAuthority)
+                return;
+
+            PrevScore = consumedScore;
+            OnProgressChanged?.Invoke();
         }
 
         /// <summary>
