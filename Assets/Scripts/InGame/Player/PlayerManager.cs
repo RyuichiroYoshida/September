@@ -220,6 +220,14 @@ namespace InGame.Player
         /// </summary>
         private void UpdateLockOn(PlayerInput input)
         {
+            // キャラクター固有のエイム能力に関係なく、入力中と搭乗中は解除する。
+            if (input.Buttons.IsSet(PlayerButtons.Aim)
+                || CurrentPlayerControlState != PlayerControlState.Normal)
+            {
+                DisableLockOn();
+                return;
+            }
+
             if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.LockOn)
                 && !IsStun
                 && IsMovable
@@ -242,6 +250,7 @@ namespace InGame.Player
         {
             target = null;
             return IsLockOnActive
+                && !GameInput.I.Player.Aim.IsPressed()
                 && !IsStun
                 && IsMovable
                 && CurrentPlayerControlState == PlayerControlState.Normal
@@ -349,6 +358,10 @@ namespace InGame.Player
         public void SetControlState(PlayerControlState controlState)
         {
             CurrentPlayerControlState = controlState;
+
+            // 入力が届かない Tick でも搭乗時のロックオンを持ち越さない。
+            if (CurrentPlayerControlState != PlayerControlState.Normal)
+                DisableLockOn();
 
             if (CurrentPlayerControlState == PlayerControlState.ForcedControl)
             {
