@@ -3,7 +3,9 @@ using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Exhibit;
 using InGame.Interact;
+using InGame.Jewelry;
 using UniRx;
+using UnityEngine;
 
 namespace September.InGame.UI
 {
@@ -15,7 +17,7 @@ namespace September.InGame.UI
 
         private readonly Subject<bool> _onClickOptionButton = new();
         private readonly Subject<ControlDescriptionType> _onChangeDescriptionUI = new();
-        private readonly ReactiveProperty<int> _onChangeSliderValue = new();
+        private readonly ReactiveProperty<float> _onHealthRatioChanged = new();
         private readonly Subject<NetworkRunner> _onStartTimer = new();
         private readonly Subject<string> _onShowLog = new();
         private readonly ReactiveProperty<bool> _onShowOgreUI = new();
@@ -28,13 +30,16 @@ namespace September.InGame.UI
         private readonly ReactiveProperty<float> _onChangeInteractProgress = new();
         private readonly Subject<(float, StatusUpType)> _onInteractStatusUpObject = new();
         private readonly Subject<bool> _onOutField = new();
+        private readonly Subject<(float, NoticeType)> _onNotice = new();
+        private readonly Subject<int> _onEvasionStaminaRecoverd = new();
+        private readonly Subject<float> _onEvasionStaminaProgressChanged = new();
 
         #endregion
 
         #region 外部公開プロパティ
 
         public IObservable<bool> OnClickOptionButton => _onClickOptionButton;
-        public IReadOnlyReactiveProperty<int> OnChangeSliderValue => _onChangeSliderValue;
+        public IReadOnlyReactiveProperty<float> OnHealthRatioChanged => _onHealthRatioChanged;
         public IObservable<NetworkRunner> OnStartTimer => _onStartTimer;
         public IObservable<string> OnShowLog => _onShowLog;
         public IObservable<bool> OnShowOgreUI => _onShowOgreUI;
@@ -49,7 +54,9 @@ namespace September.InGame.UI
         public Func<TimeMessageType, UniTask> TimeOverlayMessage { get; set; }
         public IObservable<int> OnChangeScoreText => _onchangeScoreText;
         public IObservable<bool> OnOutField => _onOutField;
-
+        public IObservable<(float, NoticeType)> OnNotice => _onNotice;
+        public IObservable<int> OnEvasionStaminaChanged => _onEvasionStaminaRecoverd;
+        public IObservable<float> OnEvasionStaminaProgressChanged => _onEvasionStaminaProgressChanged;
         #endregion
 
         public InGameUIRootRefs UIRootRefs { get; set; }
@@ -94,10 +101,17 @@ namespace September.InGame.UI
             _changeTagNoticeObserver.OnNext(messageType);
         }
 
-        public void ChangeSliderValue(int value)
+        public void ChangeHealthRatio(float ratio)
         {
-            _onChangeSliderValue.Value = value;
+            bool isFirstValue = !HasHealthRatio;
+            HasHealthRatio = true;
+            if (isFirstValue)
+                _onHealthRatioChanged.SetValueAndForceNotify(Mathf.Clamp01(ratio));
+            else
+                _onHealthRatioChanged.Value = Mathf.Clamp01(ratio);
         }
+
+        public bool HasHealthRatio { get; private set; }
 
         public void ChangeStaminaValue(float value)
         {
@@ -125,6 +139,21 @@ namespace September.InGame.UI
         public void ShowOutFieldUI(bool isActive)
         {
             _onOutField.OnNext(isActive);
+        }
+
+        public void ShowNotice(float second, NoticeType noticeType)
+        {
+            _onNotice.OnNext((second, noticeType));
+        }
+
+        public void ShowEvasionStamina(int value)
+        {
+            _onEvasionStaminaRecoverd.OnNext(value);
+        }
+
+        public void ShowEvasionStaminaProgress(float value)
+        {
+            _onEvasionStaminaProgressChanged.OnNext(value);
         }
     }
 }

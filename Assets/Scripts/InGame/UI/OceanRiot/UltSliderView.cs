@@ -3,18 +3,14 @@ using InGame.Player.Ult;
 using September.Common;
 using September.InGame.Common;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace September.InGame.Ult
+namespace September
 {
-    public class UltUI : MonoBehaviour
+    public class UltSliderView : MonoBehaviour
     {
-        [SerializeField] private Image _image;
         [SerializeField] private float _easeDuration = 0.2f;
-
         private void Start()
         {
-            _image.fillAmount = 0f;
 
             var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
             
@@ -41,13 +37,14 @@ namespace September.InGame.Ult
                     return;
                 }
                 
-                model.OnProgressChanged += () => SetGaugeProgress(model.Progress);
+                model.OnProgressChanged += () => SetGaugeRotation(model.Progress);
             };
         }
 
-        private void SetGaugeProgress(float ratio)
+        private void SetGaugeRotation(float ratio)
         {
-            _image.DOFillAmount(ratio, _easeDuration);
+            var angle = -(Mathf.Clamp01(ratio) * 360f);
+            transform.DOLocalRotate(new Vector3(0f, 0f, angle), _easeDuration);
         }
     }
 }

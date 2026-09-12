@@ -199,6 +199,10 @@ namespace InGame.Player
 
         public override void FixedUpdateNetwork()
         {
+            // 乗車中・気絶中・入力欠落中も回避スタミナの回復を進める。
+            if (HasStateAuthority || HasInputAuthority)
+                _playerMovement.UpdateEvasionStamina();
+
             if (HasStateAuthority)
             {
                 if (StunTickTimer.Expired(Runner) && IsStun)

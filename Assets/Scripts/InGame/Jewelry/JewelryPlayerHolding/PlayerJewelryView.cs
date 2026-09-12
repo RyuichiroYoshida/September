@@ -36,12 +36,14 @@ namespace InGame.Jewelry
         /// </summary>
         /// <param name="jewelryType">宝石の種類</param>
         /// <param name="sprite">アイコン</param>
-        public void Init(JewelryType jewelryType, Sprite sprite)
+        public void Init(JewelryType jewelryType, InGame.Jewelry.Common.JewelryInfo jewelryInfo)
         {
             if (!Validate(jewelryType)) return;
 
             var image = _jewelryUIArray[(int)jewelryType].JewelryImage;
-            image.sprite = sprite;
+            image.sprite = _hideLocal
+                ? jewelryInfo.JewelryOverheadSprite
+                : jewelryInfo.JewelryUISprite;
         }
 
         /// <summary>
