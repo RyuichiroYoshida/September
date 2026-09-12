@@ -19,7 +19,6 @@ namespace InGame.Player.Ability
             if (!_playerMovement) _playerMovement = context.Owner.GetComponent<PlayerMovement>();
             if (!_playerManager) _playerManager = context.Owner.GetComponent<PlayerManager>();
 
-
             //Available状態でAttackボタンが押されたら条件を満たす
             return _playerMovement.IsGround && !_playerManager.IsStun && !_playerMovement.IsEvading && !IsGameEnded() &&
                    _playerManager.CurrentPlayerControlState == PlayerManager.PlayerControlState.Normal &&
@@ -35,8 +34,8 @@ namespace InGame.Player.Ability
                 var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
                 if (inGameManager == null) return false;
 
-                // EndingStateかPlayingState以外の場合は攻撃を無効にする
-                return inGameManager.CurrentStateName != "PlayingState";
+                // EndingStateかPlayingStateもしくはTutorialState以外の場合は攻撃を無効にする
+                return inGameManager.CurrentStateName != "PlayingState" && inGameManager.CurrentStateName != "TutorialState";
             }
             catch (System.Exception)
             {

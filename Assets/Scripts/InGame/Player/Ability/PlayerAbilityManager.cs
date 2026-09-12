@@ -24,6 +24,10 @@ namespace InGame.Player.Ability
         private NetworkObject _networkObject;
         /// <summary>アビリティ名（クラス名）でアビリティを検索するための辞書</summary>
         private readonly Dictionary<string, AbilityBase> _abilityByName = new();
+        /// <summary>
+        /// チュートリアルでアビリティ判定を行うため
+        /// </summary>
+        public AbilityBase CurrentAbility = null;
 
         /// <summary>
         /// ネットワーク生成時の初期化処理
@@ -89,6 +93,7 @@ namespace InGame.Player.Ability
                 if (condition.IsConditionMatch(in ctx))
                 {
                     targetAbility.Start(new AbilityParameter { Owner = _networkObject });
+                    CurrentAbility = targetAbility;
                 }
             }
 

@@ -63,6 +63,7 @@ namespace September.InGame.UI
 
         public void SetUpStartUI()
         {
+            Debug.Log("SetUpStartUI");
             _onGameStart.OnNext(Unit.Default);
         }
 

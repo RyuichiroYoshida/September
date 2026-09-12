@@ -2,6 +2,7 @@ using System;
 using InGame.Player.Sarutobi;
 using September.Common;
 using September.InGame.Common;
+using UnityEngine;
 
 namespace InGame.Player.Ability.Condition
 {
@@ -19,6 +20,7 @@ namespace InGame.Player.Ability.Condition
             if (!_playerMovement) _playerMovement = context.Owner.GetComponent<PlayerMovement>();
             if (!_playerManager) _playerManager = context.Owner.GetComponent<PlayerManager>();
             if (!_throwKunai) _throwKunai = context.Owner.GetComponent<ThrowKunai>();
+
             //Available状態でAttackボタンが押されたら条件を満たす
             return _playerMovement.IsGround && !_playerManager.IsStun && !IsGameEnded() &&
                    _playerManager.CurrentPlayerControlState == PlayerManager.PlayerControlState.Normal &&
@@ -33,14 +35,18 @@ namespace InGame.Player.Ability.Condition
             try
             {
                 var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
-                if (inGameManager == null) return false;
+                if (inGameManager == null)
+                {
+                    Debug.Log("[IsGameEnded] inGameManager is NULL");
+                    return false;
+                }
 
-                // EndingStateかPlayingState以外の場合は攻撃を無効にする
-                return inGameManager.CurrentStateName != "PlayingState";
+
+                return inGameManager.CurrentStateName != "PlayingState" && inGameManager.CurrentStateName != "TutorialState";
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
-                // エラーが発生した場合は安全側に攻撃を無効にする
+                Debug.LogWarning($"[IsGameEnded] Exception: {e}");
                 return true;
             }
         }

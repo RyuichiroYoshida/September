@@ -172,7 +172,9 @@ namespace InGame.Player.Ability
                 HitActionType.Damage,
                 damage,
                 Parameter.Owner.InputAuthority,
-                damageable.OwnerPlayerRef);
+                damageable.OwnerPlayerRef,
+                this
+                );
             damageable.TakeHit(ref hitData);
             _buildGenerator?.UpdateBuild(BuildRouteType.AttackPower);
 

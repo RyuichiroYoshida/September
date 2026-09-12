@@ -67,6 +67,7 @@ namespace September.InGame.UI
 
         private void Bind()
         {
+            Debug.Log("InGameStatusView Bind");
             UIController ui = UIController.I;
             ui.OnGameStart.Subscribe(_ => SetupUI()).AddTo(_cts.Token);
 

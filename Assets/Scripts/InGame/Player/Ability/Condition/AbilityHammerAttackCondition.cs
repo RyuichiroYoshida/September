@@ -32,8 +32,8 @@ namespace InGame.Player.Ability.Condition
                 var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
                 if (inGameManager == null) return false;
 
-                // EndingStateかPlayingState以外の場合は攻撃を無効にする
-                return inGameManager.CurrentStateName != "PlayingState";
+                // EndingStateかPlayingStateもしくはTutorialState以外の場合は攻撃を無効にする
+                return inGameManager.CurrentStateName != "PlayingState" && inGameManager.CurrentStateName != "TutorialState";
             }
             catch (System.Exception)
             {

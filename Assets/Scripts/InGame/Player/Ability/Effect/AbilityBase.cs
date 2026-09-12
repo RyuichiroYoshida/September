@@ -1,7 +1,8 @@
+using Fusion;
+using InGame.Health;
+using September.Common;
 using System;
 using System.Linq;
-using Fusion;
-using September.Common;
 using UnityEngine;
 
 namespace InGame.Player.Ability
@@ -23,7 +24,7 @@ namespace InGame.Player.Ability
     /// 派生クラスで個別のアビリティ動作を実装する
     /// </summary>
     [Serializable]
-    public class AbilityBase
+    public class AbilityBase : IHitExecutor
     {
         /// <summary>
         /// アビリティの実行フェーズ
@@ -196,5 +197,10 @@ namespace InGame.Player.Ability
         /// アビリティ終了時の処理（派生クラスでオーバーライド可能）
         /// </summary>
         protected virtual void OnEndAbility() { }
+
+        public void HitExecution(HitData hitData)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -37,6 +37,10 @@ namespace Ingame.Tanihira
                 {
                     _inGameManager.GameStarted += GameStart;
                 }
+                else
+                {
+                    Debug.LogError("InGameManagerが見つかりません");
+                }
                 _tyrannoInteractables = FindObjectsOfType<TyrannoInteractable>().ToList();
             }
         }

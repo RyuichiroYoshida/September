@@ -87,6 +87,8 @@ namespace InGame.Player
         private bool _isDashCoolTime;
         private bool CanDash => !_isDashCoolTime && _status.CurrentStamina > 0 && IsGround;
         private bool _isDash;
+        /// <summary>チュートリアルの判定用</summary>
+        public bool IsDash => _isDash;
         // vault
         private bool _doingVault;
         // Roll
