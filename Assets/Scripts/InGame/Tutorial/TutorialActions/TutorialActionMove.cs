@@ -1,4 +1,4 @@
-﻿using InGame.Player;
+using InGame.Player;
 using System;
 using UnityEngine;
 
@@ -11,7 +11,7 @@ namespace September.InGame.Tutorial
         [Header("ターゲット")]
         [SerializeField] private Transform[] _walkTarget;
         private int _warkTargetIndex = 0;
-        [SerializeField] private GameObject _targetDisplayObj;
+        [SerializeField] private TutorialMoveGuide _guide;
         [SerializeField] private float _targetRange = 3f;
         [SerializeField] private LayerMask _playerLayer = 1 << 6; // プレイヤーのレイヤー
         private PlayerMovement _playerMovement;
@@ -39,7 +39,7 @@ namespace September.InGame.Tutorial
                 Debug.LogError("PlayerMovementコンポーネントが見つかりません。");
             }
             actionData.TutorialText.text = _explanationText;
-            _targetDisplayObj.transform.position = _walkTarget[_warkTargetIndex].position;
+            _guide.Show(actionData.Player.transform, _walkTarget[_warkTargetIndex]);
         }
 
         public override void OnUpdate()
@@ -60,6 +60,7 @@ namespace September.InGame.Tutorial
 
         private void WalkMove()
         {
+            if (_isMoveCompleted) return;
             if (IsInPlayerInTarget(_walkTarget, _warkTargetIndex))
             {
                 if (!TryToNextTarget(_walkTarget, ref _warkTargetIndex))
@@ -99,11 +100,11 @@ namespace September.InGame.Tutorial
             {
                 // すべてのターゲットをクリアした場合の処理
                 Debug.Log("すべてのターゲットをクリアしました！");
-                _targetDisplayObj.SetActive(false);
+                _guide.Hide();
                 return false;
             }
             // 次のターゲットに移動
-            _targetDisplayObj.transform.position = targets[targetIndex].position;
+            _guide.Show(_actionData.Player.transform, targets[targetIndex]);
 
             return true;
         }
@@ -147,6 +148,7 @@ namespace September.InGame.Tutorial
 
         public override void OnEndAction()
         {
+            _guide.Hide();
             base.OnEndAction();
             Debug.Log("移動アクション完了");
             _warkTargetIndex = 0;
