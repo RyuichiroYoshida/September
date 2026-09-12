@@ -88,5 +88,3 @@ namespace InGame.Player.Takamura.Mimic
         }
     }
 }
-// 擬態などでPlayerのNetworkObjectが交換された場合も同じPlayerRefを更新できるようにする。
-//_playerDataDic[playerRef] = networkObject;
