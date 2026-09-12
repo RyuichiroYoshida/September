@@ -35,6 +35,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Maps/Pirate/Pirate_Field.unity
     guid: dfd7858ee4cd0c249b3ae61c4a0aa001
+  - enabled: 1
+    path: Assets/Scenes/NetworkMock/Tutorial.unity
+    guid: 00555423d312cc64988f138620a7d69f
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: f6cb3f85ebbf85c45b9274aa20555b46, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
