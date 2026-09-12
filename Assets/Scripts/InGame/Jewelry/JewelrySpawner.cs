@@ -187,7 +187,7 @@ namespace InGame.Jewelry
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_ShowSpawnMessage(float second)
         {
-            UIController.I.ShowStatusUpUI(second, Exhibit.StatusUpType.JewelrySpawn);
+            UIController.I.ShowNotice(second, NoticeType.JewelrySpawn);
         }
 
         private void SpawnJewelryGroup(JewelrySpawnSetting spawnSetting)
@@ -269,5 +269,11 @@ namespace InGame.Jewelry
                 GizmosUtility.DrawCircle(center, Vector3.up, setting.SpawnRange);
             }
         }
+    }
+    public enum NoticeType
+    {
+        None,
+        JewelrySpawn,
+        KrakenSpawn,
     }
 }

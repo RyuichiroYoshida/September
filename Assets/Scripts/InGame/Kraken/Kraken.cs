@@ -9,6 +9,7 @@ using September.Common.Input;
 using September.InGame.Kraken.Animations;
 using September.InGame.Kraken.Attack;
 using September.InGame.Mountable;
+using September.InGame.UI;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Pool;
@@ -232,6 +233,9 @@ namespace September.InGame.Kraken
             // このプレイヤーから入力を受け取るように設定する
             Object.AssignInputAuthority(owner);
 
+            // 搭乗中は展示物用の操作説明を表示する。
+            RPC_ChangeDescriptionUI(owner, ControlDescriptionType.Exhibit);
+
             _interactable.ForceSetInteractable = false;
 
             OwnerPlayerRef = owner;
@@ -245,6 +249,13 @@ namespace September.InGame.Kraken
         {
             // 実際の解除タイミングを制御するためにリクエストとして保存する
             _isGetOffRequested = true;
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_ChangeDescriptionUI(PlayerRef target, ControlDescriptionType type)
+        {
+            if (Runner.LocalPlayer == target)
+                UIController.I.ChangeDescriptionUI(type);
         }
 
         private void HandleGetOff(PlayerRef owner)
@@ -273,6 +284,13 @@ namespace September.InGame.Kraken
 
             // 入力を受け取らないようにする
             Object.RemoveInputAuthority();
+
+            if (PlayerDatabase.Instance.PlayerDataDic.TryGet(owner, out var playerData))
+            {
+                var type = CharacterDataContainer.Instance
+                    .GetControlDescriptionType(playerData.CharacterType);
+                RPC_ChangeDescriptionUI(owner, type);
+            }
 
             OwnerPlayerRef = default;
 

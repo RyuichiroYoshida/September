@@ -34,6 +34,7 @@ namespace September.InGame.Common
         private void Awake()
         {
             InGameDebugTimeInjector.Apply(_timerData);
+            StaticServiceLocator.Instance.Register(this);
         }
 
         /// <summary>
@@ -45,7 +46,6 @@ namespace September.InGame.Common
 
         private void Start()
         {
-            StaticServiceLocator.Instance.Register(this);
             _gameRule.SetCurrentRule();
         }
 

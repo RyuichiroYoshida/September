@@ -12,6 +12,9 @@ namespace InGame.Player
         [SerializeField] private float _startInvincibleTime = 0.10f;
         [SerializeField] private float _invincibleTime = 0.25f;
         [SerializeField] private float _cooldown = 0;
+        [Header("回避スタミナ")]
+        [SerializeField, Min(0.01f), Tooltip("スタミナが1回復するまでの秒数")]
+        private float _staminaRecoveryInterval = 3f;
         [SerializeField] private float _weightDecay = 0.1f;
         [SerializeField] private AnimationCurve _rollSpeedCurve;
         [SerializeField] private AnimationCurve _turnSpeedCurve;
@@ -23,6 +26,7 @@ namespace InGame.Player
         public float StartInvincibleTime => _startInvincibleTime;
         public float InvincibleTime => _invincibleTime;
         public float Cooldown => _cooldown;
+        public float StaminaRecoveryInterval => Mathf.Max(0.01f, _staminaRecoveryInterval);
         public float WeightDecay => _weightDecay;
         public AnimationCurve RollSpeedCurve => _rollSpeedCurve;
         public AnimationCurve TurnSpeedCurve => _turnSpeedCurve;

@@ -1409,6 +1409,10 @@ PrefabInstance:
       propertyPath: 'NetworkedBehaviours.Array.data[1]'
       value: 
       objectReference: {fileID: 542693327}
+    - target: {fileID: 2932301518178117387, guid: aea3ee96d9aafdc44987d473e0f5d27d, type: 3}
+      propertyPath: _statusUpUI
+      value: 
+      objectReference: {fileID: 6685058023924324556, guid: 231d441d4ef224c4d82d5dd3f6cb2e67, type: 3}
     - target: {fileID: 5350015315830211674, guid: aea3ee96d9aafdc44987d473e0f5d27d, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -8209,8 +8213,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1285741891474971311}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.23496214, y: -0.36528242, z: 0.09582772, w: 0.89564425}
-  m_LocalPosition: {x: 23.667185, y: -3.8215857, z: -0.31890345}
+  m_LocalRotation: {x: 0.15260132, y: -0.8086604, z: 0.23953608, w: 0.5151735}
+  m_LocalPosition: {x: 20.002966, y: 0.77697897, z: 24.885712}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

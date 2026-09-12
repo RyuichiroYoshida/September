@@ -11,5 +11,7 @@ namespace September.InGame.Common.Stats
         AttackDamage,
         InteractDurationMultiply,
         StunDurationMultiply,
+        EvasionStamina,
+        Evasion,
     }
 }

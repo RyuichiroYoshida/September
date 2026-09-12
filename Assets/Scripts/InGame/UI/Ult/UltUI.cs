@@ -9,12 +9,12 @@ namespace September.InGame.Ult
 {
     public class UltUI : MonoBehaviour
     {
-        [SerializeField] private Slider _gauge;
+        [SerializeField] private Image _image;
         [SerializeField] private float _easeDuration = 0.2f;
 
         private void Start()
         {
-            _gauge.value = 0f;
+            _image.fillAmount = 0f;
 
             var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
             
@@ -47,7 +47,7 @@ namespace September.InGame.Ult
 
         private void SetGaugeProgress(float ratio)
         {
-            _gauge.DOValue(ratio, _easeDuration);
+            _image.DOFillAmount(ratio, _easeDuration);
         }
     }
 }
