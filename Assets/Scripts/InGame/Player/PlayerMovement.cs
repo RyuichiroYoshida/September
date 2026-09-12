@@ -47,7 +47,6 @@ namespace InGame.Player
         [Header("Roll")]
         [SerializeField] private EvasionData _evasionData;
         [SerializeField] private PlayerHealth _playerHealth;
-        [SerializeField] private PlayerJewelryRuntime _playerJewelryRuntime;
         [Header("Debug")]
         [SerializeField] private bool _printVaultFailedLog;
         [SerializeField] private bool _visibleGizmos;
@@ -170,7 +169,7 @@ namespace InGame.Player
         public bool IsEvading => Evasion.IsEvading;
         /// <summary> 回避を開始した Tick </summary>
         public int EvasionStartTick => Evasion.StartTick;
-        /// <summary> 回避全体の所要時間 (秒、重量係数適用後) </summary>
+        /// <summary> 回避全体の所要時間 (秒) </summary>
         public float EvasionDuration => Evasion.RollDuration;
         [Networked] public bool IgnoreMoveInput { get; set; }
         [Networked] public bool IgnoreEvasionInput { get; set; }
@@ -243,9 +242,8 @@ namespace InGame.Player
             if (EvasionStamina <= 0) return;
 
             var state = Evasion;
-            int jewelryCount = _playerJewelryRuntime.CalculateJewelryScore();
 
-            if (!_playerEvasion.TryStartEvasion(ref state, MoveDirection, transform.forward, Runner.Tick, Runner.DeltaTime, jewelryCount))
+            if (!_playerEvasion.TryStartEvasion(ref state, MoveDirection, transform.forward, Runner.Tick, Runner.DeltaTime))
                 return;
 
             // 回避が有効に開始した瞬間に消費し、回避中は回復を停止する。

@@ -22,7 +22,7 @@ namespace InGame.Player
         /// <summary>
         /// 回避を開始できるなら state を更新して true を返す。
         /// </summary>
-        public bool TryStartEvasion(ref EvasionState state, Vector2 inputDirection, Vector3 currentForward, int currentTick, float tickDeltaTime, int playerWeight)
+        public bool TryStartEvasion(ref EvasionState state, Vector2 inputDirection, Vector3 currentForward, int currentTick, float tickDeltaTime)
         {
             if (state.IsEvading)
                 return false;
@@ -43,15 +43,14 @@ namespace InGame.Player
             moveDirection.y = 0f;
             moveDirection = moveDirection.normalized;
 
-            float weightCoefficient = CalculateWeightCoefficient(playerWeight);
             float turnProgress = Mathf.InverseLerp(0, _evasionData.InputAngle, Mathf.Abs(clampedAngle));
 
             state.IsEvading = true;
             state.StartTick = currentTick;
-            state.RollDuration = _evasionData.RollDuration * weightCoefficient;
+            state.RollDuration = _evasionData.RollDuration;
             // 向き変更がロールより長いと移動方向を向き切らないままロールが終わり、モーションの向きと実際の移動方向がずれる
-            state.TurnDuration = Mathf.Min(_evasionData.MaxTurnDuration * turnProgress * weightCoefficient, state.RollDuration);
-            state.RollDistance = _evasionData.RollDistance * weightCoefficient;
+            state.TurnDuration = Mathf.Min(_evasionData.MaxTurnDuration * turnProgress, state.RollDuration);
+            state.RollDistance = _evasionData.RollDistance;
             state.MoveDirection = moveDirection;
             state.StartDirection = currentForward;
 
@@ -110,12 +109,6 @@ namespace InGame.Player
 
             float t = Mathf.Clamp01(ElapsedTime(in state, currentTick, tickDeltaTime) / state.RollDuration);
             return _evasionData.RollSpeedCurve.Evaluate(t);
-        }
-
-        /// <summary> 重み係数計算 </summary>
-        private float CalculateWeightCoefficient(int jewelryCount)
-        {
-            return 1f - (jewelryCount * _evasionData.WeightDecay);
         }
     }
 }
