@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using InGame.Jewelry;
 using September.Common;
 using September.InGame.Common;
 using September.InGame.Rules.ScorePolicy;
+using September.InGame.UI;
 using UnityEngine;
 
 namespace September.InGame.Kraken
@@ -15,6 +17,10 @@ namespace September.InGame.Kraken
 
         [Header("クラーケンが出現するタイミング（ゲーム開始からの経過時間）")]
         [SerializeField] private float[] _krakenAppearanceTimes;
+
+        [Header("出現時の通知表示秒数（フェード込み・0で通知なし）")]
+        [UnityEngine.Serialization.FormerlySerializedAs("_noticeLeadTime")]
+        [SerializeField, Min(0f)] private float _noticeDuration = 5f;
 
         private int _krakenAppearanceIndex;
 
@@ -42,7 +48,10 @@ namespace September.InGame.Kraken
 
             if (_krakenAppearanceIndex >= _krakenAppearanceTimes.Length) return;
 
-            if ((Runner.Tick - _gameStartTick) > ToTick(_krakenAppearanceTimes[_krakenAppearanceIndex]))
+            int elapsedTicks = Runner.Tick - _gameStartTick;
+            int appearanceTick = ToTick(_krakenAppearanceTimes[_krakenAppearanceIndex]);
+
+            if (elapsedTicks > appearanceTick)
             {
                 IEnumerable<(PlayerRef player, NetworkObject playerObj, int score)> scoreTable
                     = PlayerDatabase.Instance.PlayerObjectDic.Select(kvp => (kvp.Key, kvp.Value, _scorePolicy.GetScore(kvp.Key)));
@@ -51,8 +60,16 @@ namespace September.InGame.Kraken
                 var spawnPoint = GetNearestSpawnPoint(target.transform.position);
 
                 Runner.Spawn(_krakenPrefab, spawnPoint.position, spawnPoint.rotation);
+                if (_noticeDuration > 0f)
+                    RPC_ShowAppearanceNotice(_noticeDuration);
                 _krakenAppearanceIndex++;
             }
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_ShowAppearanceNotice(float seconds)
+        {
+            UIController.I.ShowNotice(seconds, NoticeType.KrakenSpawn);
         }
 
         private int ToTick(float time)
