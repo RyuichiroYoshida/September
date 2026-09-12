@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 642073807578760021}
   - component: {fileID: 2445839560146876789}
   m_Layer: 5
-  m_Name: LogText_Pirate
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -36,8 +36,8 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 450, y: 50}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_SizeDelta: {x: 468, y: 55}
+  m_Pivot: {x: 0, y: 0}
 --- !u!222 &4265030968630129227
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -66,10 +66,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042"
+  m_text: "\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042\u3042"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: be88a6e6e4553074f9e6c140d93e7d90, type: 2}
-  m_sharedMaterial: {fileID: -6128561024466042955, guid: be88a6e6e4553074f9e6c140d93e7d90, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 2a3f25dd29534eb47a6f827e084ed97b, type: 2}
+  m_sharedMaterial: {fileID: -3702389667660959348, guid: 2a3f25dd29534eb47a6f827e084ed97b, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -93,13 +93,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 18
-  m_fontSizeBase: 18
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 8
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -249,7 +249,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7246936575066239338}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
   m_Name: 
