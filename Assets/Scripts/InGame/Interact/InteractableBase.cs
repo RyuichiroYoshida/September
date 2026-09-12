@@ -150,7 +150,6 @@ namespace InGame.Interact
                 _audioBroadcaster.RPC_PlaySoundFromCode(_interactSoundCueName, _interactSoundTrackingType, Object, actor);
             }
 
-            Debug.Log($"[InGameLog][Interact][aaa] request actor={actor}, exhibit={_type}", this);
 
             // 全クライアントにインタラクトログを表示
             Rpc_ShowInteractLog(actor, _type);
@@ -468,7 +467,6 @@ namespace InGame.Interact
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void Rpc_ShowInteractLog(PlayerRef actor, ExhibitType exhibitType)
         {
-            Debug.Log($"[InGameLog][InteractRPC][aaa] actor={actor}, exhibit={exhibitType}", this);
             if (PlayerDatabase.Instance.PlayerDataDic.TryGet(actor, out var data))
             {
                 string actorName = data.DisplayNickName;

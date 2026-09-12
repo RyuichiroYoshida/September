@@ -2,12 +2,10 @@ using System;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Exhibit;
-<<<<<<< HEAD
-using InGame.Jewelry;
-=======
 using InGame.Interact;
->>>>>>> 072046e56f962024f4dfbab319386b41756cf662
+using InGame.Jewelry;
 using UniRx;
+using UnityEngine;
 
 namespace September.InGame.UI
 {
@@ -80,7 +78,6 @@ namespace September.InGame.UI
 
         public void ShowLog(string text)
         {
-            Debug.Log($"[InGameLog][UIController][aaa] ShowLog: {text}", this);
             _onShowLog.OnNext(text);
         }
 

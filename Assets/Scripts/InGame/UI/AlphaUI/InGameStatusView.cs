@@ -76,7 +76,6 @@ namespace September.InGame.UI
             ui.OnShowLog
                 .Subscribe(killText =>
                 {
-                    Debug.Log($"[InGameLog][Subscribe][aaa] received: {killText}", this);
                     ShowLog(killText).Forget();
                 })
                 .AddTo(_cts.Token);
@@ -193,17 +192,14 @@ namespace September.InGame.UI
         // キルのログを直接引数に入れる
         private async UniTask ShowLog(string killText)
         {
-            Debug.Log($"[InGameLog][aaa] ShowLog received: {killText}", this);
 
             if (!_killLogItemText)
             {
-                Debug.LogError("[InGameLog][aaa] _killLogItemText is not assigned.", this);
                 return;
             }
 
             if (!_LogPanel)
             {
-                Debug.LogError("[InGameLog][aaa] _LogPanel is not assigned. Check IngameUIRoot.LogPanel.", this);
                 return;
             }
 
@@ -211,7 +207,6 @@ namespace September.InGame.UI
             GameObject log = Instantiate(_killLogItemText, _LogPanel.transform);
             log.name = $"Log_{++_logSequence:000}";
             log.transform.SetAsLastSibling();
-            Debug.Log($"[InGameLog][aaa] Created: {log.name} under {_LogPanel.name}", log);
 
             TextMeshProUGUI tmp = log.GetComponent<TextMeshProUGUI>();
             if (!tmp)
@@ -219,7 +214,6 @@ namespace September.InGame.UI
 
             if (!tmp)
             {
-                Debug.LogError($"[InGameLog][aaa] TextMeshProUGUI was not found on {log.name}.", log);
                 Destroy(log);
                 return;
             }
