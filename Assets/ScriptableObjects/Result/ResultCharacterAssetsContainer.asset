@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _assets:
   - _type: 1
-    _resultCharacterPrefab: {fileID: 4288454011106043617, guid: 6293b6b141a34184a926ff6cc0b789da, type: 3}
+    _resultCharacterPrefab: {fileID: 8670604895112306165, guid: 9becadd67b15a4a429192cbe921f1515, type: 3}
     _icon: {fileID: 21300000, guid: 6f3699ef9aafaea44bf524c1ff3b3e2c, type: 3}
     _resultDetailViewIcon: {fileID: 21300000, guid: 6644d27345ce9874b84f049469dd68f4, type: 3}
   - _type: 2
