@@ -59,13 +59,13 @@ namespace September
             ReleaseZiplineView();
             if (rider == null) return;
             _shownZipRider = rider;
-            rider.BeginRideView(trolley, PlayerOffset);
+            rider.BeginRideTracking(trolley, PlayerOffset);
         }
 
         private void ReleaseZiplineView()
         {
             if (_shownZipRider == null) return;
-            _shownZipRider.EndRideView();
+            _shownZipRider.EndRideTracking();
             _shownZipRider = null;
         }
 

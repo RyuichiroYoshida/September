@@ -39,23 +39,24 @@ namespace InGame.Player
         private Vector3 _targetPosition;
         private Quaternion _targetRotation;
         private bool _isVaultingLastFrame = false;
-        private Transform _rideVisualTarget;
-        private Vector3 _rideVisualOffset;
+        private Transform _rideTarget;
+        private Vector3 _rideOffset;
         private Vector3 _savedMeshLocalPosition;
         private Quaternion _savedMeshLocalRotation;
         private Quaternion _rideMeshRotationOffset;
         private Vector3 _rideMeshWorldOffset;
-        private bool _rideViewActive;
+        private bool _rideTrackingActive;
 
-        // 乗車中の見た目とカメラの追従を開始する。
+        // 乗車中の本体・見た目・カメラの追従を開始する。
         // 台車と乗車オフセットを保存し、入力権限がある場合はカメラの追従も開始する。
         // 降車時に復元できるよう、見た目の元のローカル位置を保存する。
-        public void BeginRideView(Transform trolley, Vector3 offset)
+        public void BeginRideTracking(Transform target, Vector3 offset)
         {
-            if (_rideViewActive) EndRideView();
-            _rideViewActive = true;
-            _rideVisualTarget = trolley;
-            _rideVisualOffset = offset;
+            if (target == null) return;
+            if (_rideTrackingActive) EndRideTracking();
+            _rideTrackingActive = true;
+            _rideTarget = target;
+            _rideOffset = offset;
             if (_meshObj != null && _meshObj.transform != transform)
             {
                 _savedMeshLocalPosition = _meshObj.transform.localPosition;
@@ -64,16 +65,21 @@ namespace InGame.Player
                 _rideMeshRotationOffset = Quaternion.Inverse(transform.rotation) * _meshObj.transform.rotation;
                 _rideMeshWorldOffset = _meshObj.transform.position - transform.position;
             }
+
+            // カメラの追従を開始
             if (HasInputAuthority && _cameraController != null)
-                _cameraController.BeginRideView(trolley, offset);
+                _cameraController.BeginRideView(target, offset);
+
+            UpdateRideTracking();
         }
 
-        public void EndRideView()
+        public void EndRideTracking()
         {
             // 通常降車・途中終了の両方から呼ぶ。二重に呼ばれても復元は一度だけ行う。
-            if (!_rideViewActive) return;
-            _rideViewActive = false;
-            _rideVisualTarget = null;
+            if (!_rideTrackingActive) return;
+            UpdateRideTracking();
+            _rideTrackingActive = false;
+            _rideTarget = null;
             if (_meshObj != null && _meshObj.transform != transform)
             {
                 _meshObj.transform.localPosition = _savedMeshLocalPosition;
@@ -82,6 +88,14 @@ namespace InGame.Player
             }
             if (HasInputAuthority && _cameraController != null) _cameraController.EndRideView();
         }
+
+        // 状態権限側で本体の物理・同期状態を乗り物に追従させる。
+        private void UpdateRideTracking()
+        {
+            if (!HasStateAuthority || !_rideTrackingActive || _rideTarget == null) return;
+            _playerMovement.TeleportImmediate(_rideTarget.position + _rideOffset, _rideTarget.rotation);
+        }
+
         private RigidbodyConstraints _defaultConstraints;
 
         [Networked] public PlayerControlState CurrentPlayerControlState { get; private set; } = PlayerControlState.Normal;
@@ -157,14 +171,14 @@ namespace InGame.Player
         {
             // 台車位置に乗車オフセットとモデルのオフセットを加え、見た目の位置を更新する。
             // 台車がなくなった場合は追従を終了する。
-            if (_rideViewActive)
+            if (_rideTrackingActive)
             {
-                if (_rideVisualTarget == null) EndRideView();
+                if (_rideTarget == null) EndRideTracking();
                 else if (_meshObj != null && _meshObj.transform != transform)
                 {
-                    _meshObj.transform.position = _rideVisualTarget.position + _rideVisualOffset + _rideMeshWorldOffset;
+                    _meshObj.transform.position = _rideTarget.position + _rideOffset + _rideMeshWorldOffset;
                     // モデル固有の向きの補正を保ち、台車の水平回転に合わせる。
-                    _meshObj.transform.rotation = _rideVisualTarget.rotation * _rideMeshRotationOffset;
+                    _meshObj.transform.rotation = _rideTarget.rotation * _rideMeshRotationOffset;
                 }
             }
 
@@ -209,8 +223,8 @@ namespace InGame.Player
                         input.CameraYaw, input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Jump), input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Evasion), Runner.DeltaTime);
                 }
 
-                // ジップライン乗車中は台車に移動を任せ、それ以外は接地・落下・速度を更新する。
-                if (!_rideViewActive)
+                // 乗車中は台車に移動を任せ、それ以外は接地・落下・速度を更新する。
+                if (!_rideTrackingActive)
                     _playerMovement.MoveTick(Runner.DeltaTime);
 
                 if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Warp))
@@ -221,8 +235,8 @@ namespace InGame.Player
             else if (HasStateAuthority)
             {
                 // Ground probing and gravity must also run while input is missing.
-                // 入力がない場合も、ジップライン乗車中以外はホスト側で移動更新を継続する。
-                if (!_rideViewActive)
+                // 入力がない場合も、乗車中以外はホスト側で移動更新を継続する。
+                if (!_rideTrackingActive)
                     _playerMovement.MoveTick(Runner.DeltaTime);
             }
 
@@ -347,6 +361,11 @@ namespace InGame.Player
 
         public void AfterTick()
         {
+            // 追従対象が破棄されたら即時終了
+            if (_rideTrackingActive && _rideTarget == null) EndRideTracking();
+            // 乗り物の移動・物理更新後に、入力の有無や処理順に左右されず本体を追従させる。
+            UpdateRideTracking();
+
             PreviousButtons = GetInput<PlayerInput>().GetValueOrDefault().Buttons;
         }
 
