@@ -86,7 +86,8 @@ namespace September.InGame.Exhibit
 				return;
 			}
 			
-			var velocity = SetVelocity(_rb.linearVelocity, input.MoveDirection,
+			Debug.Log(_rb.linearVelocity);
+			var velocity = SetVelocity(Velocity, input.MoveDirection,
 				input.DesiredLookDirection);
 			_rb.linearVelocity = velocity;
 
@@ -114,7 +115,7 @@ namespace September.InGame.Exhibit
 			RPC_PlayerRide(Player, false);
 			
 			// _rb初期化前にplayerの位置をGliderに合わせる
-			Player.transform.position = _rb.position;
+			Player.transform.position = _playerPos.position;
 			Player.transform.rotation = Quaternion.identity;
 			Player = null;
 			
