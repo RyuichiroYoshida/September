@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fusion;
+using InGame.Common;
 using InGame.Health;
 using September.Common;
 using UnityEngine;
@@ -9,6 +10,10 @@ namespace InGame.Player.Okubo
 {
     public class AbilityHookAttack : NetworkBehaviour
     {
+        [SerializeField] private AnimationClipPlayer _animationClipPlayer;
+        [SerializeField] private AnimationClip _shotClip;
+        [SerializeField] private AnimationClip _aimClip;
+        [SerializeField] private AnimationClip _pullClip;
         [SerializeField] private PlayerMovement _playerMovement;
         [SerializeField] private PlayerInputManager _playerInputManager;
         [SerializeField] private Transform _wireOrigin;
@@ -29,6 +34,8 @@ namespace InGame.Player.Okubo
 
         private HookAttackState _currentState;
         private float _currentHookLength;
+        private float _startAttackTime;
+        private bool _isPlayAimClip;
         private float _waitTimer;
         /// <summary>PlayerMovementなどのキャッシュ用 </summary>
         private Dictionary<PlayerRef, HookTargetData> _targetData = new();
@@ -81,11 +88,20 @@ namespace InGame.Player.Okubo
                     _targetData.Clear();
                     _playerMovement.IsHookLocked = true;
                     _currentHookLength = 0;
+                    _startAttackTime = Runner.SimulationTime;
+                    _isPlayAimClip = false;
+                    _animationClipPlayer.PlayClip(_shotClip);
                     break;
                 case HookAttackState.Stretched:
                     _waitTimer = _stretchedWaitTime;
                     break;
                 case HookAttackState.Pulling:
+                    if (_isPlayAimClip)
+                    {
+                        _animationClipPlayer.StopClip(_aimClip);
+                        _isPlayAimClip = false;
+                    }
+                    _animationClipPlayer.PlayClip(_pullClip);
                     break;
                 case HookAttackState.CoolDown:
                     bool isTarget = false;
@@ -115,6 +131,11 @@ namespace InGame.Player.Okubo
             {
                 _currentHookLength = _wireLength;
                 ChangeState(HookAttackState.Stretched);
+            }
+            if(!_isPlayAimClip && Runner.SimulationTime - _startAttackTime > _shotClip.length)
+            {
+                _animationClipPlayer.PlayClipLoop(_aimClip);
+                _isPlayAimClip = true;
             }
 
             UpdateHookLength(_currentHookLength, this.transform.forward);
