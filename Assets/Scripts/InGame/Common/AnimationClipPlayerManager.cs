@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace InGame.Common
 {
-    public class AnimationClipPlayerManager : NetworkBehaviour
+    public class AnimationClipPlayerManager : NetworkBehaviour, IAfterTick
     {
         [SerializeField] private AnimationClipPlayer _animationClipPlayer;
         [SerializeField] private PlayerMovement _playerMovement;
@@ -69,10 +69,12 @@ namespace InGame.Common
         private Transform _visualRoot;
         private Quaternion _visualRootBaseLocalRotation;
         private float _locoWeight;
+        [Networked] private float LocoTargetWeight { get; set; }
+        [Networked] private float LocoPlaybackRate { get; set; }
         private CancellationTokenSource _jumpOverTokenSrc;
         private CancellationTokenSource _rollEvasionTokenSrc;
 
-        private void Start()
+        private void Awake()
         {
             ResolveLocoBaseSpeeds();
         }
@@ -189,9 +191,11 @@ namespace InGame.Common
             _runBaseSpeed = LocoAnimSpeedSource.Resolve(_animationClipPlayer.RunClip, _runAnimSpeed, nameof(_runAnimSpeed), this);
         }
 
-        private void LateUpdate()
+        public void AfterTick()
         {
-            if (!_animationClipPlayer) return;
+            // バフ適用後のステータスは端末ごとに異なり得るため、移動・ステータス更新後の
+            // ホスト計算結果を同期する。入力権限側でも予測値で上書きしない。
+            if (!HasStateAuthority || !_animationClipPlayer) return;
 
             var maxSpeed = _playerMovement.DashMoveSpeed;
             var walkSpeed = _playerMovement.WalkSpeed;
@@ -200,10 +204,7 @@ namespace InGame.Common
                 ? Mathf.InverseLerp(0f, walkSpeed, moveSpeed)         // 0..1
                 : Mathf.InverseLerp(walkSpeed, maxSpeed, moveSpeed) + 1f; // 1..2
             if (Mathf.Abs(wishWeight) < 1e-3f) wishWeight = 0f;
-            // weight を遷移させる
-            float deltaWeight = _locoBlendSpeed * Time.deltaTime;
-            _locoWeight = Mathf.Abs(_locoWeight - wishWeight) <= deltaWeight ? wishWeight : _locoWeight < wishWeight ? _locoWeight + deltaWeight : _locoWeight - deltaWeight;
-            _animationClipPlayer.SetLocoWeight(Mathf.Clamp(_locoWeight, 0f, 2f));
+            LocoTargetWeight = Mathf.Clamp(wishWeight, 0f, 2f);
 
             var velocity = _playerMovement.NetworkVelocity;
             velocity.y = 0;
@@ -217,9 +218,17 @@ namespace InGame.Common
                 _runBaseSpeed,
                 speedRate);
 
-            var playbackRate = baseSpeed > 0f ? speed / baseSpeed : 0f;
+            LocoPlaybackRate = baseSpeed > 0f ? speed / baseSpeed : 0f;
+        }
 
-            _animationClipPlayer.SetLocoPlaybackRate(playbackRate);
+        private void LateUpdate()
+        {
+            if (Object == null || !Object.IsValid || !_animationClipPlayer || !_animationClipPlayer.IsValid) return;
+
+            // 描画フレームごとの補間は各端末で行い、目標値と再生倍率は同期値を使う。
+            _locoWeight = Mathf.MoveTowards(_locoWeight, LocoTargetWeight, _locoBlendSpeed * Time.deltaTime);
+            _animationClipPlayer.SetLocoWeight(Mathf.Clamp(_locoWeight, 0f, 2f));
+            _animationClipPlayer.SetLocoPlaybackRate(LocoPlaybackRate);
             // 強制上書き中は、非ループクリップが終端に到達しても倒れた姿勢を保持する。
             if (!_hardOverride && !HasActiveTopLayerClip())
             {
