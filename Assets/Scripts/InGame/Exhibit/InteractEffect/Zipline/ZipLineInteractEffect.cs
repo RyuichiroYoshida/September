@@ -90,11 +90,10 @@ namespace September
             FaceTravelDirection((Vector3)Spline.EvaluateTangent(0f));
             _timer = 0f;
             _currentState = State.Moving;
-            MovePlayerToTrolley();
 
             var playerManager = _targetPlayerObject.GetComponent<PlayerManager>();
             // 見た目とカメラの台車への追従を開始する。
-            playerManager.BeginRideView(Trolley.transform, PlayerOffset);
+            playerManager.BeginRideTracking(Trolley.transform, PlayerOffset);
             playerManager.RPC_SetUseGrav(false);
             playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _networkController.PublishZiplinePose(Trolley.transform, _targetPlayerObject, PlayerOffset);
@@ -125,7 +124,6 @@ namespace September
             float evaluatedT = Mathf.Clamp01(SpeedCurve.Evaluate(t));
             // 速度カーブで求めたスプライン上の位置へ台車を進める。
             MoveTrolley(evaluatedT);
-            MovePlayerToTrolley();
 
             if (t >= 1f)
             {
@@ -134,7 +132,7 @@ namespace September
                 // プレイヤーをここで降ろす
                 var playerManager = completedPlayer.GetComponent<PlayerManager>();
                 // 台車が始点へ戻り始める前に、見た目・カメラを通常の追従へ戻す。
-                playerManager.EndRideView();
+                playerManager.EndRideTracking();
                 playerManager.RPC_SetUseGrav(true);
                 playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
 
@@ -180,16 +178,6 @@ namespace September
             }
         }
 
-        private void MovePlayerToTrolley()
-        {
-            // 状態権限を持つ側で、プレイヤー本体を台車位置＋乗車オフセットへ移動する。
-            if (_targetPlayerObject == null) return;
-            if (!_targetPlayerObject.HasStateAuthority) return;
-            if (_targetPlayerObject.TryGetComponent(out PlayerMovement movement))
-                // プレイヤー本体の位置と回転を台車に合わせて更新する。
-                movement.TeleportImmediate(Trolley.transform.position + PlayerOffset, Trolley.transform.rotation);
-        }
-
         private void MoveTrolley(float splinePosition)
         {
             // スプライン上の座標を取得し、移動前の座標との差から進行方向を求める。
@@ -214,7 +202,7 @@ namespace September
             if (_targetPlayerObject != null)
             {
                 var playerManager = _targetPlayerObject.GetComponent<PlayerManager>();
-                playerManager.EndRideView();
+                playerManager.EndRideTracking();
                 playerManager.RPC_SetUseGrav(true);
                 playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
                 if (_targetPlayerObject.TryGetComponent(out AnimationClipPlayer clip)) clip.StopClip(Anim);
