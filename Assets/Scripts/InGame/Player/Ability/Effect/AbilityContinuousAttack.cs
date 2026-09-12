@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Fusion;
 using InGame.Common;
+using InGame.Health;
 using September.Common;
 using September.InGame.Common.Stats;
 using September.InGame.Effect;
@@ -18,6 +20,17 @@ namespace InGame.Player.Ability
         [SerializeField] private AttackData[] _attackDatas;
         [SerializeField] private PlayerInputManager _playerInputManager;
         [SerializeField] private PlayerButtons _continueAttackButton;
+
+        [Header("Hit Box 設定")]
+        [SerializeField] private Vector3 _boxHalfExtents = new Vector3(0.45f, 0.85f, 0.45f);
+        [SerializeField] private Vector3 _boxLocalOffset = new Vector3(0f, 0.9f, 0.6f);
+        [SerializeField] private float _boxCastDistance = 1.0f;
+        [SerializeField] private LayerMask _hitLayer = ~0;
+        [SerializeField] private QueryTriggerInteraction _triggerInteraction = QueryTriggerInteraction.Ignore;
+        private readonly RaycastHit[] _hitBuffer = new RaycastHit[16];
+        protected readonly HashSet<Collider> _alreadyHit = new HashSet<Collider>();
+        [Header("ヒットエフェクト")]
+        [SerializeField] protected EffectType _hitEffect = EffectType.HitNormal;
 
         [Header("剣")]
         [SerializeField] private Animator _animator;
@@ -120,6 +133,12 @@ namespace InGame.Player.Ability
 
             UpdateState(elapsed);
             SetSwordEquipped(elapsed);
+
+            //攻撃する
+            if(elapsed >= _damageStartTick && elapsed <= _damageEndTick)
+            {
+                CastAndApplyHits();
+            }
         }
 
         private void UpdateState(int elapsed)
@@ -252,6 +271,9 @@ namespace InGame.Player.Ability
 
             if (_animationClipPlayer)
                 _animationClipPlayer.PlayClip(startAnimationClip);
+
+            //2重攻撃Clear
+            _alreadyHit.Clear();
         }
 
         private void EndAttack()
@@ -289,6 +311,68 @@ namespace InGame.Player.Ability
 
             if (_animationClipPlayer)
                 _animationClipPlayer.PlayClip(endAnimationClip);
+        }
+        protected void CastAndApplyHits()
+        {
+            var t = Parameter.Owner.transform;
+
+            // BoxCast の原点と向き
+            var origin = t.position + t.TransformVector(_boxLocalOffset);
+            var dir = t.forward;
+            var rot = t.rotation;
+
+            // 掃引（NonAlloc で GC しない）
+            int hitCount = Physics.BoxCastNonAlloc(
+                origin,
+                _boxHalfExtents,
+                dir,
+                _hitBuffer,
+                rot,
+                _boxCastDistance,
+                _hitLayer,
+                _triggerInteraction
+            );
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                var hit = _hitBuffer[i];
+                var col = hit.collider;
+                if (col == null) continue;
+
+                // 自分自身除外
+                if (col.GetComponentInParent<NetworkObject>() == Parameter.Owner) continue;
+
+                // 二度当たり防止
+                if (_alreadyHit.Contains(col)) continue;
+                _alreadyHit.Add(col);
+
+                // ヒット位置が 0 のことがあるのでフォールバック
+                var hitPos = hit.point;
+                if (hitPos == Vector3.zero)
+                    hitPos = origin + dir * Mathf.Max(0.1f, _boxCastDistance * 0.5f);
+
+                OnHitEnemy(col, hitPos);
+            }
+            // バッファ初期化（念のため）
+            Array.Clear(_hitBuffer, 0, hitCount);
+        }
+
+        private void OnHitEnemy(Collider hitInfo, Vector3 hitPosition)
+        {
+            if (hitInfo.GetComponentInParent<NetworkObject>() == Parameter.Owner) return;
+            var damageable = hitInfo.GetComponentInParent<IDamageable>();
+            if (damageable == null) return;
+
+            var hitData = new HitData(
+                HitActionType.Damage,
+                _attackDatas[_currentAttackIndex].DamageAmount,
+                Parameter.Owner.InputAuthority,
+                damageable.OwnerPlayerRef);
+            damageable.TakeHit(ref hitData);
+            _buildGenerator?.UpdateBuild(BuildRouteType.AttackPower);
+
+            //エフェクトの再生
+            _effectSpawner.RequestPlayOneShotEffect(_hitEffect, hitInfo.ClosestPoint(hitInfo.bounds.ClosestPoint(hitPosition)), Quaternion.identity);
         }
 
         public override void SetPlayerComponent(GameObject player)

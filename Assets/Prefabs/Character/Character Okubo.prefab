@@ -4957,7 +4957,7 @@ MonoBehaviour:
   _audioBroadcaster: {fileID: 222234083165175776}
   _clipPlayer: {fileID: 7929792229899843319}
   _footstepBlockClipList:
-  - {fileID: 7400000, guid: bca6193f688d20a43b0b8202f53a204a, type: 2}
+  - {fileID: 1827226128182048838, guid: da8e21f273e31484cba2d523306268b8, type: 3}
   - {fileID: 7400000, guid: c426146fa1ef9fa41bae001fb50ec593, type: 2}
   _playerTransform: {fileID: 0}
   _cameraTransform: {fileID: 0}
@@ -8175,30 +8175,38 @@ MonoBehaviour:
         _attackDatas:
         - _startAnimationClip: {fileID: 1827226128182048838, guid: e7f6d82a4677ece47a0aaf56773ba37d, type: 3}
           _endAnimationClip: {fileID: 1827226128182048838, guid: 2c98b8f4cdfd2b64082f94338127c8dc, type: 3}
-          _damageStartFrame: 0
-          _damageEndFrame: 0
-          _damageAmount: 0
+          _damageStartFrame: 15
+          _damageEndFrame: 20
+          _damageAmount: 10
           _nextInputStartFrame: 5
           _drawSwordFrame: 11
           _sheathSwordFrame: 39
         - _startAnimationClip: {fileID: 1827226128182048838, guid: 597e986ff581d3249aa460c28d05e5b3, type: 3}
           _endAnimationClip: {fileID: 1827226128182048838, guid: 7f2e8c9d639116148a0f5ce513c67542, type: 3}
-          _damageStartFrame: 0
-          _damageEndFrame: 0
-          _damageAmount: 0
+          _damageStartFrame: 8
+          _damageEndFrame: 12
+          _damageAmount: 10
           _nextInputStartFrame: 5
           _drawSwordFrame: -1
           _sheathSwordFrame: 49
         - _startAnimationClip: {fileID: 1827226128182048838, guid: a85055d94dbfcd944be2b14c8d45ad1f, type: 3}
           _endAnimationClip: {fileID: 1827226128182048838, guid: 2c98b8f4cdfd2b64082f94338127c8dc, type: 3}
-          _damageStartFrame: 0
-          _damageEndFrame: 0
-          _damageAmount: 0
+          _damageStartFrame: 9
+          _damageEndFrame: 11
+          _damageAmount: 10
           _nextInputStartFrame: 5
           _drawSwordFrame: -1
           _sheathSwordFrame: 39
         _playerInputManager: {fileID: 8662693787533303848}
         _continueAttackButton: 3
+        _boxHalfExtents: {x: 0.45, y: 0.85, z: 0.45}
+        _boxLocalOffset: {x: 0, y: 0.9, z: 0.6}
+        _boxCastDistance: 1
+        _hitLayer:
+          serializedVersion: 2
+          m_Bits: 4294967295
+        _triggerInteraction: 1
+        _hitEffect: 18
         _animator: {fileID: 7812773013328536820}
         _swordObject: {fileID: 928941539651277310}
         _swordSocket: {fileID: 7953536993959905280}
@@ -8232,7 +8240,7 @@ MonoBehaviour:
     Additive: 0
   - Type: 3
     LayerMask: {fileID: 0}
-    Weight: 1
+    Weight: 0
     Additive: 0
   _graphSpeed: 1
   _wait: {fileID: 1827226128182048838, guid: da8e21f273e31484cba2d523306268b8, type: 3}
