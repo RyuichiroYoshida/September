@@ -45,6 +45,7 @@ namespace September.InGame.Tutorial
 
         public override void OnEndAction() 
         {
+            base.OnEndAction();
             Debug.Log("カメラリセットアクション完了");
         }
     }

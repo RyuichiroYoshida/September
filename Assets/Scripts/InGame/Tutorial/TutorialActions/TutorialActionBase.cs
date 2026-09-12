@@ -37,6 +37,8 @@ namespace September.InGame.Tutorial
             _isActionStarted = true;
             GameInput.I.IsInputBlockedByUI = true;
             actionData.CloseButton.onClick.AddListener(OnCloseButtonClicked);
+            // パネルが既に有効でも、各説明の開始時に決定入力の対象を明示する。
+            actionData.CloseButton.Select();
         }
 
         public virtual void OnUpdate()
