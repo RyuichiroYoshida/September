@@ -5678,7 +5678,6 @@ MonoBehaviour:
   _flyingDamping: 8
   _evasionData: {fileID: 11400000, guid: a5096594ea23bc742976e6998f7765a8, type: 2}
   _playerHealth: {fileID: 5358505061852357365}
-  _playerJewelryRuntime: {fileID: 1599483826122540206}
   _printVaultFailedLog: 0
   _visibleGizmos: 0
   _vaultGizmoDebugger: {fileID: 0}

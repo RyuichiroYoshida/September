@@ -19,7 +19,6 @@ MonoBehaviour:
   _startInvincibleTime: 0.1
   _invincibleTime: 0.25
   _cooldown: 0
-  _weightDecay: -0.02
   _rollSpeedCurve:
     serializedVersion: 2
     m_Curve:

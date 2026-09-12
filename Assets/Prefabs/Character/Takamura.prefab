@@ -1263,7 +1263,6 @@ MonoBehaviour:
   _flyingDamping: 8
   _evasionData: {fileID: 0}
   _playerHealth: {fileID: 0}
-  _playerJewelryRuntime: {fileID: 0}
   _printVaultFailedLog: 0
   _visibleGizmos: 0
   _vaultGizmoDebugger: {fileID: 0}

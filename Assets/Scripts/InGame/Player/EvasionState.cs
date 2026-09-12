@@ -15,11 +15,11 @@ namespace InGame.Player
         public int StartTick;
         /// <summary> 直前の回避が終了した Tick (クールダウン判定用) </summary>
         public int LastEndTick;
-        /// <summary> ロール全体の所要時間 (秒、重量係数適用後) </summary>
+        /// <summary> ロール全体の所要時間 (秒) </summary>
         public float RollDuration;
-        /// <summary> 向き変更の所要時間 (秒、重量係数適用後) </summary>
+        /// <summary> 向き変更の所要時間 (秒) </summary>
         public float TurnDuration;
-        /// <summary> ロール全体の移動距離 (m、重量係数適用後) </summary>
+        /// <summary> ロール全体の移動距離 (m) </summary>
         public float RollDistance;
         /// <summary> ロールの移動方向 (水平・正規化済み) </summary>
         public Vector3 MoveDirection;
