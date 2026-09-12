@@ -408,10 +408,10 @@ MonoBehaviour:
   _inGameUiRootPrefab: {fileID: 4966868837058546770, guid: 28be1a3583a99e34e803a6d892e628ca, type: 3}
   _mainCanvas: {fileID: 2974628292083976748}
   _timerData: {fileID: 11400000, guid: e2ca3e11eb6f46047839bebd36fd3c24, type: 2}
-  _killLogItemText: {fileID: 5019854778091698059, guid: 30ee2d200b5cac843a284551cd35b7e0, type: 3}
+  _killLogItemText: {fileID: 7246936575066239338, guid: da76080a60b0ddf4f9647df7ea778fee, type: 3}
   _maxLogCount: 5
   _controlsUIGenerator: {fileID: 1845471193459000925}
-  _statusUpUI: {fileID: -6936605732933403976, guid: 30ee2d200b5cac843a284551cd35b7e0, type: 3}
+  _statusUpUI: {fileID: 6885209360403445876, guid: da76080a60b0ddf4f9647df7ea778fee, type: 3}
 --- !u!114 &7775516736653046361
 MonoBehaviour:
   m_ObjectHideFlags: 0
