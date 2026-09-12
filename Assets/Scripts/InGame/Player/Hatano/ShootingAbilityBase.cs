@@ -39,7 +39,6 @@ namespace InGame.Player.Ability.Effect.Shooting
         /// </summary>
         protected void ShootingInputJudgment()
         {
-            _playerManager.SetControlState(PlayerManager.PlayerControlState.InputLocked);
             //射撃ステートが構えの場合、射撃入力を受け付ける
             if (_shootingType == ShootingStateType.Stance)
             {

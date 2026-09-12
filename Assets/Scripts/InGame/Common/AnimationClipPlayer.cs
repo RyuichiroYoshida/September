@@ -332,15 +332,52 @@ namespace InGame.Common
         /// <summary>
         /// UpperBodyでアニメーションを再生
         /// </summary>
-        /// <param name="clip">再生するアニメーション</param>
+        /// <param name="clip">再生するアニメーション（clipがnullのときはアニメーションを解除する）</param>
         public void PlayOnUpperBody(AnimationClip clip)
+        {
+            if (Object.HasStateAuthority)
+            {
+                var index = -1;
+                if (clip != null && TryGetMontageIndex(clip, out var clipIndex))
+                {
+                    index = clipIndex;
+                }
+                // クライアント側で再生する
+                RPC_PlayOnUpperBody(index);
+            }
+
+            // ホスト側で再生する
+            ExecutePlayOnUpperBodyInternal(clip);
+        }
+        
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_PlayOnUpperBody(int clipIndex)
+        {
+            AnimationClip clip = null;
+
+            // 範囲内か判定を行う
+            var montages = AnimationClipsContainer.Instance.AnimationMontages;
+            if (clipIndex >= 0)
+            {
+                clip = montages[clipIndex].AnimClip;
+            }
+
+            // クライアント側で再生する
+            ExecutePlayOnUpperBodyInternal(clip);
+        }
+        
+        /// <summary>
+        /// UpperBodyでアニメーションを再生、解除を行う
+        /// </summary>
+        /// <param name="clip">再生するアニメーション（clipがnullのときはアニメーションを解除する）</param>
+        private void ExecutePlayOnUpperBodyInternal(AnimationClip clip)
         {
             if (!_slotOf.TryGetValue(LayerInfo.LayerType.UpperBody, out var slot))
             {
                 Debug.LogWarning("[AnimationClipPlayer] UpperBody が設定されていません。_layerInfo の最後に追加してください。");
                 return;
             }
-            
+
             // 解除要求
             if (clip == null)
             {
@@ -358,7 +395,7 @@ namespace InGame.Common
                 _layerInfo[slot] = li0;
                 return;
             }
-            
+
             if (_runtimeClips.TryGetValue(LayerInfo.LayerType.UpperBody, out var prev) && prev.IsValid())
             {
                 _layerMixer.DisconnectInput(slot);

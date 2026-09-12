@@ -44,31 +44,37 @@ namespace InGame.Player.Hatano
             if (_abilityStatus != _lastAbilityStatus)
             {
                 _lastAbilityStatus = _abilityStatus;
+
+                // UI更新
                 _abilityStatusUIManager.SelectedAbilityUITextChanged(_abilityStatus);
             }
             
-            if(!HasInputAuthority) return;
-            //入力がなかったら処理を行わない
+            if (!HasInputAuthority) return;
+            // 入力がなかったら処理を行わない
             if (!GetInput<PlayerInput>(out var input)) return;
-            
+
             if (input.Buttons.IsSet(PlayerButtons.Ability1) && !_isChangeAbilityInput)
             {
                 _isChangeAbilityInput = true;
                 var next = GetNextHatanoAbilityStatus();
 
+                // アビリティの変更
                 if (HasStateAuthority)
                 {
                     _abilityStatus = next;
-                    ChangeAbility(next);
                 }
                 else
                 {
                     RPC_ChangeAbilityStatus(next);
                 }
+                // アビリティの変更があったタイミングで切り替え等の処理を実行
+                ChangeAbility(_abilityStatus);
             }
 
-            if (!input.Buttons.IsSet(PlayerButtons.Ability1) && _isChangeAbilityInput) 
+            if (!input.Buttons.IsSet(PlayerButtons.Ability1) && _isChangeAbilityInput)
+            {
                 _isChangeAbilityInput = false;
+            }
         }
 
         /// <summary>
@@ -92,7 +98,6 @@ namespace InGame.Player.Hatano
         private void RPC_ChangeAbilityStatus(HatanoAbilityStatus status)
         {
             _abilityStatus = status;
-            ChangeAbility(status);
         }
 
         /// <summary>

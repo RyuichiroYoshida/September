@@ -99,20 +99,7 @@ namespace InGame.Player.Ability
         {
             _isShoot = false;
             _hatanoSequenceManager.RPC_SetStartTimeline();
-            // アニメーションイベントが発生しないときがあるため、ここで武器のソケットを変更する
-            _hatanoWeaponController.AttachRocketBody();
-            // 選択中の武器に合わせてソケットの変更を行う
-            if (_hatanoAbilityStatusManagement.AbilityStatus == HatanoAbilityStatus.DoubleBarreledGun)
-            {
-                _hatanoWeaponController.AttachDoubleGunHand();
-                _hatanoWeaponController.AttachLaserGunHip();
-            }
-            else // レーザー銃
-            {
-                _hatanoWeaponController.AttackLaserGunHand();
-                _hatanoWeaponController.AttachDoubleGunBody();
-            }
-            
+            _hatanoWeaponController.RPC_UltEndAttachSocket(_hatanoAbilityStatusManagement.AbilityStatus);
             _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.Normal);
         }
         

@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 
 namespace InGame.Player.Hatano
@@ -5,7 +6,7 @@ namespace InGame.Player.Hatano
     /// <summary>
     /// 武器のソケットを変更する
     /// </summary>
-    public class HatanoWeaponController : MonoBehaviour
+    public class HatanoWeaponController : NetworkBehaviour
     {
         [Header("ソケット（ロケット）")]
         [SerializeField] private Transform _rocketSocketRoot;
@@ -45,7 +46,7 @@ namespace InGame.Player.Hatano
             AttachSocket(_laserPrefabTransform, _laserSocketHip);
         }
 
-        public void AttackLaserGunHand()
+        public void AttachLaserGunHand()
         {
             AttachSocket(_laserPrefabTransform, _laserSocketHand);
         }
@@ -70,6 +71,26 @@ namespace InGame.Player.Hatano
         }
 
         #endregion
+
+        /// <summary>
+        /// ULT終了後の武器ソケット変更
+        /// </summary>
+        /// <param name="status">現在のアビリティ</param>
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        public void RPC_UltEndAttachSocket(HatanoAbilityStatus status)
+        {
+            AttachRocketBody();
+            if (status == HatanoAbilityStatus.DoubleBarreledGun)
+            {
+                AttachDoubleGunHand();
+                AttachLaserGunHip();
+            }
+            else // レーザー銃
+            {
+                AttachLaserGunHand();
+                AttachDoubleGunBody();
+            }
+        }
         
         private void AttachSocket(Transform prefab, Transform socket)
         {
