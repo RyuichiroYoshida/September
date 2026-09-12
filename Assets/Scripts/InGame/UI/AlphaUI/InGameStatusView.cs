@@ -81,7 +81,7 @@ namespace September.InGame.UI
                 .AddTo(_cts.Token);
             ui.OnShowOgreUI.Subscribe(ShowOgreLamp).AddTo(_cts.Token);
             //  Bind前に_uiRootが生成されないのでChangeTagNoticeを直接Subscribeできない
-            ui.ChangeTagNoticeObserver.Subscribe(index => _changeTagOverlayMessage.ChangeTagNotice(index)).AddTo(_cts.Token);
+            ui.ChangeTagNoticeObserver.Subscribe(index => _changeTagOverlayMessage?.ChangeTagNotice(index)).AddTo(_cts.Token);
             ui.OnChangeStaminaValue.Skip(1).Subscribe(ChangeStamina).AddTo(_cts.Token);
             // ui.OnGameEnd.Subscribe(_ => PlayResultAnimation().Forget()).AddTo(_cts.Token);
             ui.IsInteracting
@@ -94,7 +94,10 @@ namespace September.InGame.UI
             ui.OnChangeDescriptionUI.Subscribe(ChangeExhibitDescriptionUI).AddTo(_cts.Token);
             ui.OnChangeScoreText.Subscribe(ChangeScore).AddTo(_cts.Token);
             ui.TimeOverlayMessage += TimeOverlayMessage;
-            ui.OnOutField.Subscribe(x => _fieldOutUI.alpha = x ? 1f : 0f).AddTo(this);
+            ui.OnOutField.Subscribe(x =>
+            {
+                if (_fieldOutUI) _fieldOutUI.alpha = x ? 1f : 0f;
+            }).AddTo(this);
             ui.OnNotice.Subscribe(x => _noticeView?.ShowNotice(x.Item1, x.Item2)).AddTo(this);
             ui.OnEvasionStaminaChanged.Subscribe(x => _evasionStaminaView?.SetEvasionStaminaGauge(x)).AddTo(this);
             ui.OnEvasionStaminaProgressChanged.Subscribe(x => _evasionStaminaView?.SetRecoverGaugeProgress(x)).AddTo(this);
@@ -115,7 +118,7 @@ namespace September.InGame.UI
             _changeTagOverlayMessage = _uiRoot.ChangeTagOverlayMessage;
             _timeOverlayMessage = _uiRoot.TimeOverlayMessage;
             _hpBarSlider = _uiRoot.HpBar;
-            if (UIController.I.HasHealthRatio)
+            if (_hpBarSlider && UIController.I.HasHealthRatio)
                 _hpBarSlider.Initialize(UIController.I.OnHealthRatioChanged.Value);
             _scoreText = _uiRoot.ScoreText;
             _staminaBarSlider = _uiRoot.StaminaBar;
@@ -127,16 +130,19 @@ namespace September.InGame.UI
             _evasionStaminaView = _uiRoot.EvasionStaminaUI;
             _timerView = _uiRoot.TimerUI;
             _controlGuideView = _uiRoot.ControlGuideUI;
-            _optionUI.SetActive(true);
-            _LogPanel.SetActive(true);
-            _ogreUiInstance.SetActive(false);
-            _hpBarSlider.gameObject.SetActive(true);
-            _staminaBarSlider.gameObject.SetActive(true);
-            _interactUI.SetActive(false);
-            _statusUpUI.gameObject.SetActive(true);
-            _fieldOutUI.gameObject.SetActive(true);
-            _fieldOutUI.alpha = 0;
-            _timerView.Initialize(_timerData.GameTime);
+            if (_optionUI) _optionUI.SetActive(true);
+            if (_LogPanel) _LogPanel.SetActive(true);
+            if (_ogreUiInstance) _ogreUiInstance.SetActive(false);
+            if (_hpBarSlider) _hpBarSlider.gameObject.SetActive(true);
+            if (_staminaBarSlider) _staminaBarSlider.gameObject.SetActive(true);
+            if (_interactUI) _interactUI.SetActive(false);
+            if (_statusUpUI) _statusUpUI.gameObject.SetActive(true);
+            if (_fieldOutUI)
+            {
+                _fieldOutUI.gameObject.SetActive(true);
+                _fieldOutUI.alpha = 0;
+            }
+            if (_timerView) _timerView.Initialize(_timerData.GameTime);
         }
 
         private void ChangeHp(float healthRatio)
@@ -177,7 +183,8 @@ namespace September.InGame.UI
         private void ChangeExhibitDescriptionUI(ControlDescriptionType type)
         {
             //_controlsUIGenerator.GenerateDescription(type);
-            _controlGuideView.GenerateDescription(type);
+            if (_controlGuideView)
+                _controlGuideView.GenerateDescription(type);
         }
 
         private void ChangeStamina(float value)
@@ -300,6 +307,9 @@ namespace September.InGame.UI
 
         private async UniTaskVoid ShowStatusUpUI(float seconds, StatusUpType statusUpType)
         {
+            if (!_statusUpUI || !_statusUpLayout)
+                return;
+
             switch (statusUpType)
             {
                 case StatusUpType.Heal:
@@ -376,6 +386,9 @@ namespace September.InGame.UI
 
         private void UpdateLayOutGroup()
         {
+            if (!_statusUpLayout)
+                return;
+
             // レイアウト内の入力値を再計算
             _statusUpLayout.CalculateLayoutInputHorizontal();
 
@@ -385,7 +398,8 @@ namespace September.InGame.UI
         /// <summary>
         /// Bind時に_timeOverlayMessageが生成されないのでメソッドを挟む
         /// </summary>
-        private UniTask TimeOverlayMessage(TimeMessageType type) => _timeOverlayMessage.CallTask(type);
+        private UniTask TimeOverlayMessage(TimeMessageType type) =>
+            _timeOverlayMessage ? _timeOverlayMessage.CallTask(type) : UniTask.CompletedTask;
         private void OnDestroy()
         {
             _cts?.Cancel();

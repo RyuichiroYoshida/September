@@ -48,7 +48,7 @@ namespace September
                 _noticeSequence = DOTween.Sequence()
                     .Append(DOFade(noticeObject, 1f, _fadeDuration))
                     .Join(_canvasGroup.DOFade(1f, _fadeDuration))
-                    .AppendInterval(second - _fadeDuration * 2)
+                    .AppendInterval(Mathf.Max(0f, second - _fadeDuration * 2))
                     .Append(DOFade(noticeObject, 0f, _fadeDuration))
                     .Join(_canvasGroup.DOFade(0f, _fadeDuration))
                     .OnComplete(() =>

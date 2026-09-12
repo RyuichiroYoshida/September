@@ -1,4 +1,5 @@
 using September.InGame.UI;
+using InGame.Player;
 using UnityEngine;
 
 namespace September
@@ -10,12 +11,12 @@ namespace September
 
         public void SetRecoverGaugeProgress(float staminaValue)
         {
-            float ratio = Mathf.Clamp01(staminaValue / 3f);
+            float ratio = Mathf.Clamp01(staminaValue / PlayerMovement.MaxEvasionStamina);
             _recoverGaugeView.SetFillAmount(ratio);
         }
         public void SetEvasionStaminaGauge(float staminaValue)
         {
-            float ratio = Mathf.Clamp01(staminaValue / 3f);
+            float ratio = Mathf.Clamp01(staminaValue / PlayerMovement.MaxEvasionStamina);
             _gaugeView.SetFillAmount(ratio);
             _recoverGaugeView.SetFillAmount(ratio);
         }
