@@ -76,14 +76,16 @@ namespace September.Common
                 var playerActions = GameInput.I.Player;
                 //  Input Actionからデータを取り出してネットワークに登録する（有効化されている場合のみ）
 
-                // 移動関連の入力（Move、Jump、Dash、Aim、Evasion）
+                // エイムによるロックオン禁止は、移動入力の有効状態に依存させない。
+                playerInput.Buttons.Set(PlayerButtons.Aim, playerActions.Aim.IsPressed());
+
+                // 移動関連の入力（Move、Jump、Dash、Evasion）
                 if (playerActions.Move.enabled)
                 {
                     playerInput.MoveDirection = playerActions.Move.ReadValue<Vector2>();
                     playerInput.LookDirection = playerActions.Look.ReadValue<Vector2>();
                     playerInput.Buttons.Set(PlayerButtons.Jump, playerActions.Jump.IsPressed());
                     playerInput.Buttons.Set(PlayerButtons.Dash, true); // 常にダッシュ（仮）
-                    playerInput.Buttons.Set(PlayerButtons.Aim, playerActions.Aim.IsPressed());
                     playerInput.Buttons.Set(PlayerButtons.Evasion, playerActions.Dash.IsPressed());
                 }
                 else
@@ -92,7 +94,6 @@ namespace September.Common
                     playerInput.LookDirection = Vector2.zero;
                     playerInput.Buttons.Set(PlayerButtons.Jump, false);
                     playerInput.Buttons.Set(PlayerButtons.Dash, false);
-                    playerInput.Buttons.Set(PlayerButtons.Aim, false);
                     playerInput.Buttons.Set(PlayerButtons.Evasion, false);
                 }
 
