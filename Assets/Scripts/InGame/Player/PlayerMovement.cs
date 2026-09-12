@@ -93,6 +93,48 @@ namespace InGame.Player
         private PlayerEvasion _playerEvasion;
         /// <summary> 回避の同期状態。Tick 基準なので入力権限側の予測でも決定的に再計算できる </summary>
         [Networked, HideInInspector] public EvasionState Evasion { get; private set; }
+        public const int MaxEvasionStamina = 3;
+        public int EvasionStamina => _status.CurrentEvasionStamina;
+        [Networked] private TickTimer RecoveryTimer { get; set; }
+        [Networked] private float RecoveryRemaining { get; set; }
+        [Networked] private float RecoveryInterval { get; set; }
+        [Networked] private NetworkBool RecoveryPaused { get; set; }
+
+        public float EvasionStaminaProgress
+        {
+            get
+            {
+                float value = EvasionStamina;
+                if (value >= _status.MaxEvasionStamina || RecoveryInterval <= 0f) return value;
+                if (!RecoveryPaused && !RecoveryTimer.IsRunning) return value;
+                float remaining = RecoveryPaused ? RecoveryRemaining : RecoveryTimer.RemainingTime(Runner) ?? 0f;
+                return Mathf.Min(_status.MaxEvasionStamina, value + 1f - Mathf.Clamp01(remaining / RecoveryInterval));
+            }
+        }
+
+        private void PauseEvasionRecovery(float interval)
+        {
+            RecoveryInterval = Mathf.Max(0.01f, interval);
+            RecoveryRemaining = RecoveryTimer.RemainingTime(Runner) ?? RecoveryInterval;
+            RecoveryTimer = TickTimer.None;
+            RecoveryPaused = true;
+        }
+
+        private void ConsumeEvasionStaminaAndResumeRecovery()
+        {
+            _status.AddBaseValue(StatType.EvasionStamina, -1f);
+            RecoveryPaused = false;
+            RecoveryTimer = TickTimer.CreateFromSeconds(Runner, Mathf.Max(Runner.DeltaTime, RecoveryRemaining));
+        }
+
+        public void UpdateEvasionStamina()
+        {
+            if (RecoveryPaused || EvasionStamina >= _status.MaxEvasionStamina || !RecoveryTimer.Expired(Runner)) return;
+            _status.AddBaseValue(StatType.EvasionStamina, 1f);
+            RecoveryTimer = EvasionStamina < _status.MaxEvasionStamina
+                ? TickTimer.CreateFromSeconds(Runner, RecoveryInterval)
+                : TickTimer.None;
+        }
         [Networked, HideInInspector] public bool DoingVault { get; private set; }
         public event Action OnStartVault;
         [Networked, HideInInspector] public Vector3 NetworkVelocity { get; private set; }
@@ -192,12 +234,16 @@ namespace InGame.Player
 
         private void StartEvasion()
         {
+            if (EvasionStamina <= 0) return;
+
             var state = Evasion;
             int jewelryCount = _playerJewelryRuntime.CalculateJewelryScore();
 
             if (!_playerEvasion.TryStartEvasion(ref state, MoveDirection, transform.forward, Runner.Tick, Runner.DeltaTime, jewelryCount))
                 return;
 
+            // 回復途中で回避した場合は残り時間を保存して停止する。
+            PauseEvasionRecovery(_evasionData.StaminaRecoveryInterval);
             Evasion = state;
             Stop();
         }
@@ -279,6 +325,9 @@ namespace InGame.Player
                 state.IsEvading = false;
                 state.LastEndTick = tick;
                 Evasion = state;
+
+                // 回避完了時に消費し、停止していた残り時間から回復を再開する。
+                ConsumeEvasionStaminaAndResumeRecovery();
 
                 if (HasStateAuthority) _playerHealth.IsInvincible = false;
                 return;

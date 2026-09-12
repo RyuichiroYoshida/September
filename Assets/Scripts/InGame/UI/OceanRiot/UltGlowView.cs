@@ -1,23 +1,24 @@
-using DG.Tweening;
+using System.Collections.Generic;
+
 using InGame.Player.Ult;
 using September.Common;
 using September.InGame.Common;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace September.InGame.Ult
+namespace September
 {
-    public class UltUI : MonoBehaviour
+    public class UltGlowView : MonoBehaviour
     {
-        [SerializeField] private Image _image;
-        [SerializeField] private float _easeDuration = 0.2f;
-
+        [SerializeField] private List<GameObject> _glowObjects;
         private void Start()
         {
-            _image.fillAmount = 0f;
+            for (int i = 0; i < _glowObjects.Count; i++)
+            {
+                _glowObjects[i].SetActive(false);
+            }
 
             var inGameManager = StaticServiceLocator.Instance.Get<InGameManager>();
-            
+
             // プレイヤーがスポーンされた後に処理を行う
             inGameManager.GameStarted += () =>
             {
@@ -40,14 +41,17 @@ namespace September.InGame.Ult
                     Debug.LogError("[UltUI] No UltCondition found");
                     return;
                 }
-                
-                model.OnProgressChanged += () => SetGaugeProgress(model.Progress);
+
+                model.OnProgressChanged += () => SetGlowObject(model.Progress >= 1f);
             };
         }
 
-        private void SetGaugeProgress(float ratio)
+        private void SetGlowObject(bool isActive)
         {
-            _image.DOFillAmount(ratio, _easeDuration);
+            for (int i = 0; i < _glowObjects.Count; i++)
+            {
+                _glowObjects[i].SetActive(isActive);
+            }
         }
     }
 }
