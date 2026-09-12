@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cinemachine;
 using Fusion;
 using Fusion.Addons.Physics;
 using InGame.Health;
@@ -148,7 +147,7 @@ namespace InGame.Exhibit
                 damageable.OwnerPlayerRef != PlayerRef.FromEncoded(_equippedInteractor))
             {
                 Debug.Log($"[CannonBall] ダメージを与えます: {damageable.OwnerPlayerRef}");
-                var hitData = new HitData(HitActionType.Damage, _damageAmount,
+                var hitData = new HitData(HitActionType.RangedDamage, _damageAmount,
                     PlayerRef.FromEncoded(_equippedInteractor), damageable.OwnerPlayerRef);
                 damageable.TakeHit(ref hitData);
             }

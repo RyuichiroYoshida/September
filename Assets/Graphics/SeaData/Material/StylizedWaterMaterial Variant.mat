@@ -26,8 +26,9 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _WaveHeight1_1: 0.5
-    - _WaveHeight2: 0.5
+    - _WaveHeight1_1: 0.21
+    - _WaveHeight2: 0.21
+    - _WaveHeight3: 0.21
     - _WaveLength1_1: 1.23
     - _WaveLength2: 2
     - _WaveSpeed1_1: 0.76

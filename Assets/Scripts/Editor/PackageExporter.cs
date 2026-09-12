@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Reflection;
 
 public class PackageExporter : EditorWindow
 {
@@ -15,6 +16,8 @@ public class PackageExporter : EditorWindow
     private Vector2 _fileScrollPosition;
     private List<FolderStatus> _folderStatuses = new();
     private List<FileStatus> _changedFiles = new();
+
+    private string _query;
 
     private class FolderStatus
     {
@@ -115,6 +118,11 @@ public class PackageExporter : EditorWindow
                 ExportSingleFolder(status);
                 GUIUtility.ExitGUI();
             }
+
+            if (status.HasChanged && GUILayout.Button("変更を検索", GUILayout.Width(100)))
+            {
+                _query = status.FolderName;
+            }
             GUI.contentColor = Color.white;
         }
     }
@@ -122,18 +130,47 @@ public class PackageExporter : EditorWindow
     private void DrawChangedFilesList()
     {
         EditorGUILayout.LabelField($"更新があったファイル一覧 ({_changedFiles.Count}件)", EditorStyles.boldLabel);
+
+        DrawSearchField();
         
         // パス表示に必要な幅を計算（表示されるファイルのみで計算）
         float maxPathWidth = _changedFiles.Count > 0 ? _changedFiles.Max(f => EditorStyles.label.CalcSize(new GUIContent(f.DisplayText)).x) : 0;
         
         _fileScrollPosition.y = EditorGUILayout.BeginScrollView(new Vector2(0, _fileScrollPosition.y), GUILayout.ExpandHeight(true)).y;
-        foreach (var file in _changedFiles)
+        foreach (var file in GetFiles(_query))
         {
             DrawChangedFileRow(file, maxPathWidth);
         }
         EditorGUILayout.EndScrollView();
 
         DrawHorizontalScrollbar(maxPathWidth);
+    }
+
+    private void DrawSearchField()
+    {
+        var method = typeof(EditorGUI).GetMethod(
+            "ToolbarSearchField",
+            BindingFlags.NonPublic | BindingFlags.Static,
+            null,
+            new[] { typeof(Rect), typeof(string), typeof(bool) },
+            null
+        );
+
+        if (method != null)
+        {
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                Rect rect = EditorGUILayout.GetControlRect(GUILayout.ExpandWidth(true));
+                _query = (string)method.Invoke(null, new object[] { rect, _query, false });
+            }
+        }
+    }
+
+    private IEnumerable<FileStatus> GetFiles(string query)
+    {
+        return string.IsNullOrEmpty(query)
+            ? _changedFiles
+            : _changedFiles.Where(file => file.RelativePath.StartsWith(query));
     }
 
     private void DrawChangedFileRow(FileStatus file, float maxPathWidth)

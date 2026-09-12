@@ -1,9 +1,9 @@
 using System.Linq;
-using Cinemachine;
 using Common.Extensions;
 using Cysharp.Threading.Tasks;
 using Fusion;
 using InGame.Common;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Playables;
 

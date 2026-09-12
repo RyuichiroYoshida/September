@@ -50,11 +50,15 @@ namespace InGame.Jewelry
         [Header("出現位置からの高さ")]
         [SerializeField] private float _height;
 
+        [Header("スポーン予告メッセージを出すか")]
+        [SerializeField] private bool _showSpawnMessage;
+
         public float SpawnTime => _spawnTime;
         public JewelrySpawnItem[] Items => _items;
         public float SpawnRange => _spawnRange;
         public int PositionIndex => _positionIndex;
         public float Height => _height;
+        public bool ShowSpawnMessage => _showSpawnMessage;
     }
 
     /// <summary>1種類の宝石の出現設定</summary>

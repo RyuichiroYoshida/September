@@ -5,16 +5,14 @@ namespace Ingame.Tanihira
 {
     public class FriendMoveState : IFriendState
     {
-        private bool _isSetDestination;
         public void OnEnter(FriendBase friend)
         {
-            if (!friend.Agent.isOnNavMesh)
-            {
-                return;
-            }
-            
             //agentが移動できるように設定
             friend.Agent.enabled = true;
+
+            if (!friend.Agent.isOnNavMesh)
+                return;
+
             friend.Agent.isStopped = false;
           
             //移動時のステータスを設定
@@ -24,7 +22,6 @@ namespace Ingame.Tanihira
 
         public void OnExit(FriendBase friend)
         {
-            _isSetDestination = false;
         }
 
         public void OnUpdate(FriendBase friend)

@@ -38,6 +38,10 @@ namespace InGame.Interact
 
         /// <summary>この展示物のタイプ</summary>
         [SerializeField] private ExhibitType _type;
+        /// <summary> インタラクト位置オフセット </summary>
+        [SerializeField] private Vector3 _interactPositionOffset = Vector3.zero;
+        /// <summary> インタラクト範囲を表すコライダー。コライダー種類はClosestPointが使えるもののみ（凸包でないMeshCollider不可） </summary>
+        [SerializeField] private Collider _interactAreaCollider;
         /// <summary>インタラクトエフェクトの位置オフセット</summary>
         [SerializeField] private Vector3 _interactEffectOffset = Vector3.zero;
         /// <summary>クールダウンエフェクトを再生するTransform（未設定の場合は自身）</summary>
@@ -146,6 +150,7 @@ namespace InGame.Interact
                 _audioBroadcaster.RPC_PlaySoundFromCode(_interactSoundCueName, _interactSoundTrackingType, Object, actor);
             }
 
+
             // 全クライアントにインタラクトログを表示
             Rpc_ShowInteractLog(actor, _type);
         }
@@ -174,6 +179,17 @@ namespace InGame.Interact
                 PlayCooldownEffect().Forget();
             }
         }
+        
+        /// <summary>
+        /// クールダウンを開始する 
+        /// </summary>
+        private void StartCooldown()
+        {
+            var time = CooldownTimeDictionary.Dictionary.TryGetValue(CharacterType.All, out var all)
+                ? all
+                : CooldownTimeDictionary.Dictionary.GetValueOrDefault(_characterType, 0f);
+            SetCooldown(time);
+        }
 
         /// <summary>
         /// クールダウンエフェクトを再生する非同期処理
@@ -182,19 +198,18 @@ namespace InGame.Interact
         private async UniTask PlayCooldownEffect()
         {
             var effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
-            var uniqueEffectId = $"cooldown_{Object.Id}"; // オブジェクトIDを使って一意なIDを生成
             var effectTransform = _cooldownEffectTransform != null ? _cooldownEffectTransform : transform;
 
             // ループエフェクトを開始
-            effectSpawner.RequestPlayLoopEffect(uniqueEffectId, _cooldownEffectType,
+            var effectId = effectSpawner.RequestPlayLoopEffect(_cooldownEffectType,
                 effectTransform.position + _cooldownEffectOffset, Quaternion.Euler(_cooldownEffectRotation),
                 _cooldownEffectScale);
 
             // クールダウン終了待機
             await UniTask.WaitUntil(this, s => !s.IsInCooldown(), cancellationToken: this.GetCancellationTokenOnDestroy());
 
-            // エフェクトを停止
-            effectSpawner?.StopEffect(uniqueEffectId);
+            // エフェクトをフェードアウトさせて停止
+            effectSpawner.StopEffectGradually(effectId);
 
             // クールダウン回復音を全クライアントで再生
             Rpc_PlaySE(SoundCues.SE.Exhibit_Revive.Sheet, SoundCues.SE.Exhibit_Revive.Name, effectTransform.position);
@@ -254,13 +269,12 @@ namespace InGame.Interact
         }
 
         /// <summary>
-        /// 派生クラスで個別のバリデーション条件を追加する仮想メソッド
-        /// デフォルトではゲーム終了状態とプレイヤースタン状態をチェック
+        /// インタラクト可能条件
         /// </summary>
         /// <param name="context">インタラクトのコンテキスト</param>
         /// <param name="charaType">キャラクタータイプ</param>
         /// <returns>true: インタラクト可能、false: インタラクト不可</returns>
-        protected virtual bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
+        private bool OnValidateInteraction(IInteractableContext context, CharacterType charaType)
         {
             // ゲーム終了状態の時はインタラクトを無効化
             if (IsGameEnded())
@@ -427,6 +441,7 @@ namespace InGame.Interact
         /// </summary>
         public void EndInteract()
         {
+            StartCooldown();
             _activeEffectBase?.OnInteractEnd();
             ControlDescriptionType type = CharacterDataContainer.Instance.GetControlDescriptionType(_characterType);
             RPC_ChangeDescriptionUI(type);
@@ -464,9 +479,22 @@ namespace InGame.Interact
         /// </summary>
         public Vector3 GetInteractPosition()
         {
-            Vector3 result = this.transform.position;
-            result.y += _cooldownEffectOffset.y;
-            return result;
+            return transform.TransformPoint(_interactPositionOffset);
+        }
+
+        /// <summary>
+        /// インタラクト範囲の中からpositionに最も近い点を返します
+        /// </summary>
+        public Vector3 GetNearestPointOnInteractArea(Vector3 position)
+        {
+            // インタラクト範囲コライダーが指定されている場合はコライダーを優先
+            if (_interactAreaCollider)
+            {
+                return _interactAreaCollider.ClosestPoint(position);
+            }
+
+            // コライダーが無ければOffsetを使用
+            return GetInteractPosition();
         }
 
 #if UNITY_EDITOR
@@ -492,6 +520,14 @@ namespace InGame.Interact
             // インタラクトエフェクトの位置を表示
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position + _interactEffectOffset, 0.2f);
+
+            // インタラクト地点
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.TransformPoint(_interactPositionOffset), 0.2f);
+            if (_interactAreaCollider)
+            {
+                GizmosUtility.DrawCollider(_interactAreaCollider);
+            }
         }
 #endif
     }

@@ -43,7 +43,7 @@ namespace InGame.Common
         {
             for (int i = 0; i < _statusEffects.Length; i++)
             {
-                if (_statusEffects[i] == statusEffect) return i;
+                if (_statusEffects[i] == statusEffect || _statusEffects[i].name == statusEffect.name) return i;
             }
 
             throw new ArgumentException(

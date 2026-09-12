@@ -51,8 +51,8 @@ namespace InGame.Common
         [Header("Layer Meta")]
         public LayerInfo.LayerType TargetLayer;
         public bool IsAdditive;
-
-        public bool _loop;
+        [Tooltip("ON にすると Humanoid の Foot IK (クリップに焼かれた足位置への補正) を切る。通常は OFF のままで、リターゲット時の足滑りを防ぐ")]
+        public bool DisableFootIK;
 
         public AnimationMontageStruct(float playSpeed = 1)
         {
@@ -62,8 +62,7 @@ namespace InGame.Common
             BlendOut = new LayerInfo.Blend();
             TargetLayer = LayerInfo.LayerType.Base;
             IsAdditive = false;
-            
-            _loop = false;
+            DisableFootIK = false;
         }
     }
 }

@@ -67,7 +67,7 @@ namespace InGame.Player.Ability.Effect
 
             // 無敵化と入力ロック
             if (_playerHealth) _playerHealth.IsInvincible = true;
-            if (_playerManager) _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.InputLocked);
+            if (_playerManager) _playerManager.SetControlState(PlayerManager.PlayerControlState.InputLocked);
 
             OnCutInStart();
 
@@ -120,7 +120,7 @@ namespace InGame.Player.Ability.Effect
             Debug.Log("<color=yellow>[AbilityUlt]</color> CutIn End", Parameter.Owner);
             // 無敵解除と入力ロック解除
             if (_playerHealth) _playerHealth.IsInvincible = false;
-            if (_playerManager) _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.Normal);
+            if (_playerManager) _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
 
             _isCutInEnd = true;
             OnCutInEnd();

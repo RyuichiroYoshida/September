@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _maxHealth: 50
   _attackPower: 6
-  _friendRotateSpeed: 200
+  _friendRotateSpeed: 300
   _friendFormationMoveSpeed: 7
   _friendFormationDistance: 1
   _friendChaseSpeed: 18
-  _friendChaseStopDistance: 1
+  _friendChaseStoppingDistance: 1
   _friendStunTime: 5
-  _friendAccleration: 10
+  _friendAcceleration: 20

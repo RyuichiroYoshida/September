@@ -83,7 +83,7 @@ namespace Ingame.Tanihira
             {
                 EndCursor();
             }
-            else if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Ability3) && _state == TanihiraCursorState.Active)
+            else if (input.Buttons.WasPressed(PreviousButtons, PlayerButtons.Attack) && _state == TanihiraCursorState.Active)
             {
                 MoveTargetCursor();
             }

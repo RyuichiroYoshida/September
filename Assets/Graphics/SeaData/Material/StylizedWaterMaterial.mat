@@ -29,7 +29,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2999
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -128,7 +128,7 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueControl: 0
-    - _QueueOffset: 0
+    - _QueueOffset: -1
     - _ReceiveShadows: 1
     - _ReflectionScale: 0.5
     - _ReflectionSpeed: 0.4
@@ -147,16 +147,16 @@ Material:
     - _Surface: 0
     - _WaterDepth: 10
     - _WaveHeight: 1.5
-    - _WaveHeight1_1: 2.6
-    - _WaveHeight2: 1
+    - _WaveHeight1_1: 1
+    - _WaveHeight2: 0.5
     - _WaveHeight3: 1
     - _WaveLength: 0.09
-    - _WaveLength1_1: 10
-    - _WaveLength2: 7
+    - _WaveLength1_1: 6
+    - _WaveLength2: 5
     - _WaveLength3: 1
     - _WaveSharpness: -100
-    - _WaveSharpness1_1: 2.6
-    - _WaveSharpness2: 3
+    - _WaveSharpness1_1: 2
+    - _WaveSharpness2: 1
     - _WaveSharpness3: 3
     - _WaveSpeed: 0.03
     - _WaveSpeed1_1: 1
@@ -175,7 +175,7 @@ Material:
     - _Water_F0Color: {r: 0.14999977, g: 0.14999977, b: 0.14999977, a: 0}
     - _WaveDirection: {r: 1, g: 0, b: 0, a: 0}
     - _WaveDirection1_1: {r: 1, g: 0, b: 0, a: 0}
-    - _WaveDirection2: {r: 0, g: 1, b: 0, a: 0}
-    - _WaveDirection3: {r: 1, g: 1, b: 0, a: 0}
+    - _WaveDirection2: {r: 1, g: 1, b: 0, a: 0}
+    - _WaveDirection3: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -8,7 +8,7 @@ public class MeleeHitboxExecutor : IHitboxExecutor
     private readonly float _hitboxRadius;
     private readonly LayerMask _hitMask = default;
     private readonly HashSet<Collider> _alreadyHit = new();
-    private RaycastHit[] _hitBuffer = new RaycastHit[32]; // バッファサイズは必要に応じて調整
+    private Collider[] _hitBuffer = new Collider[32]; // バッファサイズは必要に応じて調整
     public Action<Collider,Vector3> OnHit;
 
     public MeleeHitboxExecutor(
@@ -40,7 +40,7 @@ public class MeleeHitboxExecutor : IHitboxExecutor
         Debug.Assert(size is >= minSize and <= maxSize);
 
         size = Mathf.Clamp(size, minSize, maxSize);
-        _hitBuffer = new RaycastHit[size];
+        _hitBuffer = new Collider[size];
     }
     
     public void ExecuteHitCheck()
@@ -59,15 +59,10 @@ public class MeleeHitboxExecutor : IHitboxExecutor
 
                 var start = p0.position;
                 var end = p1.position;
-                var direction = end - start;
-                var distance = direction.magnitude;
 
-                if (distance <= 0.001f) continue;
-
-                int hitCount = Physics.CapsuleCastNonAlloc(
+                int hitCount = Physics.OverlapCapsuleNonAlloc(
                     start, end, _hitboxRadius,
-                    direction.normalized, _hitBuffer, distance,
-                    _hitMask, QueryTriggerInteraction.Collide);
+                    _hitBuffer, _hitMask, QueryTriggerInteraction.Collide);
               
                 if (hitCount == _hitBuffer.Length)
                 {
@@ -76,10 +71,10 @@ public class MeleeHitboxExecutor : IHitboxExecutor
 
                 for (int j = 0; j < hitCount; j++)
                 {
-                    var collider = _hitBuffer[j].collider;
+                    var collider = _hitBuffer[j];
                     if (_alreadyHit.Add(collider))
                     {
-                        OnHit?.Invoke(collider,start);
+                        OnHit?.Invoke(collider, start);
                     }
                 }
 
@@ -106,9 +101,8 @@ public class MeleeHitboxExecutor : IHitboxExecutor
 
         const float fallbackDistance = 0.01f;
 
-        int hitCount = Physics.SphereCastNonAlloc(
-            origin, _hitboxRadius, direction,
-            _hitBuffer, fallbackDistance, _hitMask);
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            origin, _hitboxRadius, _hitBuffer, _hitMask);
         
         if (hitCount == _hitBuffer.Length)
         {
@@ -117,10 +111,10 @@ public class MeleeHitboxExecutor : IHitboxExecutor
 
         for (int j = 0; j < hitCount; j++)
         {
-            var collider = _hitBuffer[j].collider;
+            var collider = _hitBuffer[j];
             if (_alreadyHit.Add(collider))
             {
-                OnHit?.Invoke(collider,_hitBuffer[j].collider.transform.root.position);
+                OnHit?.Invoke(collider,_hitBuffer[j].transform.root.position);
             }
         }
 

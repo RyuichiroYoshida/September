@@ -1,13 +1,11 @@
 using Ingame.Tanihira;
-using UnityEngine;
-using UnityEngine.UI;
 
 public class FriendChaseState : IFriendState
 {
     public void OnEnter(FriendBase friend)
     {
         friend.Agent.speed = friend.CurrentFriendStatus.FriendChaseSpeed;
-        friend.Agent.stoppingDistance = friend.CurrentFriendStatus.FriendChaseDistance;
+        friend.Agent.stoppingDistance = friend.CurrentFriendStatus.FriendChaseStoppingDistance;
     }
 
     public void OnExit(FriendBase friend)

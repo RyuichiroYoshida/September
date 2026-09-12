@@ -1,5 +1,5 @@
-using InGame.Jewelry;
 using TMPro;
+using InGame.Jewelry;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,16 +18,21 @@ namespace September.InGame.UI
         public VerticalLayoutGroup StatusUpUIRoot;
         public TextMeshProUGUI ScoreText;
         public Image IconImage;
+        public CanvasGroup FieldOutUI;
         public PlayerJewelryView JewelryView;
+        public NoticeView NoticeUI;
+        public EvasionStaminaView EvasionStaminaUI;
+        public TimerView TimerUI;
+        public ControlGuideView ControlGuideUI;
 
         [Header("Bars")]
-        public Slider HpBar;
+        public HpGaugeView HpBar;
         public Slider StaminaBar;
 
-        [Header("Interact")] 
+        [Header("Interact")]
         public InteractUi InteractUI;
 
-        [Header("Timer")] 
+        [Header("Timer")]
         public TextMeshProUGUI TimerText;
     }
 }

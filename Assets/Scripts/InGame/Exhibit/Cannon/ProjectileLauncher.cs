@@ -1,4 +1,7 @@
+using System;
 using Fusion;
+using September.Common;
+using September.InGame.Effect;
 using UnityEngine;
 
 namespace September.InGame.Exhibit
@@ -8,24 +11,22 @@ namespace September.InGame.Exhibit
 		[SerializeField] private Transform _projectileSpawnPoint;
 		[SerializeField] private Projectile _projectilePrefab;
 		[SerializeField] private NetworkObject _projectileEffectPrefab;
-		[SerializeField] private LineRenderer _lineRenderer;
+		[SerializeField] private EffectType _shootEffectType;
 		[SerializeField] private float _simulationStepTime = 0.1f;
 		[SerializeField] private float _lifeTime = 10f;
 		[SerializeField] private Vector3 _gravity = new(0, -9.81f, 0);
 		[SerializeField] private float _projectileVelocity;
 		[SerializeField] private LayerMask _hitLayer;
 
-		[Header("Hit時の処理")] [SerializeReference] [SubclassSelector]
+		[Header("Hit時の処理")] [SerializeReference, SubclassSelector]
 		private IProjectileHitEffect _projectileHitEffect;
-
-		public bool IsRenderLine;
+		private EffectSpawner _effectSpawner;
 		private Vector3[] _linePositions;
-		[SerializeField] private CannonAimRenderer _cannonAimRenderer;
+		private int _lastPositionIndex;
 
-		public Vector3 HitPosition => _linePositions[LastPositionIndex];
-
+		public Vector3 HitPosition => _linePositions[_lastPositionIndex];
+		public ReadOnlySpan<Vector3> LinePositions => _linePositions.AsSpan(0, _lastPositionIndex + 1);
 		public Vector3 HitNormal { get; private set; }
-		private int LastPositionIndex { get; set; }
 		[Networked] private ProjectileData CurrentProjectileData { get; set; }
 
 		public struct ProjectileData : INetworkStruct
@@ -44,14 +45,7 @@ namespace September.InGame.Exhibit
 			base.Spawned();
 			_projectileHitEffect.Initialize();
 			_linePositions = new Vector3[(int)(_lifeTime / _simulationStepTime)];
-		}
-
-		public void EffectRender()
-		{
-			BuildTrajectory();
-			//_cannonAimRenderer.RenderUpdate();
-			if (IsRenderLine) RenderLine();
-			else RefreshLineRenderer();
+			_effectSpawner = StaticServiceLocator.Instance.Get<EffectSpawner>();
 		}
 
 		/// <summary>
@@ -68,7 +62,7 @@ namespace September.InGame.Exhibit
 				Timer = 0f,
 				HasHit = false
 			};
-			
+
 			Runner.Spawn(_projectilePrefab, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation,
 				onBeforeSpawned: (runner, obj) =>
 				{
@@ -80,20 +74,13 @@ namespace September.InGame.Exhibit
 					{
 						var normal = rotation * Vector3.forward;
 						if (Runner.IsServer)
-							_projectileHitEffect.Hit(position, normal, hitObject,
+							_projectileHitEffect.OnStateAuthorityHit(position, normal, hitObject,
 								usePlayerRef);
 						RPC_PlayEffect(position, normal);
 					});
 				});
-		}
-
-		/// <summary>
-		///     事前に計算された軌道に沿って線描画する
-		/// </summary>
-		private void RenderLine()
-		{
-			_lineRenderer.positionCount = LastPositionIndex + 1;
-			_lineRenderer.SetPositions(_linePositions);
+			
+			_effectSpawner.RequestPlayOneShotEffect(_shootEffectType, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation);
 		}
 
 		/// <summary>
@@ -101,7 +88,7 @@ namespace September.InGame.Exhibit
 		///     障害物に当たった場合、そこを最終地点とする。
 		///     結果は_linePositionsと_lastPositionIndexに保存される。
 		/// </summary>
-		private void BuildTrajectory()
+		public void BuildTrajectory()
 		{
 			for (var i = 0; i < _linePositions.Length; i++)
 			{
@@ -116,22 +103,17 @@ namespace September.InGame.Exhibit
 				var ray = new Ray(_linePositions[i - 1], _linePositions[i] - _linePositions[i - 1]);
 
 				// 障害物が存在した場合、その地点を最終地点とする。
-				if (Physics.Raycast(ray, out var hit, Vector3.Distance(_linePositions[i - 1], _linePositions[i])))
+				if (Physics.Raycast(ray, out var hit, Vector3.Distance(_linePositions[i - 1], _linePositions[i]), _hitLayer))
 				{
 					_linePositions[i] = hit.point;
-					LastPositionIndex = i;
+					_lastPositionIndex = i;
 					HitNormal = hit.normal;
 					return;
 				}
 			}
 
-			LastPositionIndex = _linePositions.Length - 1;
+			_lastPositionIndex = _linePositions.Length - 1;
 			HitNormal = Vector3.up;
-		}
-
-		private void RefreshLineRenderer()
-		{
-			_lineRenderer.positionCount = 0;
 		}
 
 		[Rpc]
@@ -143,7 +125,7 @@ namespace September.InGame.Exhibit
 		[Rpc]
 		private void RPC_PlayEffect(Vector3 position, Vector3 normal)
 		{
-			_projectileHitEffect.PlayEffect(position, normal);
+			_projectileHitEffect.OnHit(position, normal);
 		}
 
 		#region Gizmos
@@ -156,23 +138,22 @@ namespace September.InGame.Exhibit
 			_projectileHitEffect.DrawGizmos(HitPosition, HitNormal);
 		}
 #endif
-
 		#endregion
 	}
 
 	public interface IProjectileHitEffect
 	{
 		void Initialize();
-		
+
 		/// <summary>
-		///     ProjectileHit時にサーバで上のゲームロジック処理
+		///     ProjectileHit時に呼ばれるサーバ上でのゲームロジック処理
 		/// </summary>
-		void Hit(Vector3 hitPos, Vector3 normal, GameObject hitObject, PlayerRef usePlayer);
+		void OnStateAuthorityHit(Vector3 hitPos, Vector3 normal, GameObject hitObject, PlayerRef usePlayer);
 
 		/// <summary>
 		///     ProjectileHit時に全クライアントで行う処理
 		/// </summary>
-		void PlayEffect(Vector3 hitPos, Vector3 normal);
+		void OnHit(Vector3 hitPos, Vector3 normal);
 
 		void DrawGizmos(Vector3 hitPos, Vector3 normal);
 	}

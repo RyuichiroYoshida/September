@@ -1,8 +1,6 @@
-using System;
 using UnityEngine;
 using Fusion;
 using System.Collections.Generic;
-using InGame.Common;
 using September.Common;
 
 namespace September.InGame.Effect
@@ -11,9 +9,10 @@ namespace September.InGame.Effect
     {
         private NetworkRunner _networkRunner;
         private EffectDatabase _effectDatabase;
-        private Dictionary<string, GameObject> _activeEffects; //IDは呼び出し側に作ってもらう
+        private Dictionary<EffectID, GameObject> _activeEffects;
 
-        
+        private int _effectCount = 0;
+
         private void Awake()
         {
                   
@@ -46,7 +45,7 @@ namespace September.InGame.Effect
             }
             
             if (_activeEffects == null)
-                _activeEffects = new Dictionary<string, GameObject>();
+                _activeEffects = new Dictionary<EffectID, GameObject>();
       
         }
 
@@ -57,7 +56,7 @@ namespace September.InGame.Effect
         {
             if (effectType == EffectType.None) return;
 
-            RPC_PlayEffect(effectType, position, rotation, false, string.Empty, default(NetworkId));
+            RPC_PlayEffect(effectType, position, rotation, false, default, default(NetworkId));
         }
 
         /// <summary>
@@ -77,86 +76,82 @@ namespace September.InGame.Effect
                 }
             }
 
-            RPC_PlayEffect(effectType, position, rotation, false, string.Empty, parentNetworkId);
+            RPC_PlayEffect(effectType, position, rotation, false, default, parentNetworkId);
         }
 
-        // ToDo : Effectを返してほしい
+        private EffectID GenerateEffectId()
+        {
+            return new EffectID(++_effectCount, Runner.LocalPlayer);
+        }
 
         /// <summary>
         /// 手動で削除するエフェクトのリクエスト
         /// </summary>
-        /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
-        public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation)
+        public EffectID RequestPlayLoopEffect(EffectType effectType, Vector3 position, Quaternion rotation)
         {
-            if (effectType == EffectType.None) return;
+            if (effectType == EffectType.None) return default;
 
+            EffectID effectId = GenerateEffectId();
             RPC_PlayEffect(effectType, position, rotation, true, effectId, default(NetworkId));
+
+            return effectId;
         }
 
         /// <summary>
         /// 手動で削除するエフェクトのリクエスト（スケール指定）
         /// </summary>
-        public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation, Vector3 scale)
+        public EffectID RequestPlayLoopEffect(EffectType effectType, Vector3 position, Quaternion rotation, Vector3 scale)
         {
-            if (effectType == EffectType.None) return;
+            if (effectType == EffectType.None) return default;
 
+            EffectID effectId = GenerateEffectId();
             RPC_PlayEffectWithScale(effectType, position, rotation, scale, true, effectId, default(NetworkId));
+
+            return effectId;
         }
 
         /// <summary>
         /// 手動で削除するエフェクトのリクエスト（親オブジェクト指定）
         /// </summary>
         /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
-        public void RequestPlayLoopEffect(string effectId, EffectType effectType, Vector3 position, Quaternion rotation, Transform parent)
+        public EffectID RequestPlayLoopEffect(EffectType effectType, Vector3 position, Quaternion rotation, Transform parent)
         {
-            if (effectType == EffectType.None) return;
+            if (effectType == EffectType.None) return default;
 
             NetworkId parentNetworkId = default(NetworkId);
             if (parent != null)
             {
-                var parentNetworkObject = parent.GetComponent<NetworkObject>();
+                var parentNetworkObject = parent.GetComponentInParent<NetworkObject>();
                 if (parentNetworkObject != null)
                 {
                     parentNetworkId = parentNetworkObject.Id;
                 }
+                else
+                {
+                    Debug.LogWarning($"[EffectSpawner] 指定オブジェクトにNetworkObjectが存在しないため、親オブジェクトを設定できません。parent: {parent}");
+                }
             }
 
+            EffectID effectId = GenerateEffectId();
             RPC_PlayEffect(effectType, position, rotation, true, effectId, parentNetworkId);
+
+            return effectId;
         }
 
         /// <summary>
         /// 指定されたIDのエフェクトを停止する
         /// </summary>
-        public void StopEffect(string effectId)
+        public void StopEffect(EffectID effectId)
         {
             RPC_StopEffectById(effectId);
         }
 
         /// <summary>
-        /// エフェクトの位置を更新
+        /// 指定されたIDのエフェクトの新規放出を止め、パーティクルの寿命に従って徐々にフェードアウトさせる
         /// </summary>
-        /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
-        /// <param name="position">位置</param>
-        /// <param name="rotation">回転</param>
-        public void UpdateEffect(string effectId, Vector3 position, Quaternion rotation)
+        public void StopEffectGradually(EffectID effectId)
         {
-            RPC_UpdateEffect(effectId, position, rotation);
-        }
-
-        /// <summary>
-        /// エフェクトの位置を更新RPC
-        /// </summary>
-        /// <param name="effectId">ユーザー名＋タイムスタンプ推奨</param>
-        /// <param name="position">位置</param>
-        /// <param name="rotation">回転</param>
-        [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_UpdateEffect(string effectId, Vector3 position, Quaternion rotation)
-        {
-            if (_activeEffects.TryGetValue(effectId, out var effect))
-            {
-                effect.transform.position = position;
-                effect.transform.rotation = rotation;
-            }
+            RPC_StopEffectGraduallyById(effectId);
         }
 
         /// <summary>
@@ -169,7 +164,7 @@ namespace September.InGame.Effect
         /// <param name="effectId">エフェクトID（ループエフェクトの場合のみ使用）</param>
         /// <param name="parentNetworkId">親オブジェクトのNetworkID</param>
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, string effectId, NetworkId parentNetworkId)
+        private void RPC_PlayEffect(EffectType effectType, Vector3 position, Quaternion rotation, bool isLoop, EffectID effectId, NetworkId parentNetworkId)
         {
             if (_effectDatabase == null)
             {
@@ -235,7 +230,7 @@ namespace September.InGame.Effect
                 Debug.LogWarning($"エフェクト '{effectType}' にParticleSystemが見つかりません");
                 
                 // ループエフェクトでParticleSystemがない場合も辞書に追加
-                if (isLoop && !string.IsNullOrEmpty(effectId))
+                if (isLoop && effectId.IsValid)
                 {
                     _activeEffects[effectId] = effect;
                 }
@@ -246,7 +241,7 @@ namespace September.InGame.Effect
         /// スケール付きエフェクト再生RPC
         /// </summary>
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_PlayEffectWithScale(EffectType effectType, Vector3 position, Quaternion rotation, Vector3 scale, bool isLoop, string effectId, NetworkId parentNetworkId)
+        private void RPC_PlayEffectWithScale(EffectType effectType, Vector3 position, Quaternion rotation, Vector3 scale, bool isLoop, EffectID effectId, NetworkId parentNetworkId)
         {
             if (_effectDatabase == null)
             {
@@ -301,16 +296,65 @@ namespace September.InGame.Effect
             }
             else
             {
-                if (isLoop && !string.IsNullOrEmpty(effectId))
+                if (isLoop && effectId.IsValid)
                 {
                     _activeEffects[effectId] = effect;
                 }
             }
         }
 
+        /// <summary>
+        /// エフェクトをフェードアウトさせながら止めるRPC
+        /// </summary>
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_StopEffectGraduallyById(EffectID effectId)
+        {
+            if (_activeEffects.TryGetValue(effectId, out GameObject effect))
+            {
+                if (effect != null)
+                {
+                    var particleSystems = effect.GetComponentsInChildren<ParticleSystem>();
+
+                    if (particleSystems.Length > 0)
+                    {
+                        effect.transform.SetParent(null);
+
+                        float maxLifetime = 0f;
+
+                        foreach (var ps in particleSystems)
+                        {
+                            // 各 ParticleSystem の最大粒子寿命を取得
+                            float lifetime = ps.main.startLifetime.constantMax;
+                            if (lifetime > maxLifetime)
+                            {
+                                maxLifetime = lifetime;
+                            }
+
+                            // 新規放出をストップ
+                            ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                        }
+
+                        // 全ての粒子が消え去るタイミングで削除
+                        Destroy(effect, maxLifetime);
+
+                    }
+                    else
+                    {
+                        // ParticleSystem が無い場合は削除
+                        Destroy(effect);
+                    }
+                }
+                _activeEffects.Remove(effectId);
+            }
+            else
+            {
+                Debug.LogWarning($"[EffectSpawner] エフェクトID:{effectId} は存在しません");
+            }
+        }
+
         //エフェクトを止める
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_StopEffectById(string effectId)
+        private void RPC_StopEffectById(EffectID effectId)
         {
             if (_activeEffects.TryGetValue(effectId, out GameObject effect))
             {
@@ -320,7 +364,13 @@ namespace September.InGame.Effect
                 }
                 _activeEffects.Remove(effectId);
             }
+            else
+            {
+                Debug.LogWarning($"[EffectSpawner] エフェクトID:{effectId} は存在しません");
+            }
         }
+
+
 
         private void OnDestroy()
         {

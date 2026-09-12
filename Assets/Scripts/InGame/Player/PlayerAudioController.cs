@@ -8,8 +8,6 @@ using UnityEngine.Playables;
 using CriWare;
 using Cysharp.Threading.Tasks;
 using System.Threading;
-using System;
-using InGame.Player;
 
 namespace September.InGame
 {
@@ -41,31 +39,9 @@ namespace September.InGame
         private MoveType _lastDominant = MoveType.Walk; // 揺らぎ防止 初期 Walk
         private float SwitchThreshold = 0.15f;          // 切替に必要な差
 
-        private static readonly string _inGameSceneName = "InGameMock"; // BGM変更用シーン名
-
         [Header("Debug用")]
         [SerializeField, Range(0f, 5f)] private float _debugBGMVolume = 1f;
         [SerializeField, Range(0f, 5f)] private float _debugSEVolume = 1f;
-
-        private void OnEnable()
-        {
-            BGMManager.OnBGMSwiching += HandleBGMChanged;
-        }
-
-        private void OnDisable()
-        {
-            BGMManager.OnBGMSwiching -= HandleBGMChanged;
-        }
-
-        private void HandleBGMChanged(string arg1, string arg2)
-        {
-            if (!HasInputAuthority) return;
-            // インゲームBGMをキャラの種類ごとに流す
-            GetSessionPlayerData(Object.InputAuthority.RawEncoded, out var data);
-            _characterData = CharacterDataContainer.Instance.GetCharacterData(data.CharacterType);          // キャラクター種類の取得(位置変えたほうがいいかも)
-            if (string.IsNullOrEmpty(_characterData.BGM)) return;
-            CRIAudio.PlayBGM(_sheetName, _characterData.BGM); // キャラ毎のBGMを再生(BGMManager管理外)
-        }
 
         // 現在の優勢クリップを判定 Walk or Run
         private MoveType GetDominantAnimation()
@@ -113,6 +89,8 @@ namespace September.InGame
             _playerTransform = transform.root;
             _cameraTransform = Camera.main.transform;
             SetupListenerAsync(this.GetCancellationTokenOnDestroy()).Forget();
+
+            _characterData = CharacterDataContainer.Instance.GetCharacterData(LocalPlayer.CharacterType);
         }
 
         private async UniTask SetupListenerAsync(CancellationToken ct)

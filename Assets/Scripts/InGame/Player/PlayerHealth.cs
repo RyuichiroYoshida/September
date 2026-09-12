@@ -5,6 +5,7 @@ using Fusion;
 using InGame.Health;
 using September.Common;
 using September.InGame.Common.Stats;
+using September.InGame.Rules;
 using UnityEngine;
 
 namespace InGame.Player
@@ -22,6 +23,11 @@ namespace InGame.Player
         // event
         public event Action<HitData> OnHitTaken;
         public event Action<HitData> OnDeath;
+        /// <summary>
+        /// 気絶時のクライアント側演出用イベント。
+        /// ゲームロジック用のOnDeathとは分離し、全クライアントで発火する。
+        /// </summary>
+        public event Action<HitData> OnDeathVisual;
 
         /// <summary> 無敵 </summary> 無敵の set が　public なのどうなん
         [Networked, HideInInspector] public NetworkBool IsInvincible { get; set; }
@@ -52,14 +58,29 @@ namespace InGame.Player
                 // イベントの発火はStateAuthorityなのか？
                 OnHitTaken?.Invoke(hitData);
                 Debug.Log($"PlayerHealth: TakeHit - HitActionType: {hitData.HitActionType}, Amount: {hitData.Amount}, IsLastHit: {hitData.IsLastHit}");
-                if (!IsAlive) OnDeath?.Invoke(hitData);
+                if (!IsAlive)
+                {
+                    OnDeath?.Invoke(hitData);
+                    RPC_DeathVisual(hitData.TargetRef);
+                }
                 hitData.Executor?.HitExecution(hitData);
-                
+
+                IGameRule.CurrentRule.PlayerHitStrategy?.OnHitTaken(ref hitData);
+
                 PlayerDatabase.Instance.Server_AddDamageDealt(hitData.ExecutorRef, hitData.Amount);
                 PlayerDatabase.Instance.Server_AddDamageReceived(hitData.TargetRef, hitData.Amount);
             }
             
             //RPC_HitDebug(hitData.HitActionType);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_DeathVisual(PlayerRef targetRef)
+        {
+            OnDeathVisual?.Invoke(new HitData
+            {
+                TargetRef = targetRef,
+            });
         }
 
         void ApplyHit(ref HitData hitData)
@@ -70,7 +91,7 @@ namespace InGame.Player
                 return;
             }
 
-            if (hitData.HitActionType == HitActionType.Damage)
+            if (hitData.HitActionType.IsDamage())
             {
                 hitData.Amount = TakeDamage(hitData.Amount);
             }
@@ -106,7 +127,7 @@ namespace InGame.Player
         private async UniTask HitDebug(HitActionType actionType)
         {
             _renderer.GetPropertyBlock(_materialPropertyBlock);
-            _materialPropertyBlock.SetColor("_BaseColor", actionType == HitActionType.Damage ? Color.red : Color.green);
+            _materialPropertyBlock.SetColor("_BaseColor", actionType.IsDamage() ? Color.red : Color.green);
             _renderer.SetPropertyBlock(_materialPropertyBlock);
             try
             {
@@ -129,6 +150,7 @@ namespace InGame.Player
             OnHitTaken = null;
             Debug.Log("PlayerHealth: Despawned - OnHitTaken event handlers cleared");
             OnDeath = null;
+            OnDeathVisual = null;
             _cts.Cancel();
             _cts.Dispose();
         }

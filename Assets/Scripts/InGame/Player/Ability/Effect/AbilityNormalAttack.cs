@@ -31,11 +31,16 @@ namespace InGame.Player.Ability
         [SerializeField] private AnimationClip _normalAttackAnimationClip;
         [SerializeField] private AnimationClipPlayer _animationClipPlayer;
 
+        // 攻撃中は方向を固定するため、旧オートエイム設定は無効化する。
+        /*
         [Header("自動エイム設定")]
         [SerializeField] private bool _enableAutoAim = true;
+        */
         [SerializeField] protected float _moveForwardSpeed = 2f;
+        /*
         [Header("どれくらいの距離までの敵を狙って攻撃するか")]
         [SerializeField] private float _searchRadius = 2f;
+        */
 
         [Header("Hit Box 設定")]
         [SerializeField] private Vector3 _boxHalfExtents = new Vector3(0.45f, 0.85f, 0.45f);
@@ -62,10 +67,13 @@ namespace InGame.Player.Ability
         // 攻撃開始Tick
         protected int _attackStartTick = -1;
 
+        /*
         // 最も近い敵のTransform
         protected Transform _closestEnemyTransform;
+        */
         protected PlayerMovement _playerMovement;
         protected EffectSpawner _effectSpawner;
+        protected Vector3 _attackDirection;
 
         protected override void OnStart()
         {
@@ -85,15 +93,24 @@ namespace InGame.Player.Ability
 
             // PlayerMovementコンポーネントを取得
             _playerMovement = Parameter.Owner.GetComponent<PlayerMovement>();
+            _attackDirection = _playerInput.DesiredLookDirection;
+            _attackDirection.y = 0f;
+            if (_attackDirection.sqrMagnitude <= Mathf.Epsilon)
+                _attackDirection = Parameter.Owner.transform.forward;
 
+            _playerMovement.SetRotationImmediately(_attackDirection);
+
+            /*
             // 自動エイムが有効な場合のみ最も近い敵を取得
             if (_enableAutoAim)
             {
                 _closestEnemyTransform = GetClosestEnemy();
             }
+            */
 
             _startHitTick = FrameToTick(_startHitCheckFrame);
             _playerMovement.IgnoreMoveInput = true;
+            _playerMovement.IgnoreEvasionInput = true;
 
 #if UNITY_EDITOR
             if (_buildGenerator & _playerStatus)
@@ -238,6 +255,9 @@ namespace InGame.Player.Ability
             int now = Runner.Tick;
             int elapsed = now - _attackStartTick;
 
+            _playerMovement.SetRotationDirection(_attackDirection);
+
+            /*
             // 最も近い敵の方向を向く
             if (_closestEnemyTransform != null && _playerMovement != null)
             {
@@ -249,6 +269,7 @@ namespace InGame.Player.Ability
                     _playerMovement.SetRotationDirection(directionToEnemy);
                 }
             }
+            */
 
             // ヒット窓
             bool inWindow = elapsed >= _startHitTick && elapsed < _endHitTick;
@@ -270,6 +291,7 @@ namespace InGame.Player.Ability
             if (elapsed >= _endAttackTick)
             {
                 _playerMovement.IgnoreMoveInput = false;
+                _playerMovement.IgnoreEvasionInput = false;
                 RequestEndAbility();
             }
         }
@@ -281,6 +303,7 @@ namespace InGame.Player.Ability
             return Mathf.RoundToInt((f / fps) / dt);
         }
 
+        /*
         private Transform GetClosestEnemy()
         {
             try
@@ -314,6 +337,7 @@ namespace InGame.Player.Ability
                 return null;
             }
         }
+        */
     }
 }
 

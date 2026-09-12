@@ -41,5 +41,7 @@ namespace InGame.Common
             instance = null;
             return false;
         }
+
+        public static async UniTask<T> GetInstance() => await Load();
     }
 }

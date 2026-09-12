@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TanihiraAimingDescription
   m_EditorClassIdentifier: 
   Actions:
-  - ActionName: Ability3
+  - ActionName: Attack
     Action: {fileID: 1167335360411344536, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     Icon: {fileID: 21300000, guid: 5a578a950d04d664a872369b3c2ce31d, type: 3}
     Description: "\u30DA\u30F3\u30AE\u30F3\u3092\u5411\u304B\u308F\u305B\u308B"

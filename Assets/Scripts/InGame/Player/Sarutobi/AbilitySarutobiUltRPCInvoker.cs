@@ -11,17 +11,19 @@ namespace InGame.Player.Sarutobi
         [SerializeField] private PlayableDirector _playableDirector;
         [SerializeField] private TimelineAsset _startTimeline;
         [SerializeField] private TimelineAsset _endTimeline;
+        [SerializeField] private float _cameraInDuration = 0f;
+        [SerializeField] private float _cameraOutDuration = 1f;
 
         [Rpc]
         public void RPC_ChangeCameraOffset(Vector3 offset)
         {
-            _cameraController.ChangeOffset(offset, 2f);
+            _cameraController.ChangeOffset(offset, 　_cameraInDuration);
         }
 
         [Rpc]
         public void RPC_ResetCameraOffset()
         {
-            _cameraController.ResetOffset(2f);
+            _cameraController.ResetOffset(_cameraOutDuration);
         }
 
         [Rpc]

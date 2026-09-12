@@ -51,7 +51,7 @@ namespace InGame.Player.Ability.Effect
 
             _throwKunai.SetBulletCount(1 + _addProjectileCount);
 
-            _ultKunai.StartEffect();
+            _ultKunai.StartStance();
             _ultKunai.OnThrow += StartLanding;
         }
 
@@ -59,10 +59,9 @@ namespace InGame.Player.Ability.Effect
         {
             NetworkObject player = Parameter.Owner;
             _playerManager.RPC_SetUseGrav(false);
-            _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.ForcedControl);
+            _playerManager.SetControlState(PlayerManager.PlayerControlState.ForcedControl);
             _originalPosition = player.transform.position;
             _endPosition = player.transform.position + Vector3.up * _jumpHeight;
-            _cameraController.ChangeOffset(_cameraOffset, 0f);
             _rpcInvoker.RPC_ChangeCameraOffset(_cameraOffset);
             _animationClipPlayerManager.EnableFallMotion = false;
         }
@@ -109,7 +108,7 @@ namespace InGame.Player.Ability.Effect
         {
             _rpcInvoker.RPC_ResetCameraOffset();
             _playerManager.RPC_SetUseGrav(true);
-            _playerManager.RPC_SetControlState(PlayerManager.PlayerControlState.Normal);
+            _playerManager.SetControlState(PlayerManager.PlayerControlState.Normal);
             _isLanding = false;
             _animationClipPlayerManager.EnableFallMotion = true;
         }

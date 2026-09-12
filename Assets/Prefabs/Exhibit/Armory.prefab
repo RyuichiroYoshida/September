@@ -1,5 +1,37 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1703654344451070541
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1883217362044485862}
+  m_Layer: 11
+  m_Name: Mesh
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1883217362044485862
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1703654344451070541}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6508634959133482776}
+  m_Father: {fileID: 1605890060057589556}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5344940182192764311
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,13 +41,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1605890060057589556}
-  - component: {fileID: 8127163936404311049}
-  - component: {fileID: 4039633596589637880}
   - component: {fileID: 5828656481618988257}
   - component: {fileID: 373157578816395978}
   - component: {fileID: 1069073459263324954}
   - component: {fileID: 5346824491244401101}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Armory
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34,62 +64,10 @@ Transform:
   m_LocalPosition: {x: 6.84, y: -9.94, z: 4.98}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1883217362044485862}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &8127163936404311049
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5344940182192764311}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &4039633596589637880
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5344940182192764311}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5828656481618988257
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -110,7 +88,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &373157578816395978
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -145,13 +123,13 @@ MonoBehaviour:
     values:
     - 7.5
   _characterEffects:
-  - rid: 4418194648007966877
+  - rid: 2115540685324288109
   _type: 14
   _interactEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectTransform: {fileID: 0}
-  _cooldownEffectOffset: {x: 0, y: -0.36, z: 0}
+  _cooldownEffectOffset: {x: 0, y: 0, z: 0}
   _cooldownEffectRotation: {x: 0, y: 0, z: 0}
-  _cooldownEffectScale: {x: 0.67, y: 1.75, z: 1}
+  _cooldownEffectScale: {x: 1, y: 1, z: 1}
   _interactEffectType: 9
   _cooldownEffectType: 10
   _spawnCooldownEffectOnStart: 1
@@ -165,32 +143,34 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 4418194648007966877
+    - rid: 2115540685324288109
       type: {class: ArmoryInteractEffect, ns: InGame.Exhibit, asm: Scripts}
       data:
         _characterType: 5
-        _addAbility:
-          rid: 4418194648007966878
-        _addAbilityCondition:
-          rid: 4418194648007966879
+        _addAbilities:
+        - rid: 2115540685324288128
+        - rid: 2115540685324288131
+        _addAbilityConditions:
+        - rid: 2115540685324288129
+        - rid: 2115540685324288144
         _overrideDisabledAbilities:
         - AbilityNormalAttack
         - AbilityHammerAttack
         - AbilityMultiHitAttack
-        _duration: 5
-    - rid: 4418194648007966878
-      type: {class: AbilityMultiHitAttack, ns: InGame.Player.Ability, asm: Scripts}
+        _duration: 45
+    - rid: 2115540685324288128
+      type: {class: AbilityExcaliburAttack, ns: InGame.Player.Ability, asm: Scripts}
       data:
         _cooldown: 0
         _phase: 0
         IsEnabled: 1
-        _attackDamage: 10
-        _ogreAttackDamage: 15
+        _attackDamage: 60
+        _ogreAttackDamage: 70
         _startHitCheckFrame: 17
         _endHitCheckFrame: 21
-        _endAttackFrame: 22
+        _endAttackFrame: 33
         _hitEffect: 18
-        _normalAttackAnimationClip: {fileID: 7400000, guid: a487619fcfe31c84fb9a904ec7a0e774, type: 2}
+        _normalAttackAnimationClip: {fileID: 1827226128182048838, guid: 2408b1d8c471eb04182b2e74ec875a15, type: 3}
         _animationClipPlayer: {fileID: 0}
         _enableAutoAim: 1
         _moveForwardSpeed: 2
@@ -206,15 +186,32 @@ MonoBehaviour:
         _debugDrawDuration: 1
         _buildGenerator: {fileID: 0}
         _playerStatus: {fileID: 0}
-        _attackFrames:
-        - Start: 8
-          End: 12
-        - Start: 18
-          End: 20
-    - rid: 4418194648007966879
+    - rid: 2115540685324288129
       type: {class: AbilityNormalAttackExecuteCondition, ns: InGame.Player.Ability, asm: Scripts}
       data:
-        _targetAbilityName: AbilityMultiHitAttack
+        _targetAbilityName: AbilityExcaliburAttack
+    - rid: 2115540685324288131
+      type: {class: AbilityStampingAttack, ns: InGame.Exhibit, asm: Scripts}
+      data:
+        _cooldown: 0
+        _phase: 0
+        IsEnabled: 1
+        _attackedFreezeTime: 0.7
+        _attackAnimation: {fileID: 7400000, guid: a688dc165013d654d84f9e3c24b900e0, type: 2}
+        _fallAnimation: {fileID: 7400000, guid: 7bbd6d80626ccbd438383b59cbd9bac7, type: 2}
+        _landingAnimation: {fileID: 7400000, guid: a8b4238a4cdbfc74b97784c0e4b1cd90, type: 2}
+        _shockwavePrefab: {fileID: -572721302402780480, guid: 9bb22eb35d0c54d4ba71da4a01afa24e, type: 3}
+        _shockwaveMinSize: 0.1
+        _shockwaveScaleDuration: 0.3
+        _attackDuration: 0.4
+        _attackRange: 10
+        _damageAmount: 50
+        _knockBackPower: 100
+    - rid: 2115540685324288144
+      type: {class: AbilityStampingAttackCondition, ns: InGame.Player.Ability.Condition, asm: Scripts}
+      data:
+        _targetAbilityName: AbilityStampingAttack
+        _button: 0
 --- !u!114 &5346824491244401101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -235,3 +232,69 @@ MonoBehaviour:
   - {fileID: 373157578816395978}
   - {fileID: 1069073459263324954}
   ForceRemoteRenderTimeframe: 0
+--- !u!1001 &2110410903924827498
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1883217362044485862}
+    m_Modifications:
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5499227366912401608, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_Name
+      value: Excalibur
+      objectReference: {fileID: 0}
+    - target: {fileID: 5499227366912401608, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+--- !u!4 &6508634959133482776 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5123687403157715570, guid: 897d966c38c63b543ada2204bca538cb, type: 3}
+  m_PrefabInstance: {fileID: 2110410903924827498}
+  m_PrefabAsset: {fileID: 0}

@@ -50,7 +50,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _AlphaTransitionMap:
-        m_Texture: {fileID: 2800000, guid: 571a0eede4444744f8f300a41d14a3e9, type: 3}
+        m_Texture: {fileID: 2800000, guid: f45f3b901f246694e9290e4a37534ab1, type: 3}
         m_Scale: {x: 1, y: 0.2}
         m_Offset: {x: 0, y: 0}
     - _AlphaTransitionMap2DArray:
@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlphaTransitionMapSecondTexture:
-        m_Texture: {fileID: 2800000, guid: 571a0eede4444744f8f300a41d14a3e9, type: 3}
+        m_Texture: {fileID: 2800000, guid: f45f3b901f246694e9290e4a37534ab1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlphaTransitionMapSecondTexture2DArray:
@@ -74,7 +74,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: b0ccb414e470f5447b71e85bb4280a0b, type: 3}
+        m_Texture: {fileID: 2800000, guid: 745d7d258b7ae3340a7b7188a943b226, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap2DArray:
@@ -118,7 +118,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FlowMap:
-        m_Texture: {fileID: 2800000, guid: 571a0eede4444744f8f300a41d14a3e9, type: 3}
+        m_Texture: {fileID: 2800000, guid: f45f3b901f246694e9290e4a37534ab1, type: 3}
         m_Scale: {x: 1, y: 2}
         m_Offset: {x: 0, y: 0}
     - _GradientMap:

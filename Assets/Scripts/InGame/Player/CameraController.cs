@@ -1,6 +1,8 @@
-using Cinemachine;
 using Common.UserSettings;
 using DG.Tweening;
+using NaughtyAttributes;
+using September.Common;
+using Unity.Cinemachine;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -21,10 +23,18 @@ namespace InGame.Player
         [Header("CameraMotion")]
         [SerializeField] private float _motionDuration;
         [SerializeField] private Ease _motionEase;
+        [SerializeField, Min(0f), Tooltip("ロックオン対象へカメラを向ける角速度")]
+        private float _lockOnRotationSpeed = 360f;
+        [Header("AngleLimit")]
+        [SerializeField] private bool _enablePitchAngleLimit;
+        [SerializeField, ShowIf(nameof(_enablePitchAngleLimit))] private MinMaxRange _pitchAngleLimit = new(-90, 90);
+        [SerializeField] private bool _enableYawAngleLimit;
+        [SerializeField, ShowIf(nameof(_enableYawAngleLimit))] private MinMaxRange _yawAngleLimit = new(-180, 180);
         
         // camera rotation
         Quaternion _defaultRotation;
         private float _defaultPitch;
+        private float _defaultYaw;
         private float _cameraPitch;
         private float _cameraYaw;
         private bool _isInRotation;
@@ -34,6 +44,32 @@ namespace InGame.Player
         private Vector3 _currentOffset;
         private Vector3 _defaultOffset;
         Tweener _offsetTweener;
+        
+        public float CameraPitch => _cameraPitch;
+        public float CameraYaw => _cameraYaw;
+
+        // ジップライン使用時に台車の位置にカメラを追従させるための変数
+        private Transform _rideTarget;
+        private Vector3 _rideOffset;
+        private Vector3 _ridePivotOffset;
+        private Vector3 _savedPivotLocalPosition;
+
+        // カメラのローカル位置と本体からのオフセットを保存し、追従先の台車を設定する。
+        public void BeginRideView(Transform target, Vector3 offset)
+        {
+            if (_rideTarget != null) EndRideView();
+            _savedPivotLocalPosition = _cameraPivot.localPosition;
+            _ridePivotOffset = _cameraPivot.position - transform.position;
+            _rideTarget = target;
+            _rideOffset = offset;
+        }
+
+        // 台車への追従を終了し、カメラを保存したローカル位置へ戻す。
+        public void EndRideView()
+        {
+            _rideTarget = null;
+            _cameraPivot.localPosition = _savedPivotLocalPosition;
+        }
 
         public void Init(bool use)
         {
@@ -43,12 +79,18 @@ namespace InGame.Player
             // Prefabの初期状態をデフォルトとして保存
             _defaultRotation = _cameraPivot.localRotation;
             _defaultPitch = _defaultRotation.eulerAngles.x;
+            _defaultYaw = _cameraPivot.rotation.eulerAngles.y;
             _currentOffset = _cameraTf.localPosition;
             _defaultOffset = _cameraTf.localPosition;
+
+            SetCameraRotate(_defaultPitch, _defaultYaw);
         }
 
         private void LateUpdate()
         {
+            // 台車位置に乗車オフセットとカメラのオフセットを加え、カメラ支点の位置を更新する。
+            if (_rideTarget != null)
+                _cameraPivot.position = _rideTarget.position + _rideOffset + _ridePivotOffset;
             CheckCameraDistance();
         }
 
@@ -64,14 +106,48 @@ namespace InGame.Player
                 GameInput.I.UseDeviceType == GameInput.DeviceType.KeyboardMouse 
                 ? _sens * settings.MouseSensitivity 
                 : _padSens * settings.PadSensitivity;
-            
+
             float deltaX = mouseInput.y, deltaY = mouseInput.x;
             _cameraPitch -= deltaX * deltaTime * sens;
-            _cameraPitch = Mathf.Clamp(_cameraPitch, -90 + _defaultPitch, 90 - _defaultPitch);
-            _cameraYaw += deltaY * sens * deltaTime;
-            _cameraYaw = ToAngle(_cameraYaw);
-            
+            _cameraYaw += deltaY * deltaTime * sens;
+            SetCameraRotate(_cameraPitch, _cameraYaw);
+        }
+
+        public void SetCameraRotate(float pitch, float yaw)
+        {
+            _cameraPitch = _enablePitchAngleLimit
+                ? Mathf.Clamp(pitch, _defaultPitch - _pitchAngleLimit.Max, _defaultPitch - _pitchAngleLimit.Min)
+                : Mathf.Clamp(pitch, -89.9f, 89.9f);
+
+            _cameraYaw = _enableYawAngleLimit
+                ? Mathf.Clamp(yaw, _defaultYaw + _yawAngleLimit.Min, _defaultYaw + _yawAngleLimit.Max)
+                : ToAngle(yaw);
+
             _cameraPivot.rotation = Quaternion.Euler(_cameraPitch, _cameraYaw, 0);
+        }
+
+        /// <summary>
+        /// カメラの上下角度を維持しながら、指定位置の水平方向へカメラを向ける
+        /// </summary>
+        public void RotateCameraYawTowards(Vector3 targetPosition, float deltaTime)
+        {
+            if (_rotateTweener.IsActive())
+                _rotateTweener.Kill();
+
+            _isInRotation = false;
+
+            Vector3 targetDirection = targetPosition - _cameraPivot.position;
+            targetDirection.y = 0f;
+            if (targetDirection.sqrMagnitude <= Mathf.Epsilon)
+                return;
+
+            float targetYaw = Quaternion.LookRotation(targetDirection).eulerAngles.y;
+            float nextYaw = Mathf.MoveTowardsAngle(
+                _cameraYaw,
+                targetYaw,
+                _lockOnRotationSpeed * deltaTime);
+
+            SetCameraRotate(_cameraPitch, nextYaw);
         }
         
         /// <summary>
@@ -83,6 +159,11 @@ namespace InGame.Player
         /// カメラの右方向（XZ）を返す
         /// </summary>
         public Vector3 GetCameraRight() => _cameraTf.right.normalized;
+        
+        /// <summary>
+        /// カメラの現在位置を返す
+        /// </summary>
+        public Vector3 GetCameraPosition() => _cameraTf.position;
 
 
         /// <summary> 障害物に応じてカメラの距離を変える </summary>
@@ -184,7 +265,9 @@ namespace InGame.Player
             ChangeOffset(_defaultOffset, duration);
         }
 
-        /// <summary> 0 <= return < 360 </summary>
+        /// <summary>
+        /// 0 &lt;= return &lt; 360
+        /// </summary>
         private static float ToAngle(float angle)
         {
             while (true)

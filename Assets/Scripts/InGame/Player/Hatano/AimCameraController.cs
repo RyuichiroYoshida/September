@@ -1,5 +1,5 @@
-using Cinemachine;
 using Fusion;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class AimCameraController : NetworkBehaviour

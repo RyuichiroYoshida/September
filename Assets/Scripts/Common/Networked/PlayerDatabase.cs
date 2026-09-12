@@ -49,6 +49,14 @@ namespace September.Common
             }
         }
 
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            if (Instance == this)
+                Instance = null;
+
+            _serverTrackers.Clear();
+        }
+
         public void Server_AddExhibit(PlayerRef actor, ExhibitType type)
         {
             if (!Object.HasStateAuthority)
@@ -97,6 +105,18 @@ namespace September.Common
             }
 
             tracker.AddDestroyed(type);
+            UpdatePlayerScore(actor, tracker);
+        }
+
+        public void Server_AddKrakenDamageScore(PlayerRef actor, int damage)
+        {
+            if (!Object.HasStateAuthority)
+                return;
+
+            if (!_serverTrackers.TryGetValue(actor, out ScoreTracker tracker))
+                _serverTrackers[actor] = tracker = new ScoreTracker(_config);
+
+            tracker.AddKrakenDamage(damage);
             UpdatePlayerScore(actor, tracker);
         }
 
@@ -215,6 +235,7 @@ namespace September.Common
             }
             sb.Append("|G:").Append(tracker.GrapplingHookCount);
             sb.Append("|F:").Append(tracker.FriendExhibitCount);
+            sb.Append("|K:").Append(tracker.KrakenDamageScore);
             return sb.ToString();
         }
 
@@ -345,8 +366,10 @@ namespace September.Common
 
         private void OnDestroy()
         {
-            if (Object && Object.HasStateAuthority)
-                _serverTrackers.Clear();
+            if (Instance == this)
+                Instance = null;
+
+            _serverTrackers.Clear();
         }
     }
 }

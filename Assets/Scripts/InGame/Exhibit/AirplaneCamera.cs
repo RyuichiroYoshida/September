@@ -1,6 +1,6 @@
-using Cinemachine;
 using Common.UserSettings;
 using DG.Tweening;
+using Unity.Cinemachine;
 using UnityEngine;
 
 namespace InGame.Exhibit

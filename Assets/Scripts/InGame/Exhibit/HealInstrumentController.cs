@@ -45,7 +45,7 @@ namespace InGame.Exhibit
 
     public enum StatusUpType
     {
-        Heal,Ogre,Tutankhamen,BokeBoke,None
+        Heal,Ogre,Tutankhamen,BokeBoke,JewelrySpawn,None
     }
 }
 

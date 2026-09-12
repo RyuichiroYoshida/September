@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Cinemachine;
 using CRISound;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -13,6 +12,7 @@ using September.InGame.Common.Stats;
 using September.InGame.Performances;
 using September.InGame.Rules;
 using September.InGame.UI;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -40,6 +40,8 @@ namespace September.Common
 
         protected internal override void OnEnter()
         {
+            BGMManager.StopBGM();
+
             if (_fadeImage) _fadeImage.gameObject.SetActive(true);
             HideCursor();
             UIController.I.SetUpStartUI();
@@ -187,10 +189,11 @@ namespace September.Common
                 }
             }
 
+            // 準備フェーズ開始 - 全クライアントで移動入力を有効化
+
             _startCamera.Priority = -999;
 
-            //  準備フェーズ - 全クライアントで移動入力を有効化
-            BGMManager.ReleseFlag();
+            BGMManager.ChangeBGM(SceneManager.GetActiveScene().name).Forget();
 
             // タイマー開始
             UIController.I.StartTimer(Context.Runner);
